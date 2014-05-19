@@ -2,7 +2,7 @@
  * Framework
  */
 
-(function () {
+(function() {
 
     // Caller as array method
     var _arr = [];
@@ -135,14 +135,55 @@
 
     };
 
+
+    var Router = function() {
+
+        this.init && this.init();
+        
+        var _this = this;
+        if (!Router.isListen) {
+
+            var onHash = function() {
+                var hash = location.hash.slice(1);
+                if (Router.routers[hash]) {
+                    $.each(Router.routers[hash], function() {
+                        this();
+                    });
+                }
+            };
+
+            $(window).on('hashchange', onHash);
+
+            // Default hash handle when dom is ready
+            $(onHash);
+
+            Router.isListen = true;
+        }
+        
+        $.each(this.router, function(hash, handle) {
+            handle = _this[handle].bind(_this);
+            if (Router.routers) {
+                if (Router.routers[hash]) {
+                   Router.routers[hash].push(handle); 
+                } else {
+                    Router.routers[hash] = [handle];
+                }
+            } else {
+                Router.routers = {};
+                Router.routers[hash] = [handle];
+            }
+        });
+    };
+
     var Trunk = {};
 
     Trunk.Model = Model;
     Trunk.Models = Models;
     Trunk.View = View;
+    Trunk.Router = Router;
 
-    Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = extend;
+    Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
 
     this.Trunk = Trunk;
-    
+
 }).call(this);
