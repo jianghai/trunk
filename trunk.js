@@ -115,15 +115,15 @@
     var View = function() {
         $.extend(true, this, arguments[0]);
         this.model && (this.model.view = this);
-        
+
         if (!this.el && this.tag) {
             this.el = $('<' + this.tag + '>');
         }
-        
+
         if (this.events) {
             // events is a collection of dom events of the view
             var _this = this;
-            
+
             $.each(this.events, function(k, v) {
 
                 k = k.split(' ');
@@ -143,15 +143,15 @@
     var Router = function() {
 
         this.init && this.init();
-        
+
         var _this = this;
-        
+
         // Bind router rules
         $.each(this.router, function(rule, handle) {
             handle = _this[handle];
             if (Router.routers) {
                 if (Router.routers[rule]) {
-                   Router.routers[rule].push(handle); 
+                    Router.routers[rule].push(handle);
                 } else {
                     Router.routers[rule] = [handle];
                 }
@@ -159,11 +159,13 @@
                 Router.routers = {};
                 Router.routers[rule] = [handle];
             }
-            if (rule.indexOf(':') !== -1) {
+            if (/\*|\:/.test(rule)) {
                 if (!Router.regs) {
                     Router.regs = {};
                 }
-                var reg = rule.replace(/\//g, '\\\/').replace(/:.+[^\/]/g, '([^\\\/.]+)');
+                var reg = rule.replace(/:[^\/.]+/g, '(.+)')
+                    .replace(/\*/g, '.*')
+                    .replace(/\//g, '\\\/');
                 reg = '^' + reg + '$';
                 Router.regs[rule] = new RegExp(reg);
             }
