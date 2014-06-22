@@ -55,30 +55,62 @@
             Parent.apply(this, arguments);
         };
         $.extend(true, Child.prototype, events, Parent.prototype, obj);
+
+        // Make it could be extended
+        Child.extend = extend;
+
         return Child;
     };
 
     var Model = function(attr) {
         this.init && this.init();
-        this.attr = attr || {};
+        this.attr = $.extend(true, {}, this.defaults, attr);
         this.trigger('create');
+        if (this.rules) this.error = {};
     };
 
     Model.prototype = {
 
+        /**
+         * If the data is inValid, return undefined
+         */
         set: function(attr) {
             if (attr instanceof Object) {
                 $.extend(this.attr, attr);
+
+                // Data validate
+                if (this.error) {
+                    // Only validate the argemtns of set 
+                    this.validate(attr);
+                    this.trigger('validate');
+                    if (JSON.stringify(this.error) !== '{}') return;
+                }
                 // Check if really changed 
                 // ...
-                this.trigger('change');
+                this.trigger('change', attr);
                 this.models && this.models.trigger('change');
             }
+            return this;
         },
 
         remove: function() {
             this.view.el.remove();
             this.models.reduce(this);
+        },
+
+        validate: function(data) {
+            var _this = this;
+            $.each(data, function(k, item) {
+                if (_this.rules[k]) {
+                    var msg = _this.rules[k](item);
+                    if (msg) {
+                        _this.error[k] = msg;
+                        return false;
+                    } else {
+                        delete _this.error[k];
+                    }
+                }
+            });
         }
     };
 
@@ -95,12 +127,14 @@
             var model = new this.model(attr);
             this.list.push(model);
             this.trigger('add', model);
+            this.trigger('change');
         },
 
         reduce: function(model) {
             var index = $.inArray(model, this.list);
             this.list.splice(index, 1);
             this.trigger('reduce', model);
+            this.trigger('change');
         },
 
         each: function(fn) {
@@ -115,6 +149,7 @@
     var View = function() {
         $.extend(true, this, arguments[0]);
         this.model && (this.model.view = this);
+        this.model && this.model.models && (this.models = this.model.models);
 
         if (!this.el && this.tag) {
             this.el = $('<' + this.tag + '>');
@@ -164,7 +199,7 @@
                     Router.regs = {};
                 }
                 var reg = rule.replace(/:[^\/.]+/g, '(.+)')
-                    .replace(/\*/g, '.*')
+                    .replace(/\*/g, '(.+)')
                     .replace(/\//g, '\\\/');
                 reg = '^' + reg + '$';
                 Router.regs[rule] = new RegExp(reg);
@@ -175,7 +210,26 @@
         if (!Router.isListen) {
 
             var onHash = function() {
-                var hash = location.hash.slice(1);
+                var hash = location.hash.slice(1).split('?');
+                if (hash[1]) {
+                    var param = {};
+                    $.each(hash[1].split('&'), function() {
+                        var single = this.split('=');
+                        if (single[0] in param) {
+                            if (!$.isArray(param[single[0]])) {
+                                param[single[0]] = [param[single[0]]];
+                            }
+                            param[single[0]].push(single[1]);
+                        } else {
+                            param[single[0]] = single[1];
+                        }
+                    });
+                    Trunk.get = param;
+                } else {
+                    // Don't forget to rest it!
+                    Trunk.get = null;
+                }
+                hash = hash[0];
                 if (Router.routers[hash]) {
                     $.each(Router.routers[hash], function() {
                         this.call(_this);
@@ -205,6 +259,7 @@
 
     var Trunk = {};
 
+    Trunk.events = events;
     Trunk.Model = Model;
     Trunk.Models = Models;
     Trunk.View = View;
