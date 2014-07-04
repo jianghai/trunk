@@ -23,6 +23,24 @@
             }
         },
 
+        one: function(name, handle) {
+            var _this = this;
+            this.on(name, function() {
+                handle.apply(_this, arguments);
+                _this.off(name, arguments.callee);
+            });
+        },
+
+        off: function(name, handle) {
+            if (this._events) {
+                if (!handle) {
+                    delete this._events[name];
+                } else {
+                    this._events[name].splice($.inArray(handle, this._events), 1);
+                }
+            }
+        },
+
         /**
          * Different from on is that the method listen could listen the first parameter
          * events and keyword this of the event handle is the caller of method listen
@@ -66,31 +84,25 @@
         this.init && this.init();
         this.attr = $.extend(true, {}, this.defaults, attr);
         this.trigger('create');
-        if (this.rules) this.error = {};
     };
 
     Model.prototype = {
 
-        /**
-         * If the data is inValid, return undefined
-         */
-        set: function(attr) {
+        set: function(attr, validate) {
             if (attr instanceof Object) {
-                $.extend(this.attr, attr);
 
-                // Data validate
-                if (this.error) {
-                    // Only validate the argemtns of set 
-                    this.validate(attr);
-                    this.trigger('validate');
-                    if (JSON.stringify(this.error) !== '{}') return;
+                // Validate if set
+                if (validate !== false && typeof this.validate === 'function') {
+                    if (!this.validate(attr)) return;
                 }
+
                 // Check if really changed 
                 // ...
+                $.extend(this.attr, attr);
                 this.trigger('change', attr);
                 this.models && this.models.trigger('change');
+                return true;
             }
-            return this;
         },
 
         remove: function() {
@@ -98,30 +110,37 @@
             this.models.reduce(this);
         },
 
-        validate: function(data) {
-            var _this = this;
-            $.each(data, function(k, item) {
-                if (_this.rules[k]) {
-                    var msg = _this.rules[k](item);
-                    if (msg) {
-                        _this.error[k] = msg;
-                        return false;
-                    } else {
-                        delete _this.error[k];
-                    }
-                }
-            });
+        // Insert a model after this to this.models
+        after: function(attr) {
+            var model = new this.constructor(attr);
+            this.models.list.splice(this.index() + 1, 0, model);
+            this.models.trigger('add', model);
+            this.models.trigger('change');
+        },
+
+        // Get index of this.models
+        index: function () {
+            return $.inArray(this, this.models.list);
+        },
+
+        // Get the model before this
+        prev: function () {
+            return this.models.list[this.index() - 1];
+        },
+
+        // Get the model after this
+        next: function () {
+            return this.models.list[this.index() + 1];
         }
     };
 
     var Models = function() {
+        this.list = [];
         // Create relationship between single model and it's models
         this.model.prototype.models = this;
     };
 
     Models.prototype = {
-
-        list: [],
 
         add: function(attr) {
             var model = new this.model(attr);
@@ -211,10 +230,13 @@
 
             var onHash = function() {
                 var hash = location.hash.slice(1).split('?');
+                Trunk.get = null;
                 if (hash[1]) {
                     var param = {};
                     $.each(hash[1].split('&'), function() {
                         var single = this.split('=');
+                        // Don't forget to decode the query string
+                        single[1] = decodeURIComponent(single[1]);
                         if (single[0] in param) {
                             if (!$.isArray(param[single[0]])) {
                                 param[single[0]] = [param[single[0]]];
@@ -225,9 +247,6 @@
                         }
                     });
                     Trunk.get = param;
-                } else {
-                    // Don't forget to rest it!
-                    Trunk.get = null;
                 }
                 hash = hash[0];
                 if (Router.routers[hash]) {
