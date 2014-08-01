@@ -37,6 +37,9 @@
                     delete this._events[name];
                 } else {
                     this._events[name].splice($.inArray(handle, this._events), 1);
+                    if (!this._events[name].length) {
+                        delete this._events[name];
+                    }
                 }
             }
         },
@@ -81,6 +84,9 @@
     };
 
     var Model = function(attr) {
+        if (typeof this.validate === 'function') {
+            this.validError = {};
+        }
         this.init && this.init();
         this.attr = $.extend(true, {}, this.defaults, attr);
         this.trigger('create');
@@ -92,8 +98,12 @@
             if (attr instanceof Object) {
 
                 // Validate if set
-                if (validate !== false && typeof this.validate === 'function') {
-                    if (!this.validate(attr)) return;
+                if (this.validError && validate !== false) {
+                    this.trigger('validate');
+                    if (!this.validate(attr)) {
+                        this.trigger('invalid', this.validError);
+                        return;
+                    }
                 }
 
                 // Check if really changed 
@@ -173,24 +183,34 @@
         if (!this.el && this.tag) {
             this.el = $('<' + this.tag + '>');
         }
-
-        if (this.events) {
-            // events is a collection of dom events of the view
-            var _this = this;
-
-            $.each(this.events, function(k, v) {
-
-                k = k.split(' ');
-
-                // Property el must be set and exist in dom
-                _this.el.on(k[0], k[1], _this[v].bind(_this));
-            });
-        }
+        this.delegateEvents();
+        
         this.init && this.init();
     };
 
     View.prototype = {
 
+        // Bind events using events delegation, this methdo was opened because sometimes the
+        // subView events need to be rebind manual because jQuery html will clean the events if
+        // the parentView use html to add a childView.
+        delegateEvents: function() {
+            if (this.events) {
+                // events is a collection of dom events of the view
+                var _this = this;
+
+                // Remove events avoid repeat events
+                this.el.off();
+
+                $.each(this.events, function(k, v) {
+                    
+                    k = k.split(' ');
+                    var args = [k.shift()];
+                    args.push(k.join(' '));
+
+                    _this.el.on(args[0], args[1], _this[v].bind(_this));
+                });
+            }
+        }
     };
 
 
