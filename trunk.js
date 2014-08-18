@@ -1,5 +1,5 @@
 /**
- * Framework
+ * My Backbone, jQuery required
  */
 
 (function() {
@@ -94,8 +94,20 @@
 
     Model.prototype = {
 
+        // Why not just read the property 'attr' to get what you want, Because by this method,
+        // the return value could be deep copied.
+        get: function(prop) {
+            var value = this.attr[prop];
+            var isObject = $.isPlainObject(value);
+            var isArray = $.isArray(value);
+            if (isObject || isArray) {
+                return $.extend(true, isObject && {} || [], value);
+            }
+            return value;
+        },
+
         set: function(attr, validate) {
-            if (attr instanceof Object) {
+            // if (attr instanceof Object) {
 
                 // Validate if set
                 if (this.validError && validate !== false) {
@@ -112,7 +124,13 @@
                 this.trigger('change', attr);
                 this.models && this.models.trigger('change');
                 return true;
-            }
+            // }
+        },
+
+        reset: function(attr) {
+            this.attr = $.extend(true, {}, this.defaults, attr);
+            this.trigger('change', attr);
+            this.models && this.models.trigger('change');
         },
 
         remove: function() {
@@ -141,6 +159,10 @@
         // Get the model after this
         next: function () {
             return this.models.list[this.index() + 1];
+        },
+
+        clone: function() {
+            return $.extend(true, {}, this.attr);
         }
     };
 
@@ -299,9 +321,9 @@
     var Trunk = {};
 
     Trunk.events = events;
-    Trunk.Model = Model;
+    Trunk.Model  = Model;
     Trunk.Models = Models;
-    Trunk.View = View;
+    Trunk.View   = View;
     Trunk.Router = Router;
 
     Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
