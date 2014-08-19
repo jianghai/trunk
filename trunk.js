@@ -168,14 +168,13 @@
 
     var Models = function() {
         this.list = [];
-        // Create relationship between single model and it's models
-        this.model.prototype.models = this;
     };
 
     Models.prototype = {
 
         add: function(attr) {
             var model = new this.model(attr);
+            model.models = this;
             this.list.push(model);
             this.trigger('add', model);
             this.trigger('change');
@@ -190,7 +189,7 @@
 
         each: function(fn) {
             $.each(this.list, function(i, n) {
-                fn.call(null, n);
+                fn.call(null, i, n);
             });
         }
 
