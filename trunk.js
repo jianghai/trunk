@@ -141,6 +141,7 @@
         // Insert a model after this to this.models
         after: function(attr) {
             var model = new this.constructor(attr);
+            model.models = this.models;
             this.models.list.splice(this.index() + 1, 0, model);
             this.models.trigger('add', model);
             this.models.trigger('change');
@@ -189,7 +190,7 @@
 
         each: function(fn) {
             $.each(this.list, function(i, n) {
-                fn.call(null, i, n);
+                fn.call(null, n, i);
             });
         }
 
@@ -197,19 +198,72 @@
 
 
     var View = function() {
+        
         $.extend(true, this, arguments[0]);
-        this.model && (this.model.view = this);
-        this.model && this.model.models && (this.models = this.model.models);
+
+        if (this.model) {
+
+            // Bind model
+            if (typeof this.model === 'function') {
+                this.model = new this.model();
+            }
+            this.modelProperty && $.extend(this.model, this.modelProperty);
+
+            this.model.view = this;
+
+            if (this.model.models) {
+                this.models = this.model.models;
+            }
+
+            // Events
+            this.listen(this.model, 'change', this.render);
+        }
 
         if (!this.el && this.tag) {
             this.el = $('<' + this.tag + '>');
         }
-        this.delegateEvents();
+        // this.delegateEvents();
         
         this.init && this.init();
     };
 
     View.prototype = {
+
+        // Equal to this.el.find()
+        $: function(selector) {
+            return this.el.find(selector);
+        },
+
+        extend: function(property) {
+            return $.extend(this, property);
+        },
+
+        show: function() {
+            this.delegateEvents();
+            if (this.model && this.model.fetch) {
+                this.model.fetch();
+            } else {
+                this.render();
+            }
+        },
+
+        render: function() {
+            this.template && this.el.html(this.model && this.template(this.model.attr) || this.template);
+            this.onRender();
+        },
+
+        // For composite view
+        onRender: function() {
+            var _this = this;
+
+            this.childViews && $.each(this.childViews, function(name, instance) {
+                instance.el = _this.$(instance.el);
+                if (instance.template && typeof instance.template !== 'function') {
+                    instance.template = vjs(_this.$(instance.template).html());
+                }
+                instance.show();
+            });
+        },
 
         // Bind events using events delegation, this methdo was opened because sometimes the
         // subView events need to be rebind manual because jQuery html will clean the events if
