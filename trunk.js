@@ -4,6 +4,8 @@
 
 (function() {
 
+    'use strict';
+
     // Caller as array method
     var _arr = [];
 
@@ -182,9 +184,10 @@
         },
 
         reduce: function(model) {
-            var index = $.inArray(model, this.list);
+            var index = typeof +model === 'number' ? model : $.inArray(model, this.list);
+            var _model =  this.list[index];
             this.list.splice(index, 1);
-            this.trigger('reduce', model);
+            this.trigger('reduce', _model);
             this.trigger('change');
         },
 
@@ -207,7 +210,7 @@
             if (typeof this.model === 'function') {
                 this.model = new this.model();
             }
-            this.modelProperty && $.extend(this.model, this.modelProperty);
+            this.modelProperty && $.extend(true, this.model, this.modelProperty);
 
             this.model.view = this;
 
@@ -222,6 +225,11 @@
         if (!this.el && this.tag) {
             this.el = $('<' + this.tag + '>');
         }
+
+        if (this.className) {
+            this.el.addClass(this.className);
+        }
+
         // this.delegateEvents();
         
         this.init && this.init();
@@ -248,6 +256,9 @@
         },
 
         render: function() {
+            if (this.template && typeof this.template !== 'function') {
+                this.template = vjs(this.$(this.template).html());
+            }
             this.template && this.el.html(this.model && this.template(this.model.attr) || this.template);
             this.onRender();
         },
@@ -257,9 +268,8 @@
             var _this = this;
 
             this.childViews && $.each(this.childViews, function(name, instance) {
-                instance.el = _this.$(instance.el);
-                if (instance.template && typeof instance.template !== 'function') {
-                    instance.template = vjs(_this.$(instance.template).html());
+                if (instance.el.selector || typeof instance.el === 'string') {
+                    instance.el = _this.$(instance.el.selector || instance.el);
                 }
                 instance.show();
             });
