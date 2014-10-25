@@ -268,7 +268,6 @@
         },
 
         show: function() {
-            this.delegateEvents();
             if (this.model && this.model.fetch) {
                 this.model.fetch();
             } else {
@@ -277,27 +276,43 @@
         },
 
         render: function() {
-            if (this.template && typeof this.template !== 'function') {
-                this.constructor.prototype.template = vjs($.call(!this.tag && this || window, this.template).html());
-            }
+
+            this.delegateEvents();
+
+            this._getTemplate();
             this.template && this.el.html(this.model && this.template(this.model.attr) || this.template);
             this.html && this.el.html(this.html);
             this.afterRender && this.afterRender();
             this.renderChildren();
         },
 
+        _getTemplate: function() {
+            if (typeof this.template === 'string') {
+                var _template = vjs($.call(!this.tag && this || window, this.template).html());
+                if (this.hasOwnProperty('template')) {
+                    this.template = _template;
+                } else {
+                    delete this.template;
+                    this.constructor.prototype.template = _template;
+                }
+            }
+        },
+
         // For composite view
         renderChildren: function() {
             var _this = this;
 
-            this.childViews && $.each(this.childViews, function(name, instance) {
-                if (typeof instance.el === 'string') {
-                    instance._el = instance.el;
+            this.childViews && $.each(this.childViews, function(name, child) {
+                if (typeof child.el === 'string') {
+                    child._el = child.el;
                 }
-                if (instance._el) {
-                    instance.el = _this.$(instance._el);
+                if (child._el) {
+                    child.el = _this.$(child._el);
                 }
-                instance.show();
+
+                _this._getTemplate.call(child);
+
+                child.show();
             });
         },
 
