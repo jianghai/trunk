@@ -7,9 +7,8 @@ module.exports = function(grunt) {
             options: {
                 banner: 
                     '/**\n' +
-                    ' * <%= pkg.name %>.min.js v<%= pkg.version%>\n' +
-                    ' * Available via the MIT or new BSD license.\n' +
-                    ' * see: http://github.com/jianghai/<%= pkg.name %> for details.\n' +
+                    ' * <%= pkg.name %>.min.js \n' +
+                    ' * http://github.com/jianghai/<%= pkg.name %>\n' +
                     ' */\n'
             },
             build: {

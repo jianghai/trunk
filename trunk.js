@@ -1,8 +1,20 @@
 /**
- * My Backbone, jQuery required
+ * Trunk, javascript mvc framework
+ * 
+ * http://github.com/jianghai/trunk
+ *
+ * ***********************************************
+ * 
+ * Requirements:
+ *   
+ *   jQuery: https://github.com/jquery/jquery
+ *   
+ *   vjs: https://github.com/jianghai/vjs
+ * 
+ * ***********************************************
  */
 
-(function() {
+(function(window, $, vjs) {
 
     'use strict';
 
@@ -77,6 +89,15 @@
         var Child = function() {
             Parent.apply(this, arguments);
         };
+
+        if (typeof Parent.prototype.init === 'function' && typeof obj.init === 'function') {
+            var temp = obj.init;
+            obj.init = function() {
+                Parent.prototype.init.call(this);
+                temp.call(this);
+            };
+        }
+
         $.extend(true, Child.prototype, events, Parent.prototype, obj);
 
         // Make it could be extended
@@ -257,19 +278,24 @@
 
         render: function() {
             if (this.template && typeof this.template !== 'function') {
-                this.template = vjs(this.$(this.template).html());
+                this.constructor.prototype.template = vjs($.call(!this.tag && this || window, this.template).html());
             }
             this.template && this.el.html(this.model && this.template(this.model.attr) || this.template);
-            this.onRender();
+            this.html && this.el.html(this.html);
+            this.afterRender && this.afterRender();
+            this.renderChildren();
         },
 
         // For composite view
-        onRender: function() {
+        renderChildren: function() {
             var _this = this;
 
             this.childViews && $.each(this.childViews, function(name, instance) {
-                if (instance.el.selector || typeof instance.el === 'string') {
-                    instance.el = _this.$(instance.el.selector || instance.el);
+                if (typeof instance.el === 'string') {
+                    instance._el = instance.el;
+                }
+                if (instance._el) {
+                    instance.el = _this.$(instance._el);
                 }
                 instance.show();
             });
@@ -391,6 +417,6 @@
 
     Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
 
-    this.Trunk = Trunk;
+    window.Trunk = Trunk;
 
-}).call(this);
+})(window, jQuery, vjs);
