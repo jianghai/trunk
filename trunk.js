@@ -107,9 +107,6 @@
     };
 
     var Model = function(attr) {
-        if (typeof this.validate === 'function') {
-            this.validError = {};
-        }
         this.init && this.init();
         this.attr = $.extend(true, {}, this.defaults, attr);
         this.trigger('create');
@@ -133,11 +130,11 @@
             // if (attr instanceof Object) {
 
                 // Validate if set
-                if (this.validError && validate !== false) {
-                    this.trigger('validate');
-                    if (!this.validate(attr)) {
-                        this.trigger('invalid', this.validError);
-                        return;
+                if (this.validate && validate !== false) {
+                    var res = this.validate(attr);
+                    if (res) {
+                        this.trigger('invalid', res);
+                        return false;
                     }
                 }
 
@@ -237,6 +234,10 @@
 
             if (this.model.models) {
                 this.models = this.model.models;
+            }
+
+            if (this.model.validate) {
+                this.listen(this.model, 'invalid', this.invalid);
             }
 
             // Events
