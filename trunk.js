@@ -126,11 +126,13 @@
             return value;
         },
 
-        set: function(attr, validate) {
+        set: function(attr, options) {
             // if (attr instanceof Object) {
 
+                options = options || {};
+
                 // Validate if set
-                if (this.validate && validate !== false) {
+                if (this.validate && options.validate !== false) {
                     var res = this.validate(attr);
                     if (res) {
                         this.trigger('invalid', res);
@@ -141,8 +143,11 @@
                 // Check if really changed 
                 // ...
                 $.extend(this.attr, attr);
-                this.trigger('change', attr);
-                this.models && this.models.trigger('change');
+
+                if (options.change !== false) {
+                    this.trigger('change', attr);
+                    this.models && this.models.trigger('change');
+                }
                 return true;
             // }
         },
@@ -226,7 +231,7 @@
 
             // Bind model
             if (typeof this.model === 'function') {
-                this.model = new this.model();
+                this.model = new this.model(this.modelProperty && this.modelProperty.defaults);
             }
             this.modelProperty && $.extend(true, this.model, this.modelProperty);
 
@@ -248,11 +253,13 @@
             this.el = $('<' + this.tag + '>');
         }
 
+        if (typeof this.el !== 'string') {
+            this.delegateEvents();
+        }
+
         if (this.className) {
             this.el.addClass(this.className);
         }
-
-        // this.delegateEvents();
         
         this.init && this.init();
     };
@@ -277,6 +284,8 @@
         },
 
         render: function() {
+
+            this.beforeRender && this.beforeRender();
 
             this.delegateEvents();
 
@@ -365,7 +374,7 @@
                     Router.regs = {};
                 }
                 var reg = rule.replace(/:[^\/.]+/g, '(.+)')
-                    .replace(/\*/g, '(.+)')
+                    .replace(/\*/g, '(.*)')
                     .replace(/\//g, '\\\/');
                 reg = '^' + reg + '$';
                 Router.regs[rule] = new RegExp(reg);
