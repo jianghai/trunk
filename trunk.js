@@ -253,7 +253,7 @@
             this.el = $('<' + this.tag + '>');
         }
 
-        if (typeof this.el !== 'string') {
+        if (typeof this.el === 'object') {
             this.delegateEvents();
         }
 
@@ -299,6 +299,9 @@
         _getTemplate: function() {
             if (typeof this.template === 'string') {
                 var _template = vjs($.call(!this.tag && this || window, this.template).html());
+                if (!_template) {
+                    throw new Error('Please make sure the template selector is correct.');
+                }
                 if (this.hasOwnProperty('template')) {
                     this.template = _template;
                 } else {
