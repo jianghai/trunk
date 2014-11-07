@@ -15,16 +15,6 @@ module.exports = function(grunt) {
                 src: '<%= pkg.name %>.js',
                 dest: '<%= pkg.name %>.min.js'
             }
-        },
-        copy: {
-            blog: {
-                src: '<%= pkg.name %>.min.js',
-                dest: '../jianghai.github.io/lib/'
-            },
-            dvs: {
-                src: '<%= pkg.name %>.min.js',
-                dest: '../kuyou_monitor/lib/'
-            }
         }
     });
 

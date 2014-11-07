@@ -275,6 +275,7 @@
             return $.extend(this, property);
         },
 
+        // Sometimes this method would be rewrited such as reset param
         show: function() {
             if (this.model && this.model.fetch) {
                 this.model.fetch();
@@ -298,7 +299,7 @@
 
         _getTemplate: function() {
             if (typeof this.template === 'string') {
-                var _template = vjs($.call(!this.tag && this || window, this.template).html());
+                var _template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
                 if (!_template) {
                     throw new Error('Please make sure the template selector is correct.');
                 }
