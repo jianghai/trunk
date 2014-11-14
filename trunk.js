@@ -317,6 +317,9 @@
             var _this = this;
 
             this.childViews && $.each(this.childViews, function(name, child) {
+
+                child.parent = _this;
+
                 if (typeof child.el === 'string') {
                     child._el = child.el;
                 }
