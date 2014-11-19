@@ -198,6 +198,10 @@
 
     Models.prototype = {
 
+        length: function() {
+            return this.list.length;
+        },
+
         add: function(attr) {
             var model = new this.model(attr);
             model.models = this;
@@ -218,8 +222,18 @@
             $.each(this.list, function(i, n) {
                 fn.call(null, n, i);
             });
-        }
+        },
 
+        toArray: function() {
+            return this.list.map(function(model) {
+                return model.attr;
+            });
+        },
+
+        clear: function() {
+            this.list.length = 0;
+            return this;
+        }
     };
 
 
@@ -350,7 +364,13 @@
                     var args = [k.shift()];
                     args.push(k.join(' '));
 
-                    _this.el.on(args[0], args[1], _this[v].bind(_this));
+                    try {
+                        _this.el.on(args[0], args[1], _this[v].bind(_this));
+                    } catch(e) {
+                        if (!_this[v]) {
+                            throw 'Event handle ' + v + ' not existed.'
+                        }
+                    } 
                 });
             }
         }
