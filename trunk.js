@@ -211,7 +211,7 @@
         },
 
         reduce: function(model) {
-            var index = typeof +model === 'number' ? model : $.inArray(model, this.list);
+            var index = !isNaN(model) ? model : $.inArray(model, this.list);
             var _model =  this.list[index];
             this.list.splice(index, 1);
             this.trigger('reduce', _model);
