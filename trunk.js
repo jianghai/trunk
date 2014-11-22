@@ -1,16 +1,16 @@
 /**
  * Trunk, javascript mvc framework
- * 
+ *
  * http://github.com/jianghai/trunk
  *
  * ***********************************************
- * 
+ *
  * Requirements:
- *   
+ *
  *   jQuery: https://github.com/jquery/jquery
- *   
+ *
  *   vjs: https://github.com/jianghai/vjs
- * 
+ *
  * ***********************************************
  */
 
@@ -106,18 +106,23 @@
         return Child;
     };
 
-    var Model = function(attr) {
-        this.init && this.init();
-        this.attr = $.extend(true, {}, this.defaults, attr);
+    var Model = function(prop) {
+
+        $.extend(true, this, prop);
+
+        this.data = $.extend(true, this.data, this.defaults);
+
         this.trigger('create');
+
+        this.init && this.init();
     };
 
     Model.prototype = {
 
-        // Why not just read the property 'attr' to get what you want, Because by this method,
+        // Why not just read the property 'data' to get what you want, Because by this method,
         // the return value could be deep copied.
         get: function(prop) {
-            var value = this.attr[prop];
+            var value = this.data[prop];
             var isObject = $.isPlainObject(value);
             var isArray = $.isArray(value);
             if (isObject || isArray) {
@@ -126,35 +131,32 @@
             return value;
         },
 
-        set: function(attr, options) {
-            // if (attr instanceof Object) {
+        set: function(data, options) {
+            options = options || {};
 
-                options = options || {};
-
-                // Validate if set
-                if (this.validate && options.validate !== false) {
-                    var res = this.validate(attr);
-                    if (res) {
-                        this.trigger('invalid', res);
-                        return false;
-                    }
+            // Validate if set
+            if (this.validate && options.validate !== false) {
+                this.trigger('validate');
+                var res = this.validate(data);
+                if (!$.isEmptyObject(res)) {
+                    this.trigger('invalid', res);
+                    return false;
                 }
+            }
 
-                // Check if really changed 
-                // ...
-                $.extend(this.attr, attr);
+            $.extend(this.data, data);
 
-                if (options.change !== false) {
-                    this.trigger('change', attr);
-                    this.models && this.models.trigger('change');
-                }
-                return true;
-            // }
+            if (options.change !== false) {
+                // this.trigger('change', data);
+                this.models && this.models.trigger('change');
+            }
+            return true;
         },
 
-        reset: function(attr) {
-            this.attr = $.extend(true, {}, this.defaults, attr);
-            this.trigger('change', attr);
+        reset: function(data) {
+            this.data = $.extend({}, this.defaults, data);
+            // this.trigger('change', data);
+            this.trigger('reset');
             this.models && this.models.trigger('change');
         },
 
@@ -164,8 +166,10 @@
         },
 
         // Insert a model after this to this.models
-        after: function(attr) {
-            var model = new this.constructor(attr);
+        after: function(data) {
+            var model = new this.constructor({
+                data: data
+            });
             model.models = this.models;
             this.models.list.splice(this.index() + 1, 0, model);
             this.models.trigger('add', model);
@@ -173,22 +177,18 @@
         },
 
         // Get index of this.models
-        index: function () {
+        index: function() {
             return $.inArray(this, this.models.list);
         },
 
         // Get the model before this
-        prev: function () {
+        prev: function() {
             return this.models.list[this.index() - 1];
         },
 
         // Get the model after this
-        next: function () {
+        next: function() {
             return this.models.list[this.index() + 1];
-        },
-
-        clone: function() {
-            return $.extend(true, {}, this.attr);
         }
     };
 
@@ -202,8 +202,10 @@
             return this.list.length;
         },
 
-        add: function(attr) {
-            var model = new this.model(attr);
+        add: function(data) {
+            var model = new this.model({
+                data: data
+            });
             model.models = this;
             this.list.push(model);
             this.trigger('add', model);
@@ -212,7 +214,7 @@
 
         reduce: function(model) {
             var index = !isNaN(model) ? model : $.inArray(model, this.list);
-            var _model =  this.list[index];
+            var _model = this.list[index];
             this.list.splice(index, 1);
             this.trigger('reduce', _model);
             this.trigger('change');
@@ -226,7 +228,7 @@
 
         toArray: function() {
             return this.list.map(function(model) {
-                return model.attr;
+                return model.data;
             });
         },
 
@@ -237,17 +239,16 @@
     };
 
 
-    var View = function() {
-        
-        $.extend(true, this, arguments[0]);
+    var View = function(prop) {
+
+        $.extend(true, this, prop);
 
         if (this.model) {
 
             // Bind model
             if (typeof this.model === 'function') {
-                this.model = new this.model(this.modelProperty && this.modelProperty.defaults);
+                this.model = new this.model(this.modelProperty);
             }
-            this.modelProperty && $.extend(true, this.model, this.modelProperty);
 
             this.model.view = this;
 
@@ -256,11 +257,12 @@
             }
 
             if (this.model.validate) {
-                this.listen(this.model, 'invalid', this.invalid);
+                this.listen(this.model, 'validate', this.onValidate);
+                this.listen(this.model, 'invalid', this.onInvalid);
             }
 
             // Events
-            this.listen(this.model, 'change', this.render);
+            this.listen(this.model, 'reset', this.render);
         }
 
         if (!this.el && this.tag) {
@@ -274,7 +276,7 @@
         if (this.className) {
             this.el.addClass(this.className);
         }
-        
+
         this.init && this.init();
     };
 
@@ -283,10 +285,6 @@
         // Equal to this.el.find()
         $: function(selector) {
             return this.el.find(selector);
-        },
-
-        extend: function(property) {
-            return $.extend(this, property);
         },
 
         // Sometimes this method would be rewrited such as reset param
@@ -305,7 +303,7 @@
             this.delegateEvents();
 
             this._getTemplate();
-            this.template && this.el.html(this.model && this.template(this.model.attr) || this.template);
+            this.template && this.el.html(this.template(this.model.data));
             this.html && this.el.html(this.html);
             this.afterRender && this.afterRender();
             this.renderChildren();
@@ -359,18 +357,18 @@
                 this.el.off();
 
                 $.each(this.events, function(k, v) {
-                    
+
                     k = k.split(' ');
                     var args = [k.shift()];
                     args.push(k.join(' '));
 
                     try {
                         _this.el.on(args[0], args[1], _this[v].bind(_this));
-                    } catch(e) {
+                    } catch (e) {
                         if (!_this[v]) {
                             throw 'Event handle ' + v + ' not existed.'
                         }
-                    } 
+                    }
                 });
             }
         }
@@ -462,9 +460,9 @@
     var Trunk = {};
 
     Trunk.events = events;
-    Trunk.Model  = Model;
+    Trunk.Model = Model;
     Trunk.Models = Models;
-    Trunk.View   = View;
+    Trunk.View = View;
     Trunk.Router = Router;
 
     Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
