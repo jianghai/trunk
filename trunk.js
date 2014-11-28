@@ -110,7 +110,7 @@
 
         $.extend(true, this, prop);
 
-        this.data = $.extend(true, this.data, this.defaults);
+        this.data = $.extend(true, {}, this.defaults, this.data);
 
         this.trigger('create');
 
@@ -303,7 +303,7 @@
             this.delegateEvents();
 
             this._getTemplate();
-            this.template && this.el.html(this.template(this.model.data));
+            this.template && this.el.html(this.template(this.model && this.model.data));
             this.html && this.el.html(this.html);
             this.afterRender && this.afterRender();
             this.renderChildren();
