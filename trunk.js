@@ -147,7 +147,7 @@
             $.extend(this.data, data);
 
             if (options.change !== false) {
-                // this.trigger('change', data);
+                this.trigger('change', data);
                 this.models && this.models.trigger('change');
             }
             return true;
@@ -156,7 +156,7 @@
         reset: function(data) {
             this.data = $.extend({}, this.defaults, data);
             // this.trigger('change', data);
-            this.trigger('reset');
+            this.trigger('reset', data);
             this.models && this.models.trigger('change');
         },
 
@@ -222,7 +222,7 @@
 
         each: function(fn) {
             $.each(this.list, function(i, n) {
-                fn.call(null, n, i);
+                return fn.call(null, n, i);
             });
         },
 
@@ -233,7 +233,9 @@
         },
 
         clear: function() {
-            this.list.length = 0;
+            while (this.length()) {
+                this.list[0].remove();
+            }
             return this;
         }
     };
@@ -287,8 +289,8 @@
             return this.el.find(selector);
         },
 
-        // Sometimes this method would be rewrited such as reset param
         show: function() {
+
             if (this.model && this.model.fetch) {
                 this.model.fetch();
             } else {
