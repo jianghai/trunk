@@ -1,81 +1,81 @@
 /**
- * Trunk, javascript mvc framework
- *
- * http://github.com/jianghai/trunk
- *
- * ***********************************************
- *
- * Requirements:
- *
- *   jQuery: https://github.com/jquery/jquery
- *
- *   vjs: https://github.com/jianghai/vjs
- *
- * ***********************************************
+ * Trunk.js v0.1
+ * Available via the MIT license
+ * see: http://github.com/jianghai for details.
  */
 
-(function(window, $, vjs) {
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+        // AMD module
+        define('trunk', ['jquery', 'vjs'], function($, vjs) {
+            return factory(root, $, vjs)
+        });
+    }
+
+    root.trunk = factory(root, jQuery, vjs);
+
+})(window, function(win, $, vjs) {
 
     'use strict';
 
     // Caller as array method
-    var _arr = [];
+    var array = [];
+
+    var slice = array.slice;
 
     // Event driven model
     var events = {
 
-        on: function(name, handle) {
-            if (this._events) {
-                if (this._events[name]) {
-                    this._events[name].push(handle);
-                } else {
-                    this._events[name] = [handle];
-                }
-            } else {
-                this._events = {};
-                this._events[name] = [handle];
-            }
+        on: function(name, handle, context) {
+            this._events || (this._events = {});
+            (this._events[name] || (this._events[name] = [])).push({
+                handle: handle,
+                context: context || this
+            });
+            return this;
         },
 
-        one: function(name, handle) {
-            var _this = this;
-            this.on(name, function() {
-                handle.apply(_this, arguments);
-                _this.off(name, arguments.callee);
-            });
+        one: function(name, handle, context) {
+            var self = this;
+            var one = function() {
+                handle.apply(this, arguments);
+                self.off(name, one);
+            };
+            return this.on(name, one, context);
         },
 
         off: function(name, handle) {
-            if (this._events) {
-                if (!handle) {
-                    delete this._events[name];
-                } else {
-                    this._events[name].splice($.inArray(handle, this._events), 1);
-                    if (!this._events[name].length) {
-                        delete this._events[name];
-                    }
-                }
+            if (!this._events) return this;
+            name || (this._events = {});
+            handle || (this._events[name] = []);
+            var events = this._events[name];
+            if (!events.length) return this;
+            var remaining = [];
+            for (var i = 0, len = events.length; i < len; i++) {
+                events[i].handle !== handle && remaining.push(events[i]);
             }
+            this._events[name] = remaining;
+            return this;
         },
 
         /**
-         * Different from on is that the method listen could listen the first parameter
-         * events and keyword this of the event handle is the caller of method listen
+         * Change target event context to caller of listen
          */
         listen: function(obj, name, handle) {
-            this.on.call(obj, name, handle.bind(this));
+            obj.on(name, handle, this);
+            return this;
         },
 
         trigger: function(name) {
-            var _this;
-            var _param;
-            if (this._events && this._events[name]) {
-                _this = this;
-                _param = _arr.slice.call(arguments, 1);
-                $.each(this._events[name], function(i, n) {
-                    n.apply(_this, _param);
-                });
+            if (!this.events || !this._events[name]) return this;
+            var self = this;
+            var param = slice.call(arguments, 1);
+            var events = this._events[name];
+            for (var i = 0, len = events.length; i < len; i++) {
+                events[i].handle.apply(events[i].context, param);
             }
+            return this;
         }
     };
 
@@ -243,6 +243,15 @@
 
     var View = function(prop) {
 
+        if (prop && typeof prop.init === 'function' && typeof this.init === 'function') {
+            var _this = this.init;
+            var temp = prop.init;
+            prop.init = function() {
+                _this.call(this);
+                temp.call(this);
+            };
+        }
+
         $.extend(true, this, prop);
 
         if (this.model) {
@@ -302,7 +311,7 @@
 
             this.beforeRender && this.beforeRender();
 
-            this.delegateEvents();
+            this._el && this.delegateEvents();
 
             this._getTemplate();
             this.template && this.el.html(this.template(this.model && this.model.data));
@@ -450,7 +459,7 @@
                 }
             };
 
-            $(window).on('hashchange', onHash);
+            $(win).on('hashchange', onHash);
 
             // Default hash handle when dom is ready
             $(onHash);
@@ -469,6 +478,5 @@
 
     Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
 
-    window.Trunk = Trunk;
-
-})(window, jQuery, vjs);
+    return Trunk;
+});
