@@ -68,7 +68,7 @@
         },
 
         trigger: function(name) {
-            if (!this.events || !this._events[name]) return this;
+            if (!this._events || !this._events[name]) return this;
             var self = this;
             var param = slice.call(arguments, 1);
             var events = this._events[name];
@@ -84,21 +84,27 @@
      * This method must be called by a constructor(parent), return a constructor(child)
      * whose protptype chain was extended by prototype of parent, arguments[0] and events.
      */
-    var extend = function(obj) {
+    var extend = function(protoProps) {
         var Parent = this;
         var Child = function() {
             Parent.apply(this, arguments);
         };
 
-        if (typeof Parent.prototype.init === 'function' && typeof obj.init === 'function') {
-            var temp = obj.init;
-            obj.init = function() {
+        var F = function() {
+            this.constructor = Child;
+        };
+        F.prototype = Parent.prototype;
+        Child.prototype = new F();
+
+        if (typeof Parent.prototype.init === 'function' && typeof protoProps.init === 'function') {
+            var temp = protoProps.init;
+            protoProps.init = function() {
                 Parent.prototype.init.call(this);
                 temp.call(this);
             };
         }
 
-        $.extend(true, Child.prototype, events, Parent.prototype, obj);
+        $.extend(true, Child.prototype, protoProps);
 
         // Make it could be extended
         Child.extend = extend;
@@ -117,7 +123,7 @@
         this.init && this.init();
     };
 
-    Model.prototype = {
+    $.extend(Model.prototype, events, {
 
         // Why not just read the property 'data' to get what you want, Because by this method,
         // the return value could be deep copied.
@@ -190,13 +196,13 @@
         next: function() {
             return this.models.list[this.index() + 1];
         }
-    };
+    });
 
     var Models = function() {
         this.list = [];
     };
 
-    Models.prototype = {
+    $.extend(Models.prototype, events, {
 
         length: function() {
             return this.list.length;
@@ -238,7 +244,7 @@
             }
             return this;
         }
-    };
+    });
 
 
     var View = function(prop) {
@@ -291,7 +297,7 @@
         this.init && this.init();
     };
 
-    View.prototype = {
+    $.extend(View.prototype, events, {
 
         // Equal to this.el.find()
         $: function(selector) {
@@ -365,7 +371,7 @@
                 var _this = this;
 
                 // Remove events avoid repeat events
-                this.el.off();
+                this.el.off('.trunk_delegateEvents');
 
                 $.each(this.events, function(k, v) {
 
@@ -374,7 +380,7 @@
                     args.push(k.join(' '));
 
                     try {
-                        _this.el.on(args[0], args[1], _this[v].bind(_this));
+                        _this.el.on(args[0] + '.trunk_delegateEvents', args[1], _this[v].bind(_this));
                     } catch (e) {
                         if (!_this[v]) {
                             throw 'Event handle ' + v + ' not existed.'
@@ -383,7 +389,7 @@
                 });
             }
         }
-    };
+    });
 
 
     var Router = function() {
