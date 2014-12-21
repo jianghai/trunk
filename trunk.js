@@ -137,8 +137,22 @@
             return value;
         },
 
+        isEqual: function(a, b) {
+            var isEqual = true;
+            (function check(a, b) {
+                for (var k in a) {
+                    typeof a[k] !== 'object'
+                        ? a[k] !== b[k] && (isEqual = false)
+                        : check(a[k], b[k]);
+                    if (!isEqual) break;
+                }
+            })(a, b);
+            
+            return isEqual;
+        },
+
         set: function(data, options) {
-            options = options || {};
+            options || (options || {});
 
             // Validate if set
             if (this.validate && options.validate !== false) {
@@ -150,7 +164,12 @@
                 }
             }
 
-            $.extend(this.data, data);
+            for (var k in data) {
+                if (!this.isEqual(data[k], this.data[k])) {
+                    this.data[k] = data[k];
+                    this.trigger('change:' + k, data[k]);
+                }
+            }
 
             if (options.change !== false) {
                 this.trigger('change', data);
