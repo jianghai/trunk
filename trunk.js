@@ -117,9 +117,7 @@
   var Model = function(prop) {
 
     for (var i in prop) {
-      this[i] = typeof prop[i] === 'object'
-        ? $.extend(true, {}, this[i], prop[i])
-        : prop[i];
+      this[i] = prop[i];
     }
 
     this.data = $.extend(true, {}, this.defaults, this.data);
@@ -131,8 +129,7 @@
 
   $.extend(Model.prototype, events, {
 
-    // Why not just read the property 'data' to get what you want, Because by this method,
-    // the return value could be deep copied.
+    // Why not just read the property 'data' to get what you want, Because by this method, the return value could be deep copied.
     get: function(prop) {
       var value = this.data[prop];
       var isObject = $.isPlainObject(value);
@@ -147,15 +144,17 @@
       var isEqual = true;
       (function check(a, b) {
         if (typeof a !== 'object') {
-          if (a !== b) {
+          a !== b && (isEqual = false);
+        } else if (typeof b !== 'object') {
+          isEqual = false;
+        } else {
+          if (Object.keys(a).length !== Object.keys(b)) {
             return isEqual = false;
           }
-        } else if (typeof b !== 'object') {
-          return isEqual = false;
-        }
-        for (var k in a) {
-          typeof a[k] !== 'object' ? a[k] !== b[k] && (isEqual = false) : check(a[k], b[k]);
-          if (!isEqual) break;
+          for (var k in a) {
+            typeof a[k] !== 'object' ? a[k] !== b[k] && (isEqual = false) : check(a[k], b[k]);
+            if (!isEqual) break;
+          }
         }
       })(a, b);
 
@@ -163,14 +162,20 @@
     },
 
     set: function(data, options) {
+
+      if (typeof data === 'string') {
+        var _data = data;
+        data = {};
+        data[_data] = options;
+      }
+
       options || (options = {});
 
       // Validate if set
       if (this.validate && options.validate !== false) {
-        this.trigger('validate');
-        var res = this.validate(data);
-        if (!$.isEmptyObject(res)) {
-          this.trigger('invalid', res);
+        this.trigger('validate', data);
+        if (!this.validate(data)) {
+          this.trigger('invalid');
           return false;
         }
       }
@@ -228,7 +233,12 @@
     }
   });
 
-  var Models = function() {
+  var Models = function(prop) {
+    if (prop) {
+      for (var i in prop) {
+        this[i] = prop[i];
+      }
+    }
     this.list = [];
   };
 
@@ -289,16 +299,20 @@
     }
 
     for (var i in prop) {
-      this[i] = typeof prop[i] === 'object'
-        ? $.extend(true, {}, this[i], prop[i])
+      this[i] = i === 'events'
+        ? $.extend({}, this[i], prop[i])
         : prop[i];
     }
 
-    if (this.model) {
+    if (this.model || this.modelProperty) {
 
       // Bind model
-      if (typeof this.model === 'function') {
-        this.model = new this.model(this.modelProperty);
+      if (this.model) {
+        if (typeof this.model === 'function') {
+          this.model = new this.model(this.modelProperty);
+        }
+      } else {
+        this.model = new Model(this.modelProperty);
       }
 
       this.model.view = this;
@@ -308,8 +322,8 @@
       }
 
       if (this.model.validate) {
-        this.listen(this.model, 'validate', this.onValidate);
-        this.listen(this.model, 'invalid', this.onInvalid);
+        this.onValidate && this.listen(this.model, 'validate', this.onValidate);
+        this.onInvalid && this.listen(this.model, 'invalid', this.onInvalid);
       }
 
       // Events
@@ -340,6 +354,8 @@
 
     show: function() {
 
+      this._getTemplate();
+
       if (this.model && this.model.fetch) {
         this.model.fetch();
       } else {
@@ -351,20 +367,27 @@
 
       this.beforeRender && this.beforeRender();
 
-      this._el && this.delegateEvents();
-
       this._getTemplate();
       this.template && this.el.html(this.template(this.model && this.model.data));
       this.html && this.el.html(this.html);
+
+      this.trigger('render:after');
+
       this.afterRender && this.afterRender();
+
+      this._el && this.delegateEvents();
+
       this.renderChildren();
+
+      return this.el;
     },
 
     _getTemplate: function() {
       if (typeof this.template === 'string') {
         var _template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
         if (!_template) {
-          throw new Error('Please make sure the template selector is correct.');
+          // debugger;
+          throw new Error(this.template + ' not exist');
         }
         if (this.hasOwnProperty('template')) {
           this.template = _template;
@@ -426,7 +449,11 @@
   });
 
 
-  var Router = function() {
+  var Router = function(prop) {
+
+    for (var i in prop) {
+      this[i] = prop[i];
+    }
 
     this.init && this.init();
 

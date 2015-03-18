@@ -1,2 +1,8 @@
-node_modules*
 trunk.min.js
+*.zip
+*.rar
+.DS_Store
+.com.apple.timemachine.supported
+node_modules
+META-INF
+WEB-INF
