@@ -92,17 +92,21 @@
       Parent.apply(this, arguments);
     };
 
-    var F = function() {
-      this.constructor = Child;
-    };
-    F.prototype = Parent.prototype;
-    Child.prototype = new F();
+    if (Object.create) {
+      Child.prototype = Object.create(Parent.prototype);
+    } else {
+      var F = function() {}
+      F.prototype = Parent.prototype;
+      Child.prototype = new F();
+    }
+
+    Child.prototype.constructor = Child;
 
     if (typeof Parent.prototype.init === 'function' && typeof protoProps.init === 'function') {
-      var temp = protoProps.init;
+      var init = protoProps.init;
       protoProps.init = function() {
         Parent.prototype.init.call(this);
-        temp.call(this);
+        init.call(this);
       };
     }
 
