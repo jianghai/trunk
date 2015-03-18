@@ -129,6 +129,33 @@
 
   $.extend(Model.prototype, events, {
 
+    setParam: function(param, silent) {
+      this.param || (this.param = {});
+      $.extend(this.param, param);
+      !silent && this.fetch();
+    },
+
+    onFetch: function(res) {
+      this.reset(typeof this.parse === 'function' && this.parse(res) || res);
+    },
+
+    fetch: function() {
+      var self = this;
+      this.trigger('request');
+      $.ajax({
+        url: this.url,
+        data: this.param && $.param(this.param, true)
+      }).done(function(res) {
+        // self.trigger('sync');
+        if (res === '' || (self.isEmpty && self.isEmpty(res))) {
+          return self.trigger('noData');
+        }
+        self.onFetch(res);
+      }).fail(function(xhr, text_status) {
+        text_status !== 'abort' && self.trigger('error');
+      });
+    },
+
     // Why not just read the property 'data' to get what you want, Because by this method, the return value could be deep copied.
     get: function(prop) {
       var value = this.data[prop];
@@ -330,17 +357,16 @@
       this.listen(this.model, 'reset', this.render);
     }
 
-    if (!this.el && this.tag) {
-      this.el = $('<' + this.tag + '>');
-    }
+    this.tag && (this.el = $('<' + this.tag + '>'));
+    this.el.indexOf('#') === 0 && (this.el = $(this.el));
 
-    if (typeof this.el === 'object') {
-      this.delegateEvents();
-    }
+    typeof this.el === 'object' && this.delegateEvents();
 
-    if (this.className) {
-      this.el.addClass(this.className);
-    }
+    this.className && this.el.addClass(this.className);
+
+    this.onRequest && this.listen(this.model, 'request', this.onRequest);
+    this.onError && this.listen(this.model, 'error', this.onError);
+    this.onNoData && this.listen(this.model, 'noData', this.onNoData);
 
     this.init && this.init();
   };
