@@ -1,0 +1,26 @@
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
+#autocomplete .search_result {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  min-width: 100%;
+  border: 1px solid #aaa;
+  display: none;
+}
+#autocomplete .search_result.open {
+  display: block;
+}
+#autocomplete .search_result li:hover,
+#autocomplete .search_result .active {
+  background-color: #62A4EF;
+  color: #fff;
+}

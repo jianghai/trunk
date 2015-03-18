@@ -150,10 +150,10 @@
         url: this.url,
         data: this.param && $.param(this.param, true)
       }).done(function(res) {
-        // self.trigger('sync');
         if (res === '' || (self.isEmpty && self.isEmpty(res))) {
           return self.trigger('noData');
         }
+        self.trigger('sync');
         self.onFetch(res);
       }).fail(function(xhr, text_status) {
         text_status !== 'abort' && self.trigger('error');
@@ -359,18 +359,18 @@
 
       // Events
       this.listen(this.model, 'reset', this.render);
+
+      this.onRequest && this.listen(this.model, 'request', this.onRequest);
+      this.onError && this.listen(this.model, 'error', this.onError);
+      this.onNoData && this.listen(this.model, 'noData', this.onNoData);
     }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
-    this.el.indexOf('#') === 0 && (this.el = $(this.el));
+    typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
 
     typeof this.el === 'object' && this.delegateEvents();
 
     this.className && this.el.addClass(this.className);
-
-    this.onRequest && this.listen(this.model, 'request', this.onRequest);
-    this.onError && this.listen(this.model, 'error', this.onError);
-    this.onNoData && this.listen(this.model, 'noData', this.onNoData);
 
     this.init && this.init();
   };
