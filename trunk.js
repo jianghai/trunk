@@ -334,22 +334,13 @@
       this[i] = i === 'events' ? $.extend({}, this[i], prop[i]) : prop[i];
     }
 
-    if (this.model || this.modelProperty) {
+    if (this.model) {
 
-      // Bind model
-      if (this.model) {
-        if (typeof this.model === 'function') {
-          this.model = new this.model(this.modelProperty);
-        }
-      } else {
-        this.model = new Model(this.modelProperty);
-      }
+      this.model instanceof Trunk.Model || (this.model = new Model(this.model));
 
       this.model.view = this;
 
-      if (this.model.models) {
-        this.models = this.model.models;
-      }
+      this.model.models && (this.models = this.model.models);
 
       if (this.model.validate) {
         this.onValidate && this.listen(this.model, 'validate', this.onValidate);
@@ -403,9 +394,7 @@
 
     getTemplate: function() {
       var template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
-      if (!template) {
-        throw new Error(this.template + ' not exist');
-      }
+      if (!template) throw '"' + this.template + '" not exist';
       if (this.hasOwnProperty('template')) {
         this.template = template;
       } else {
@@ -419,23 +408,16 @@
     // the parentView use html to add a childView.
     delegateEvents: function() {
       // events is a collection of dom events of the view
-      if (this.events) {
-        // Remove events avoid repeat events
-        this.el.off('.trunk_delegateEvents');
-
-        for (var k in this.events) {
-          var event = this.events[k];
-          k = k.split(' ');
-          var args = [k.shift()];
-          args.push(k.join(' '));
-          try {
-            this.el.on(args[0] + '.trunk_delegateEvents', args[1], this[event].bind(this));
-          } catch (e) {
-            if (!event) {
-              throw 'Event handle ' + event + ' not existed.'
-            }
-          }
-        }
+      if (!this.events) return;
+      // Remove events avoid repeat events
+      this.el.off('.trunk_delegateEvents');
+      for (var k in this.events) {
+        var event = this.events[k];
+        if (!this[event]) throw 'Event handle "' + event + '" not existed';
+        k = k.split(' ');
+        var args = [k.shift()];
+        args.push(k.join(' '));
+        this.el.on(args[0] + '.trunk_delegateEvents', args[1], this[event].bind(this));
       }
     }
   });

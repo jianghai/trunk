@@ -41,7 +41,7 @@ $(function() {
 
     init: function() {
 
-      this.result = new Trunk.View($.extend(this.resultProperty, {
+      this.result = new Trunk.View($.extend(true, {
 
         silent: true,
 
@@ -99,7 +99,7 @@ $(function() {
         init: function() {
           this.listen(this.model, 'sync', this.onSync);
         }
-      }));
+      }, this.result));
 
       this.listen(this.result, 'toggle', this.onToggle);
       this.listen(this.result, 'select', this.onSelect);
@@ -111,8 +111,8 @@ $(function() {
   
   // call
   var ac = new Autocomplete({
-    resultProperty: {
-      modelProperty: {
+    result: {
+      model: {
         url: 'data.json',
       },
       searchParam: 'search',
