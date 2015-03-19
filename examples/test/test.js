@@ -8,22 +8,22 @@ $(function() {
       'blur input': 'onBlur'
     },
 
-    onInput: function() {
-      this.result.show();
+    onInput: function(e) {
+      this.result.search(e.target.value);
     },
 
     onKeydown: function(e) {
       var key = e.keyCode;
       if (key === 40 || key === 38) {
         if (!this.result.el.hasClass('open')) {
-          return this.result.el.addClass('open');
+          return this.result.search(e.target.value);
         }
         key === 40 && this.result.selectIndex++;
         key === 38 && this.result.selectIndex--;
-        this.result.changeSelect();
+        this.result.toggle();
       }
       if (key === 13) {
-        this.result.close();
+        this.result.select();
       }
     },
 
@@ -31,33 +31,37 @@ $(function() {
       this.result.close();
     },
 
-    onSelect: function(val) {
+    onToggle: function(val) {
       this.$('input').val(val);
+    },
+
+    onSelect: function(item) {
+      this.trigger('select', item);
     },
 
     init: function() {
 
-      this.result = new Trunk.View({
+      this.result = new Trunk.View($.extend(this.resultProperty, {
 
-        modelProperty: {
-          url: this.url
-        },
+        silent: true,
 
-        el: this.$('.search_result'),
-
-        template: this.template,
+        el: '.search_result',
 
         events: {
-          'mousedown li': 'onSelect'
+          'mousedown li': 'onMousedown'
         },
 
-        onSelect: function(e) {
-          this.selectIndex = $(e.currentTarget).index();
-          this.changeSelect();
-          this.close();
+        search: function(keyword) {
+          this.model.setParam(this.searchParam, keyword);
         },
 
-        changeSelect: function() {
+        onMousedown: function(e) {
+          this.target = $(e.currentTarget);
+          this.toggleDone();
+          this.select();
+        },
+
+        toggle: function() {
 
           var children = this.el.children();
           if (children.length < 2) return;
@@ -69,11 +73,22 @@ $(function() {
             this.selectIndex = children.length - 1;
           }
           this.$('.active').removeClass('active');
-          var target = children.eq(this.selectIndex).addClass('active');
-          this.trigger('select', target.attr('data-val'));
+          this.target = children.eq(this.selectIndex).addClass('active');
+          this.toggleDone();
+        },
+
+        toggleDone: function() {
+          this.trigger('toggle', this.target.attr('data-val'));
+        },
+
+        select: function() {
+          this.trigger('select', this.model.data[this.target.index()]);
+          this.close();
         },
 
         onSync: function() {
+          // Reset index when data change
+          this.selectIndex = -1;
           this.el.addClass('open');
         },
 
@@ -82,21 +97,29 @@ $(function() {
         },
 
         init: function() {
-          this.selectIndex = 0;
           this.listen(this.model, 'sync', this.onSync);
         }
-      });
+      }));
 
+      this.listen(this.result, 'toggle', this.onToggle);
       this.listen(this.result, 'select', this.onSelect);
+
+      this.children = [this.result];
     }
   });
-
 
   
   // call
   var ac = new Autocomplete({
-    url: 'data.json',
-    template: '#template-autocomplete',
+    resultProperty: {
+      modelProperty: {
+        url: 'data.json',
+      },
+      searchParam: 'search',
+      template: '#template-autocomplete',
+    },
     el: '#autocomplete'
   });
+
+  ac.render();
 });

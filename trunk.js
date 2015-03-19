@@ -133,10 +133,11 @@
 
   $.extend(Model.prototype, events, {
 
-    setParam: function(param, silent) {
+    setParam: function(param) {
       this.param || (this.param = {});
-      $.extend(this.param, param);
-      !silent && this.fetch();
+      typeof param === 'object' && $.extend(this.param, param) || (this.param[param] = arguments[1])
+      ;
+      this.fetch();
     },
 
     onFetch: function(res) {
@@ -330,9 +331,7 @@
     }
 
     for (var i in prop) {
-      this[i] = i === 'events'
-        ? $.extend({}, this[i], prop[i])
-        : prop[i];
+      this[i] = i === 'events' ? $.extend({}, this[i], prop[i]) : prop[i];
     }
 
     if (this.model || this.modelProperty) {
@@ -382,98 +381,61 @@
       return this.el.find(selector);
     },
 
-    show: function() {
-
-      this._getTemplate();
-
-      if (this.model && this.model.fetch) {
-        this.model.fetch();
-      } else {
-        this.render();
-      }
-    },
-
     render: function() {
-
-      this.beforeRender && this.beforeRender();
-
-      this._getTemplate();
-      this.template && this.el.html(this.template(this.model && this.model.data));
-      this.html && this.el.html(this.html);
-
-      this.trigger('render:after');
-
-      this.afterRender && this.afterRender();
-
-      this._el && this.delegateEvents();
-
-      this.renderChildren();
-
+      typeof this.template === 'string' && this.getTemplate();
+      this.model && this.template && this.el.html(this.template(this.model && this.model.data));
+      this.children && this.renderChildren();
       return this.el;
-    },
-
-    _getTemplate: function() {
-      if (typeof this.template === 'string') {
-        var _template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
-        if (!_template) {
-          // debugger;
-          throw new Error(this.template + ' not exist');
-        }
-        if (this.hasOwnProperty('template')) {
-          this.template = _template;
-        } else {
-          delete this.template;
-          this.constructor.prototype.template = _template;
-        }
-      }
     },
 
     // For composite view
     renderChildren: function() {
-      var _this = this;
+      for (var i = 0, len = this.children.length; i < len; i++) {
+        var child = this.children[i];
+        typeof child.el === 'string' && (child._el = child.el);
+        child._el && (child.el = this.$(child._el)) && child.delegateEvents();
 
-      this.childViews && $.each(this.childViews, function(name, child) {
+        if (child.silent) continue;
+        
+        child.model && child.fetch() || child.render();
+      }
+    },
 
-        child.parent = _this;
-
-        if (typeof child.el === 'string') {
-          child._el = child.el;
-        }
-        if (child._el) {
-          child.el = _this.$(child._el);
-        }
-
-        _this._getTemplate.call(child);
-
-        child.show();
-      });
+    getTemplate: function() {
+      var template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
+      if (!template) {
+        throw new Error(this.template + ' not exist');
+      }
+      if (this.hasOwnProperty('template')) {
+        this.template = template;
+      } else {
+        delete this.template;
+        this.constructor.prototype.template = template;
+      }
     },
 
     // Bind events using events delegation, this methdo was opened because sometimes the
     // subView events need to be rebind manual because jQuery html will clean the events if
     // the parentView use html to add a childView.
     delegateEvents: function() {
+      // events is a collection of dom events of the view
       if (this.events) {
-        // events is a collection of dom events of the view
-        var _this = this;
-
         // Remove events avoid repeat events
         this.el.off('.trunk_delegateEvents');
 
-        $.each(this.events, function(k, v) {
-
+        for (var k in this.events) {
+          var event = this.events[k];
           k = k.split(' ');
           var args = [k.shift()];
           args.push(k.join(' '));
-
           try {
-            _this.el.on(args[0] + '.trunk_delegateEvents', args[1], _this[v].bind(_this));
+            this.el.on(args[0] + '.trunk_delegateEvents', args[1], this[event].bind(this));
           } catch (e) {
-            if (!_this[v]) {
-              throw 'Event handle ' + v + ' not existed.'
+            if (!event) {
+              throw 'Event handle ' + event + ' not existed.'
             }
           }
-        });
+        }
       }
     }
   });
