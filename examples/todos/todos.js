@@ -16,7 +16,7 @@ $(function() {
 
   var todos = new Trunk.Models({
 
-    model: Todo,
+    Model: Todo,
 
     fetch: function() {
       var todos = localStorage.getItem('todos');
@@ -103,6 +103,7 @@ $(function() {
 
     init: function() {
       this.listen(this.model, 'change', this.render);
+      this.on('render:after', this.afterRender);
     }
   });
 
@@ -110,9 +111,9 @@ $(function() {
 
   var app = new Trunk.View({
 
-    el: $('#todoapp'),
+    el: '#todoapp',
 
-    template: vjs($('#stats-template').html()),
+    template: '#stats-template',
 
     events: {
       'keypress #new-todo': 'onEnter',

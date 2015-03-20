@@ -30,18 +30,18 @@
 
     <script type="text" id="item-template">
     <div class="view">
-        <input class="toggle" type="checkbox" <%- (data.done ? 'checked="checked"' : '') %> />
-        <label><%- data.title %></label>
+        <input class="toggle" type="checkbox" <#- (data.done ? 'checked="checked"' : '') #> />
+        <label><#- data.title #></label>
         <a class="destroy"></a>
     </div>
-    <input class="edit" type="text" value="<%- data.title %>" />
+    <input class="edit" type="text" value="<#- data.title #>" />
     </script>
 
     <script type="text" id="stats-template">
-    <% if (data.done) { %>
-    <a id="clear-completed">Clear <%- data.done %> completed <%- (data.done == 1 ? 'item' : 'items') %></a>
-    <% } %>
-    <div class="todo-count"><b><%- data.remaining %></b> <%- (data.remaining == 1 ? 'item' : 'items') %> left</div>
+    <# if (data.done) { #>
+    <a id="clear-completed">Clear <#- data.done #> completed <#- (data.done == 1 ? 'item' : 'items') #></a>
+    <# } #>
+    <div class="todo-count"><b><#- data.remaining #></b> <#- (data.remaining == 1 ? 'item' : 'items') #> left</div>
     </script>
 
 </body>

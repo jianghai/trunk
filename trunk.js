@@ -135,8 +135,7 @@
 
     setParam: function(param) {
       this.param || (this.param = {});
-      typeof param === 'object' && $.extend(this.param, param) || (this.param[param] = arguments[1])
-      ;
+      typeof param === 'object' && $.extend(this.param, param) || (this.param[param] = arguments[1]);
       this.fetch();
     },
 
@@ -281,7 +280,7 @@
     },
 
     add: function(data) {
-      var model = new this.model({
+      var model = new this.Model({
         data: data
       });
       model.models = this;
@@ -336,7 +335,7 @@
 
     if (this.model) {
 
-      this.model instanceof Trunk.Model || (this.model = new Model(this.model));
+      this.model instanceof Model || (this.model = new (this.Model || Model)(this.model));
 
       this.model.view = this;
 
@@ -360,6 +359,8 @@
 
     typeof this.el === 'object' && this.delegateEvents();
 
+    typeof this.template === 'string' && this.getTemplate();
+
     this.className && this.el.addClass(this.className);
 
     this.init && this.init();
@@ -373,27 +374,30 @@
     },
 
     render: function() {
-      typeof this.template === 'string' && this.getTemplate();
       this.model && this.template && this.el.html(this.template(this.model && this.model.data));
+      this.trigger('render:after');
       this.children && this.renderChildren();
       return this.el;
     },
 
-    // For composite view
+    // For nested view
     renderChildren: function() {
       for (var i = 0, len = this.children.length; i < len; i++) {
         var child = this.children[i];
         typeof child.el === 'string' && (child._el = child.el);
         child._el && (child.el = this.$(child._el)) && child.delegateEvents();
 
+        typeof child.template === 'string' && child.getTemplate();
+
         if (child.silent) continue;
-        
+
         child.model && child.fetch() || child.render();
       }
     },
 
     getTemplate: function() {
-      var template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
+      var template = vjs((
+        this.template.indexOf('.') === 0 ? this.$(this.template) : $(this.template)).html());
       if (!template) throw '"' + this.template + '" not exist';
       if (this.hasOwnProperty('template')) {
         this.template = template;
