@@ -83,10 +83,9 @@
 
 
   /**
-   * This method must be called by a constructor(parent), return a constructor(child)
-   * whose protptype chain was extended by prototype of parent, arguments[0] and events.
+   * Class inherit by multiple Class or entend by mutiple object
    */
-  var extend = function(protoProps) {
+  var extend = function() {
     var Parent = this;
     var Child = function() {
       Parent.apply(this, arguments);
@@ -99,21 +98,36 @@
       F.prototype = Parent.prototype;
       Child.prototype = new F();
     }
-
     Child.prototype.constructor = Child;
 
-    if (typeof Parent.prototype.init === 'function' && typeof protoProps.init === 'function') {
-      var init = protoProps.init;
-      protoProps.init = function() {
-        Parent.prototype.init.call(this);
-        init.call(this);
-      };
+    var args = arguments;
+    for (var i = 0, len = args.length; i < len; i++) {
+      var arg = args[i] instanceof View && args[i].prototype || args[i];
+
+      if ($.isFunction(arg.init) && $.isFunction(Child.prototype.init)) {
+        var _child = Child.prototype.init;
+        var _init = arg.init;
+        arg.init = function() {
+          _child.call(this);
+          _init.call(this);
+        }
+      }
+
+      $.extend(true, Child.prototype, arg);
+
+      // (function extend(target, obj) {
+      //   if ($.isArray(obj)) {
+      //     target = obj.concat();
+      //   } else {
+      //     for (var k in obj) {
+      //       if (obj.hasOwnProperty(k)) {
+      //         target[k] = typeof obj[k] === 'object' && extend(target[k] || {}, obj[k]) || obj[k];
+      //       }
+      //     }
+      //   }
+      //   return target;
+      // })(Child.prototype, arg);
     }
-
-    $.extend(true, Child.prototype, protoProps);
-
-    // Make it could be extended
-    Child.extend = extend;
 
     return Child;
   };
@@ -153,7 +167,7 @@
         if (res === '' || (self.isEmpty && self.isEmpty(res))) {
           return self.trigger('noData');
         }
-        self.trigger('sync');
+        self.trigger('sync', res);
         self.onFetch(res);
       }).fail(function(xhr, text_status) {
         text_status !== 'abort' && self.trigger('error');
@@ -320,17 +334,21 @@
 
   var View = function(prop) {
 
-    if (prop && typeof prop.init === 'function' && typeof this.init === 'function') {
+    if (prop && $.isFunction(prop.init) && $.isFunction(this.init)) {
       var _this = this.init;
-      var temp = prop.init;
+      var _init = prop.init;
       prop.init = function() {
         _this.call(this);
-        temp.call(this);
+        _init.call(this);
       };
     }
 
-    for (var i in prop) {
-      this[i] = i === 'events' ? $.extend({}, this[i], prop[i]) : prop[i];
+    for (var k in prop) {
+      if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+        this[k] = $.extend(true, {}, this[k], prop[k])
+      } else {
+        this[k] = prop[k];
+      }
     }
 
     if (this.model) {
@@ -357,11 +375,11 @@
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
 
-    typeof this.el === 'object' && this.delegateEvents();
-
-    typeof this.template === 'string' && this.getTemplate();
-
-    this.className && this.el.addClass(this.className);
+    if (typeof this.el === 'object') {
+      this.delegateEvents();
+      !this.tag && typeof this.template === 'string' && this.getTemplate();
+      this.className && this.el.addClass(this.className);
+    }
 
     this.init && this.init();
   };
@@ -375,8 +393,8 @@
 
     render: function() {
       this.model && this.template && this.el.html(this.template(this.model && this.model.data));
-      this.trigger('render:after');
       this.children && this.renderChildren();
+      this.trigger('render:after');
       return this.el;
     },
 
