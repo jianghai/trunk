@@ -165,7 +165,7 @@
         data: this.param && $.param(this.param, true)
       }).done(function(res) {
         if (res === '' || (self.isEmpty && self.isEmpty(res))) {
-          return self.trigger('noData');
+          return self.trigger('empty');
         }
         self.trigger('sync', res);
         self.onFetch(res);
@@ -188,7 +188,7 @@
     isEqual: function(a, b) {
       var isEqual = true;
       (function check(a, b) {
-        if (typeof a !== 'object') {
+        if (typeof a !== 'object' || a === null) {
           a !== b && (isEqual = false);
         } else if (typeof b !== 'object') {
           isEqual = false;
@@ -369,7 +369,7 @@
 
       this.onRequest && this.listen(this.model, 'request', this.onRequest);
       this.onError && this.listen(this.model, 'error', this.onError);
-      this.onNoData && this.listen(this.model, 'noData', this.onNoData);
+      this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
     }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
