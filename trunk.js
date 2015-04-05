@@ -92,11 +92,11 @@
       Parent.apply(this, arguments);
     };
 
-    var F = function() {
-      this.constructor = Child;
-    };
-    F.prototype = Parent.prototype;
-    Child.prototype = new F();
+    // var F = function() {
+    //   this.constructor = Child;
+    // };
+    // F.prototype = Parent.prototype;
+    // Child.prototype = new F();
 
     if (typeof Parent.prototype.init === 'function' && typeof protoProps.init === 'function') {
       var temp = protoProps.init;
@@ -106,7 +106,8 @@
       };
     }
 
-    $.extend(true, Child.prototype, protoProps);
+    // $.extend(true, Child.prototype,  protoProps);
+    $.extend(true, Child.prototype, Parent.prototype, protoProps);
 
     // Make it could be extended
     Child.extend = extend;
@@ -143,7 +144,7 @@
     isEqual: function(a, b) {
       var isEqual = true;
       (function check(a, b) {
-        if (typeof a !== 'object') {
+        if (typeof a !== 'object' || a === null) {
           a !== b && (isEqual = false);
         } else if (typeof b !== 'object') {
           isEqual = false;
@@ -299,8 +300,8 @@
     }
 
     for (var i in prop) {
-      this[i] = i === 'events'
-        ? $.extend({}, this[i], prop[i])
+      this[i] = (i === 'events' || i === 'modelProperty')
+        ? $.extend(true, {}, this[i], prop[i])
         : prop[i];
     }
 
@@ -330,16 +331,13 @@
       this.listen(this.model, 'reset', this.render);
     }
 
-    if (!this.el && this.tag) {
-      this.el = $('<' + this.tag + '>');
-    }
+    this.tag && (this.el = $('<' + this.tag + '>'));
+    typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
 
     if (typeof this.el === 'object') {
       this.delegateEvents();
-    }
-
-    if (this.className) {
-      this.el.addClass(this.className);
+      !this.tag && typeof this.template === 'string' && this.getTemplate();
+      this.className && this.el.addClass(this.className);
     }
 
     this.init && this.init();
@@ -354,7 +352,7 @@
 
     show: function() {
 
-      this._getTemplate();
+      // this.getTemplate();
 
       if (this.model && this.model.fetch) {
         this.model.fetch();
@@ -365,24 +363,28 @@
 
     render: function() {
 
+      this.trigger('render:before');
+
       this.beforeRender && this.beforeRender();
 
-      this._getTemplate();
-      this.template && this.el.html(this.template(this.model && this.model.data));
       this.html && this.el.html(this.html);
+
+      this.getTemplate();
+      
+      this.template && this.el.html(this.template(this.model && this.model.data));
+
+      (this._el || this.tag) && this.delegateEvents();
+
+      this.renderChildren();
 
       this.trigger('render:after');
 
       this.afterRender && this.afterRender();
 
-      this._el && this.delegateEvents();
-
-      this.renderChildren();
-
       return this.el;
     },
 
-    _getTemplate: function() {
+    getTemplate: function() {
       if (typeof this.template === 'string') {
         var _template = vjs($.call(this.template.indexOf('.') === 0 ? this : null, this.template).html());
         if (!_template) {
@@ -409,13 +411,12 @@
         if (typeof child.el === 'string') {
           child._el = child.el;
         }
-        if (child._el) {
-          child.el = _this.$(child._el);
-        }
 
-        _this._getTemplate.call(child);
+        child._el && (child.el = _this.$(child._el)) && child.delegateEvents();
 
-        child.show();
+        child.getTemplate();
+
+        !child.silent && child.show();
       });
     },
 
