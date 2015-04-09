@@ -44,8 +44,9 @@ define([
     },
 
     onSelect: function(e) {
+      this.$('.active').removeClass('active');
       var target = $(e.target);
-      target.addClass('active').siblings().removeClass('active');
+      target.addClass('active');
       var type = target.attr('data-type');
 
       var date = this.getDate()[type]();
@@ -76,6 +77,11 @@ define([
       this.$('.date-end').text($.format.date(end, 'yyyy-mm-dd'));
     },
 
+    disabled: function(date) {
+      var d = new Date(this.now);
+      return date.valueOf() > this.now || date.valueOf() < d.setDate(d.getDate() - 90)
+    },
+
     init: function() {
       this.listen(this.model, 'change', this.onChange);
 
@@ -97,13 +103,13 @@ define([
         mode: 'range',
         starts: 1,
         onRender: function(date) {
-          var d = new Date(_this.now);
           return {
-            disabled: (date.valueOf() > _this.now || date.valueOf() < d.setDate(d.getDate() - 90))
+            disabled: _this.disabled.call(_this, date)
           };
         },
         onSure: function() {
           _this.$('.active').removeClass('active');
+          _this.$('.selected-item').addClass('active');
           _this.model.set({
             begin: +arguments[1][0],
             end: +arguments[1][1]

@@ -7,7 +7,7 @@ require.config({
 
     'chart': '../../lib/chart.min',
     'echarts': '../../lib/echarts-all',
-    'd3': '../../lib/d3.v3.min',
+    'd3': '../../lib/d3.min',
     'daterange': '../../daterange/daterange',
 
     'base': '../../trunk/components/base',
