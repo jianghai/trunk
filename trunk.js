@@ -114,19 +114,6 @@
       }
 
       $.extend(true, Child.prototype, arg);
-
-      // (function extend(target, obj) {
-      //   if ($.isArray(obj)) {
-      //     target = obj.concat();
-      //   } else {
-      //     for (var k in obj) {
-      //       if (obj.hasOwnProperty(k)) {
-      //         target[k] = typeof obj[k] === 'object' && extend(target[k] || {}, obj[k]) || obj[k];
-      //       }
-      //     }
-      //   }
-      //   return target;
-      // })(Child.prototype, arg);
     }
 
     return Child;
@@ -134,8 +121,12 @@
 
   var Model = function(prop) {
 
-    for (var i in prop) {
-      this[i] = prop[i];
+    for (var k in prop) {
+      if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+        this[k] = $.extend(true, {}, this[k], prop[k])
+      } else {
+        this[k] = prop[k];
+      }
     }
 
     this.data = $.extend(true, {}, this.defaults, this.data);

@@ -19,7 +19,7 @@
   }
 
   // No Data
-  Trunk.View.prototype.onNoData = function() {
+  Trunk.View.prototype.onEmpty = function() {
     this.el.html('No data');
   }
 
