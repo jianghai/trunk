@@ -7,10 +7,13 @@ require.config({
 
     'chart': '../../lib/chart.min',
     'echarts': '../../lib/echarts-all',
+    'highcharts': '../../lib/highcharts',
     'd3': '../../lib/d3.min',
     'daterange': '../../daterange/daterange',
 
     'base': '../../trunk/components/base',
+    'highcharts.line': '../../trunk/components/highcharts.line',
+    'highcharts.pie': '../../trunk/components/highcharts.pie',
     'echarts.line': '../../trunk/components/echarts.line',
     'echarts.pie': '../../trunk/components/echarts.pie',
     'chart.line': '../../trunk/components/chart.line',
