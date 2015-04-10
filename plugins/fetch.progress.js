@@ -13,18 +13,22 @@
   }
 })(window, function(win, $, vjs, Trunk) {
 
+  Trunk.View.prototype.template_loading = $('#template-loading').html();
+  Trunk.View.prototype.template_error = $('#template-error').html();
+  Trunk.View.prototype.template_noData = $('#template-noData').html();
+
   // Loading
   Trunk.View.prototype.onRequest = function() {
-    this.el.html('loading...');
+    this.el.html(this.template_loading);
   }
 
   // No Data
   Trunk.View.prototype.onEmpty = function() {
-    this.el.html('No data');
+    this.el.html(this.template_noData);
   }
 
   // Error
   Trunk.View.prototype.onError = function() {
-    this.el.html('Server error');
+    this.el.html(this.template_error);
   }
 });

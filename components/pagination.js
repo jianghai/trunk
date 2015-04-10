@@ -10,7 +10,7 @@ define([
       shows: 5,
 
       parse: function(data) {
-        var counts = Math.ceil(data.totals / data.limit);
+        var counts = Math.ceil(data.total / data.limit);
         if (!counts) return;
         var current = data.start / data.limit + 1;
         var start = Math.max(Math.min(current - Math.floor(this.shows / 2), counts - this.shows + 1), 1);
@@ -32,13 +32,13 @@ define([
 
     tag: 'div',
 
-    className: 'pagination-container clearfix',
+    className: 'pagination-container',
 
     template: '#template-pagination',
 
     events: {
       'click .page': 'onPageChange',
-      'submit .form-paging': 'onSubmit'
+      'submit form': 'onSubmit'
     },
 
     onSubmit: function(e) {

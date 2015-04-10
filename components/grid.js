@@ -6,38 +6,45 @@ define([
 
   return Trunk.View.extend({
 
-    Model: Trunk.Model.extend({
-      param: {
-        start: 0,
-        limit: 10
-      }
-    }),
-
     init: function() {
 
-      // this.tbody = new Trunk.View()
-
-      this.pagination = new Pagination();
-
-      this.on('render:after', function() {
-        this.pagination.model.parse({
-          totals: this.model.data.totals,
-          start: this.model.param.start,
-          limit: this.model.param.limit
-        });
+      var pagination = new Pagination({
+        silent: true
       });
 
-      this.listen(this.pagination, 'change', function(page) {
-        this.model.setParam({
-          start: (page - 1) * this.model.param.limit
-        });
+      this.tbody = new Trunk.View({
+        Model: Trunk.Model.extend({
+          param: {
+            start: 0,
+            limit: 10
+          }
+        }),
+        el: 'tbody',
+        init: function() {
+
+          this.children = [pagination];
+
+          this.on('render:after', function() {
+            pagination.model.parse({
+              total: this.model.data.total,
+              start: this.model.param.start,
+              limit: this.model.param.limit
+            });
+          });
+
+          this.listen(pagination, 'change', function(page) {
+            this.model.setParam({
+              start: (page - 1) * this.model.param.limit
+            });
+          });
+        }
+      }, this.tbody);
+
+      this.listen(pagination, 'render:after', function() {
+        this.el.after(pagination.el);
       });
 
-      this.listen(this.pagination, 'render:after', function() {
-        this.el.append(this.pagination.el);
-      });
+      this.children = [this.tbody];
     }
   });
-
-  return View;
 });

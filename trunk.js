@@ -121,11 +121,13 @@
 
   var Model = function(prop) {
 
-    for (var k in prop) {
-      if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
-        this[k] = $.extend(true, {}, this[k], prop[k])
-      } else {
-        this[k] = prop[k];
+    if (prop) {
+      for (var k in prop) {
+        if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+          this[k] = $.extend(true, {}, this[k], prop[k])
+        } else {
+          this[k] = prop[k];
+        }
       }
     }
 
@@ -325,26 +327,34 @@
 
   var View = function(prop) {
 
-    if (prop && $.isFunction(prop.init) && $.isFunction(this.init)) {
-      var _this = this.init;
-      var _init = prop.init;
-      prop.init = function() {
-        _this.call(this);
-        _init.call(this);
-      };
+    if (arguments.length > 1) {
+      array.unshift.call(arguments, true, {});
+      prop = $.extend.apply($, arguments);
     }
 
-    for (var k in prop) {
-      if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
-        this[k] = $.extend(true, {}, this[k], prop[k])
-      } else {
-        this[k] = prop[k];
+    if (prop) {
+      if ($.isFunction(prop.init) && $.isFunction(this.init)) {
+        var _this = this.init;
+        var _init = prop.init;
+        prop.init = function() {
+          _this.call(this);
+          _init.call(this);
+        };
       }
+
+      for (var k in prop) {
+        if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+          this[k] = $.extend(true, {}, this[k], prop[k])
+        } else {
+          this[k] = prop[k];
+        }
+      }
+
     }
 
-    if (this.model) {
+    if (this.model || this.Model) {
 
-      this.model instanceof Model || (this.model = new (this.Model || Model)(this.model));
+      this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
 
       this.model.view = this;
 
@@ -400,7 +410,7 @@
 
         if (child.silent) continue;
 
-        child.model && child.fetch() || child.render();
+        child.model ? child.model.fetch() : child.render();
       }
     },
 
