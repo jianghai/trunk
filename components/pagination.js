@@ -9,10 +9,9 @@ define([
 
       shows: 5,
 
-      parse: function(data) {
-        var counts = Math.ceil(data.total / data.limit);
-        if (!counts) return;
-        var current = data.start / data.limit + 1;
+      onChange: function() {
+        var current = this.data.current;
+        var counts = this.data.counts;
         var start = Math.max(Math.min(current - Math.floor(this.shows / 2), counts - this.shows + 1), 1);
         var end = Math.min(Math.max(current + Math.floor(this.shows / 2), this.shows), counts);
         if (start <= 3) {
@@ -22,8 +21,8 @@ define([
           end = counts;
         }
         this.reset({
-          current: current,
           counts: counts,
+          current: current,
           start: start,
           end: end
         });
@@ -51,7 +50,7 @@ define([
       } else if (page > this.model.data.counts) {
         page = this.model.data.counts;
       }
-      this.pageTo(page);
+      this.trigger('change', +page);
     },
 
     onPageChange: function(e) {
@@ -64,11 +63,11 @@ define([
       } else if (page === 'next') {
         page = this.model.data.current + 1;
       }
-      this.pageTo(page);
+      this.trigger('change', +page);
     },
 
-    pageTo: function(page) {
-      this.trigger('change', page);
+    init: function() {
+      this.model.on('change', this.model.onChange);
     }
   });
 });

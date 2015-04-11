@@ -38,13 +38,13 @@
       return this;
     },
 
-    one: function(name, handle, context) {
+    once: function(name, handle, context) {
       var self = this;
-      var one = function() {
+      var once = function() {
         handle.apply(this, arguments);
-        self.off(name, one);
+        self.off(name, once);
       };
-      return this.on(name, one, context);
+      return this.on(name, once, context);
     },
 
     off: function(name, handle) {
@@ -66,6 +66,11 @@
      */
     listen: function(obj, name, handle) {
       obj.on(name, handle, this);
+      return this;
+    },
+
+    listenOnce: function(obj, name, handle) {
+      obj.once(name, handle, this);
       return this;
     },
 
@@ -375,6 +380,7 @@
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
+    typeof this.template === 'string' && this.template.indexOf('#') === 0 && this.getTemplate();
 
     if (typeof this.el === 'object') {
       this.delegateEvents();
