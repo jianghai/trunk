@@ -6,16 +6,14 @@ require.config({
     'jquery.extend': '../../jquery.extend/jquery.extend',
 
     'chart': '../../lib/chart.min',
-    'echarts': '../../lib/echarts-all',
-    'highcharts': '../../lib/highcharts',
+    'highcharts': '../../lib/highcharts-custom',
     'd3': '../../lib/d3.min',
     'daterange': '../../daterange/daterange',
 
     'base': '../../trunk/components/base',
+    'cookie': '../../trunk/components/cookie',
     'highcharts.line': '../../trunk/components/highcharts.line',
     'highcharts.pie': '../../trunk/components/highcharts.pie',
-    'echarts.line': '../../trunk/components/echarts.line',
-    'echarts.pie': '../../trunk/components/echarts.pie',
     'chart.line': '../../trunk/components/chart.line',
     'select': '../../trunk/components/select',
     'multiSelect': '../../trunk/components/multiSelect',

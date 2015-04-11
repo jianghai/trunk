@@ -77,11 +77,29 @@ define([
 
     defultOption: {
       chart: {
-        marginTop: 30,
-        type: 'areaspline'
+        marginTop: 15,
+        type: 'line',
+        style: {
+          fontFamily: 'Arial "Microsoft Yahei"'
+        }
       },
       title: {
         text: null
+      },
+      legend: {
+        itemStyle: {
+          fontWeight: 'normal',
+          color: '#333'
+        }
+      },
+      plotOptions: {
+        series: {
+          marker: {
+            fillColor: '#FFFFFF',
+            lineWidth: 2,
+            lineColor: null // inherit from series
+          }
+        }
       },
       tooltip: {
         shared: true
@@ -97,21 +115,18 @@ define([
         title: {
           text: null
         }
-      }
+      },
+      series: []
     },
 
     parseOption: function(data) {
 
       var option = $.extend(true, {}, this.defultOption, this.option);
 
-      // option.xAxis.categories = data.categories;
-      option.xAxis.labels = {
-        formatter: function() {
-          return data.categories[this.value]
-        }
-      };
+      option.xAxis.categories = data.categories;
 
-      option.series = data.series;
+      $.extend(true, option.series, data.series);
+      // option.series = data.series;
 
       return option;
     },

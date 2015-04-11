@@ -8,14 +8,13 @@ define([
   var Model = base.Model.extend({
 
     parse: function(data) {
-      var _this = this;
+      var self = this;
       var _data = [];
-      var _key = this.cols[0].col;
-      $.each(data.stores || [], function() {
-        _data.push([this[_this.group], this[_key]]);
+      $.each(data || [], function(k, v) {
+        _data.push([self.cols && self.cols[k] || k, v]);
       });
       return {
-        name: this.cols[0].name,
+        name: this.name,
         data: _data
       };
     }
@@ -27,16 +26,30 @@ define([
 
     defultOption: {
       chart: {
-        
+        style: {
+          fontFamily: 'Arial "Microsoft Yahei"'
+        }
       },
       title: {
         text: null
       },
       tooltip: {
-        pointFormat: '<b>{point.name}</b>: {point.percentage:.1f} %'
+        pointFormat: '<b>{series.name}</b>: {point.percentage:.1f} %'
       },
       credits: {
         enabled: false
+      },
+      plotOptions: {
+        pie: {
+          dataLabels: {
+            enabled: true,
+            style: {
+              color: '#333',
+              textShadow: 'none',
+              fontWeight: 'normal'
+            }
+          }
+        }
       },
       colors: app.color,
       series: [{

@@ -1,10 +1,11 @@
 define([
   'jquery',
   'trunk',
+  'cookie',
   'daterange',
   'dropdown',
   'jquery.extend'
-], function($, Trunk) {
+], function($, Trunk, cookie) {
 
   var View = Trunk.View.extend({
 
@@ -48,6 +49,9 @@ define([
       var target = $(e.target);
       target.addClass('active');
       var type = target.attr('data-type');
+
+      cookie.set('dateType', type);
+      cookie.remove('dateRange');
 
       var date = this.getDate()[type]();
 
@@ -113,7 +117,9 @@ define([
           _this.model.set({
             begin: +arguments[1][0],
             end: +arguments[1][1]
-          })
+          });
+          cookie.remove('dateType');
+          cookie.set('dateRange', _this.model.data.begin + '-' + _this.model.data.end);
           _this.close();
         },
         onCancel: function() {

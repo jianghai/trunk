@@ -60,13 +60,14 @@ define([
         this.layer = $('<div>', {
           'class': 'dialog-layer close'
         });
-        $('body').append(this.layer);
+        (this.wapper || $('body')).append(this.layer);
         this.layer.append(this.el);
       }
     },
 
     init: function() {
       if (this.child) {
+        this.child.dialog = this;
         if (this.child.model.url) {
           this.listen(this.child.model, 'request', this.waiting);
           this.listen(this.child.model, 'request:done', this.show);

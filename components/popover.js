@@ -17,7 +17,7 @@ define(function() {
       var self = this;
 
       if (!this.isCreated) {
-        this.popover = $($('#template-popover').html()).appendTo($('body'));
+        this.popover = $($('#template-popover').html()).appendTo(option.wapper || $('body'));
 
         this.popover
           .on('mouseenter', function() {
