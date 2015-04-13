@@ -49,7 +49,7 @@ define([
         
         if (res.total > limit) {
 
-          this.el.after(this.pagination.el);
+          this.el.append(this.pagination.el);
           
           this.pagination.model.set({
             current: start / limit + 1,
