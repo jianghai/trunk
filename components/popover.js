@@ -16,22 +16,23 @@ define(function() {
 
       var self = this;
 
-      if (!this.isCreated) {
-        this.popover = $($('#template-popover').html()).appendTo(option.wapper || $('body'));
+      this.popover = $($('#template-popover').html()).appendTo(option.wapper || $('body'));
 
-        this.popover
-          .on('mouseenter', function() {
-            clearTimeout(self.timer.mouseout);
-          })
-          .on('mouseleave', function() {
-            if (option.triggerEvent !== 'hover') return;
-            self.timer.popOut = setTimeout(function() {
-              self.close();
-            }, 300);
-          })
-          .on('click', function(e) {
-            e.stopPropagation();
-          });
+      this.popover
+        .on('mouseenter', function() {
+          clearTimeout(self.timer.mouseout);
+        })
+        .on('mouseleave', function() {
+          if (option.triggerEvent !== 'hover') return;
+          self.timer.popOut = setTimeout(function() {
+            self.close();
+          }, 300);
+        })
+        .on('click', function(e) {
+          e.stopPropagation();
+        });
+
+      if (!this.isCreated) {
         $('body').on('click', function() {
           self.close();
         });

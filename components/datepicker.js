@@ -2,18 +2,45 @@ define([
   'jquery',
   'trunk',
   'daterange',
-  'dropdown'
+  'dropdown',
+  'jquery.extend'
 ], function($, Trunk) {
 
-  var d = new Date();
-
-  return new Trunk.View({
+  return Trunk.View.extend({
 
     modelProperty: {
       defaults: {
         type: 'week',
-        end: d.setDate(d.getDate() - 1),
-        begin: d.setDate(d.getDate() - 6)
+      },
+      getDate: {
+        yesterday: function() {
+          var d = new Date(this.now);
+          return [
+            d.setDate(d.getDate() - 1) && d.setHours(0, 0, 0, 0),
+            d.setHours(23, 59, 59, 0)
+          ]
+        },
+        today: function() {
+          var d = new Date(this.now);
+          return [
+            d.setHours(0, 0, 0, 0),
+            this.now
+          ]
+        },
+        week: function() {
+          var d = new Date(this.now);
+          return [
+            d.setDate(d.getDate() - 6) && d.setHours(0, 0, 0, 0),
+            d.setDate(d.getDate() + 6) && d.setHours(23, 59, 59, 0)
+          ]
+        },
+        month: function() {
+          var d = new Date(this.now);
+          return [
+            d.setDate(d.getDate() - 29) && d.setHours(0, 0, 0, 0),
+            d.setDate(d.getDate() + 29) && d.setHours(23, 59, 59, 0)
+          ]
+        }
       }
     },
 
@@ -21,12 +48,12 @@ define([
       'click .date-item': 'onSelect'
     },
 
-    el: '.datepicker',
+    el: '#datepicker',
 
     template: '#template-datepicker',
 
     afterRender: function() {
-      var _this = this;
+      var self = this;
       var _picker = this.picker = this.$('.drop-layer');
       _picker.DatePicker({
         flat: true,
@@ -35,44 +62,39 @@ define([
         mode: 'range',
         starts: 1,
         onRender: function(date) {
-          // if (!_this.picker) return {};
           var d = new Date();
           var selected;
           try {
             selected = _picker.DatePickerGetDate();
           } catch (e) {
-            selected = [_this.getBegin(), _this.getEnd()];
+            selected = [self.getBegin(), self.getEnd()];
           }
-
           selected = [new Date(selected[0]), new Date(selected[1])];
-
           return {
-            disabled: _this.disabled(date, d, selected)
-            // disabled: date.valueOf() > d.valueOf()
-            //   || date.valueOf() < selected[0].setDate(selected[0].getDate() - 90) 
-            //   || date.valueOf() > selected[1].setDate(selected[1].getDate() + 90)
-            // disabled: (date.valueOf() > d.valueOf() || date.valueOf() < d.setDate(d.getDate() - 90))
+            disabled: self.disabled(date, self.model.now, selected)
           }
         },
         onSure: function() {
-          _this.$('.active').removeClass('active');
-          _this.$('.selected-item').addClass('active');
-          _this.model.set({
+          self.$('.active').removeClass('active');
+          self.$('.selected-item').addClass('active');
+          self.model.set({
             type: null,
             begin: +arguments[1][0],
             end: +arguments[1][1]
-          })
-          _this.close();
+          });
+          localStorage.removeItem('dateType');
+          localStorage.setItem('dateRange', self.model.data.begin + '-' + self.model.data.end);
+          self.close();
         },
         onCancel: function() {
-          _this.close();
+          self.close();
         }
       });
       this.date = this.$('.selected-date');
     },
 
-    disabled: function(date, d, selected) {
-      return date.valueOf() > d.valueOf();
+    disabled: function(date, now) {
+      return date.valueOf() > now;
     },
 
     close: function() {
@@ -84,22 +106,18 @@ define([
       var target = $(e.target);
       target.addClass('active');
       var type = target.attr('data-type');
-      var d = new Date();
-      var res = {
-        type: type,
-        end: d.setDate(d.getDate() - 1)
-      };
-      if (type === 'yesterday') {
-        res.begin = +d;
-      } else if (type ==='week') {
-        res.begin = d.setDate(d.getDate() - 6);
-      } else {
-        res.begin = d.setDate(d.getDate() - 29);
-      }
 
-      this.picker.DatePickerSetDate([res.begin, res.end], true);
+      var date = this.model.getDate[type].call(this.model);
 
-      this.model.set(res);
+      localStorage.setItem('dateType', type);
+      localStorage.removeItem('dateRange');
+
+      this.picker.DatePickerSetDate([date[0], date[1]], true);
+
+      this.model.set({
+        begin: date[0],
+        end: date[1]
+      });
     },
 
     getBegin: function() {
@@ -110,17 +128,38 @@ define([
       return this.model.data.end;
     },
 
-    onDataChange: function(data) {
-      this.renderDate(data.begin, data.end);
-      this.onChange && this.onChange(data);
-    },
-
-    renderDate: function(begin, end) {
-      this.date.html($.format.date(begin, 'yyyy-mm-dd') + ' -- ' + $.format.date(end, 'yyyy-mm-dd'));
-    },
-
     init: function() {
-      this.listen(this.model, 'change', this.onDataChange);
+
+      this.listen(this.model, 'change', function(data) {
+        this.date.html($.format.date(data.begin, 'yyyy-mm-dd') + ' -- ' + $.format.date(data.end, 'yyyy-mm-dd'));
+      });
+
+      this.model.now = +this.el.attr('data-now') || +new Date();
+
+      var data = {
+        type: this.model.data.type
+      };
+
+      var dateType = localStorage.getItem('dateType');
+      dateType && (data.type = dateType);
+
+      var dateRange = localStorage.getItem('dateRange');
+      if (dateRange) {
+        dateRange = dateRange.split('-');
+        data.type = null;
+        data.begin = +dateRange[0];
+        data.end = +dateRange[1];
+      }
+      
+      if (data.type) {
+        var date = this.model.getDate[data.type].call(this.model);
+        data.begin = date[0];
+        data.end = date[1];
+      }
+
+      this.model.set(data, {
+        change: false
+      });
     }
   });
 });

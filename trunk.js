@@ -333,6 +333,7 @@
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
+    typeof this.template === 'string' && this.template.indexOf('#') === 0 && this.getTemplate();
 
     if (typeof this.el === 'object') {
       this.delegateEvents();
