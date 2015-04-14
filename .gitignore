@@ -1,2 +1,6 @@
-node_modules*
-trunk.min.js
+*.zip
+*.rar
+*.log
+.DS_Store
+.com.apple.timemachine.supported
+node_modules
