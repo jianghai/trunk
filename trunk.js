@@ -232,7 +232,7 @@
 
       if (options.change !== false) {
         this.trigger('change', data);
-        this.models && this.models.trigger('change');
+        this.collection && this.collection.trigger('change');
       }
       return true;
     },
@@ -241,42 +241,42 @@
       this.data = $.extend({}, this.defaults, data);
       // this.trigger('change', data);
       this.trigger('reset', data);
-      this.models && this.models.trigger('change');
+      this.collection && this.collection.trigger('change');
     },
 
     remove: function() {
       this.view.el.remove();
-      this.models.reduce(this);
+      this.collection.reduce(this);
     },
 
-    // Insert a model after this to this.models
+    // Insert a model after this to this.collection
     after: function(data) {
       var model = new this.constructor({
         data: data
       });
-      model.models = this.models;
-      this.models.list.splice(this.index() + 1, 0, model);
-      this.models.trigger('add', model);
-      this.models.trigger('change');
+      model.collection = this.collection;
+      this.collection.list.splice(this.index() + 1, 0, model);
+      this.collection.trigger('add', model);
+      this.collection.trigger('change');
     },
 
-    // Get index of this.models
+    // Get index of this.collection
     index: function() {
-      return $.inArray(this, this.models.list);
+      return $.inArray(this, this.collection.list);
     },
 
     // Get the model before this
     prev: function() {
-      return this.models.list[this.index() - 1];
+      return this.collection.list[this.index() - 1];
     },
 
     // Get the model after this
     next: function() {
-      return this.models.list[this.index() + 1];
+      return this.collection.list[this.index() + 1];
     }
   });
 
-  var Models = function(prop) {
+  var Collection = function(prop) {
     if (prop) {
       for (var i in prop) {
         this[i] = prop[i];
@@ -285,7 +285,7 @@
     this.list = [];
   };
 
-  $.extend(Models.prototype, events, {
+  $.extend(Collection.prototype, events, {
 
     length: function() {
       return this.list.length;
@@ -295,7 +295,7 @@
       var model = new this.Model({
         data: data
       });
-      model.models = this;
+      model.collection = this;
       this.list.push(model);
       this.trigger('add', model);
       this.trigger('change');
@@ -363,7 +363,7 @@
 
       this.model.view = this;
 
-      this.model.models && (this.models = this.model.models);
+      this.model.collection && (this.collection = this.model.collection);
 
       if (this.model.validate) {
         this.onValidate && this.listen(this.model, 'validate', this.onValidate);
@@ -542,11 +542,11 @@
 
   Trunk.events = events;
   Trunk.Model = Model;
-  Trunk.Models = Models;
+  Trunk.Collection = Collection;
   Trunk.View = View;
   Trunk.Router = Router;
 
-  Trunk.Model.extend = Trunk.Models.extend = Trunk.View.extend = Trunk.Router.extend = extend;
+  Trunk.Model.extend = Trunk.Collection.extend = Trunk.View.extend = Trunk.Router.extend = extend;
 
   return Trunk;
 });
