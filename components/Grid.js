@@ -1,13 +1,14 @@
 define([
   'jquery',
   'trunk',
-  'pagination'
+  'Pagination'
 ], function($, Trunk, Pagination) {
 
   return Trunk.View.extend({
 
     noPaging: function() {
-      this.pagination && this.pagination.el.remove();
+      this.pagination.el.remove();
+      this.pagination = null;
     },
 
     init: function() {
@@ -36,28 +37,30 @@ define([
         var start = this.tbody.model.param.start;
         var limit = this.tbody.model.param.limit;
 
-        if (!this.pagination && res.total > limit) {
-          this.pagination = new Pagination();
-
-          this.tbody.listen(this.pagination, 'change', function(current) {
-            this.model.setParam('start', (current - 1) * limit);
-          });
-          
-          this.listen(this.tbody.model, 'empty', this.noPaging);
-          this.listen(this.tbody.model, 'error', this.noPaging);
-        }
-        
         if (res.total > limit) {
 
-          this.el.append(this.pagination.el);
+          if (!this.pagination) {
           
+            this.pagination = new Pagination();
+
+            this.el.append(this.pagination.el);
+
+            this.tbody.listen(this.pagination, 'change', function(current) {
+              this.model.setParam('start', (current - 1) * limit);
+            });
+            
+            this.listen(this.tbody.model, 'empty', this.noPaging);
+            this.listen(this.tbody.model, 'error', this.noPaging);
+          }
+
           this.pagination.model.set({
             current: start / limit + 1,
             counts: Math.ceil(res.total / limit)
           });
-        
-        } else if (!res.total || res.total < limit) {
-          this.noPaging();
+        }
+
+        if (!res.total || res.total <= limit) {
+          this.pagination && this.noPaging();
         }
       });
 

@@ -107,9 +107,9 @@
 
     var args = arguments;
     for (var i = 0, len = args.length; i < len; i++) {
-      var arg = args[i] instanceof View && args[i].prototype || args[i];
+      var arg = args[i].prototype || args[i];
 
-      if ($.isFunction(arg.init) && $.isFunction(Child.prototype.init)) {
+      if (typeof arg.init === 'function' && typeof Child.prototype.init === 'function') {
         var _child = Child.prototype.init;
         var _init = arg.init;
         arg.init = function() {
@@ -128,7 +128,7 @@
 
     if (prop) {
       for (var k in prop) {
-        if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+        if (prop[k].constructor === Object || prop[k].constructor === Array) {
           this[k] = $.extend(true, {}, this[k], prop[k])
         } else {
           this[k] = prop[k];
@@ -143,16 +143,24 @@
     this.init && this.init();
   };
 
-  $.extend(Model.prototype, events, {
+  var ajax = {
 
-    setParam: function(param) {
+    setParam: function(param, silent) {
       this.param || (this.param = {});
-      typeof param === 'object' && $.extend(this.param, param) || (this.param[param] = arguments[1]);
-      this.fetch();
-    },
-
-    onFetch: function(res) {
-      this.reset(typeof this.parse === 'function' && this.parse(res) || res);
+      if (typeof param === 'string') {
+        this.param[param] = silent;
+        silent = arguments[2];
+      } else {
+        for (var k in param) {
+          var val = param[k];
+          if (val || val === 0) {
+            this.param[k] = val;
+          } else {
+            delete this.param[k];
+          }
+        }
+      }
+      !silent && this.fetch();
     },
 
     fetch: function() {
@@ -160,7 +168,8 @@
       this.trigger('request');
       $.ajax({
         url: this.url,
-        data: this.param && $.param(this.param, true)
+        // data: this.param && $.param(this.param, true)
+        data: this.param
       }).done(function(res) {
         if (res === '' || (self.isEmpty && self.isEmpty(res))) {
           return self.trigger('empty');
@@ -170,6 +179,13 @@
       }).fail(function(xhr, text_status) {
         text_status !== 'abort' && self.trigger('error');
       });
+    }
+  };
+
+  $.extend(Model.prototype, events, ajax, {
+
+    onFetch: function(res) {
+      this.reset(typeof this.parse === 'function' && this.parse(res) || res);
     },
 
     // Why not just read the property 'data' to get what you want, Because by this method, the return value could be deep copied.
@@ -285,19 +301,18 @@
     this.list = [];
   };
 
-  $.extend(Collection.prototype, events, {
+  $.extend(Collection.prototype, events, ajax, {
 
     length: function() {
       return this.list.length;
     },
 
     add: function(data) {
-      var model = new this.Model({
+      var model = new (this.Model || Model)({
         data: data
       });
       model.collection = this;
-      this.list.push(model);
-      this.trigger('add', model);
+      this.trigger('add', model, this.list.push(model) - 1);
       this.trigger('change');
     },
 
@@ -338,7 +353,7 @@
     }
 
     if (prop) {
-      if ($.isFunction(prop.init) && $.isFunction(this.init)) {
+      if (typeof prop.init === 'function' && typeof this.init === 'function') {
         var _this = this.init;
         var _init = prop.init;
         prop.init = function() {
@@ -348,7 +363,7 @@
       }
 
       for (var k in prop) {
-        if (typeof prop[k] === 'object' && typeof this[k] === 'object') {
+        if (prop[k].constructor === Object || prop[k].constructor === Array) {
           this[k] = $.extend(true, {}, this[k], prop[k])
         } else {
           this[k] = prop[k];
@@ -359,7 +374,7 @@
 
     if (this.model || this.Model) {
 
-      this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
+      this.model instanceof Model || (this.model = new (this.Model || Model)(this.model));
 
       this.model.view = this;
 
@@ -387,6 +402,8 @@
       !this.tag && typeof this.template === 'string' && this.getTemplate();
       this.className && this.el.addClass(this.className);
     }
+
+    this.children = [];
 
     this.init && this.init();
   };
