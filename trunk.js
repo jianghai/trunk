@@ -118,7 +118,15 @@
         }
       }
 
-      $.extend(true, Child.prototype, arg);
+      for (var k in arg) {
+        if (arg.hasOwnProperty(k)) {
+          if (arg[k].constructor === Object || arg[k].constructor === Array) {
+            Child.prototype[k] = $.extend(true, {}, Child.prototype[k], arg[k])
+          } else {
+            Child.prototype[k] = arg[k];
+          }
+        }
+      }
     }
 
     return Child;
@@ -146,20 +154,25 @@
   var ajax = {
 
     setParam: function(param, silent) {
+
       this.param || (this.param = {});
+
       if (typeof param === 'string') {
-        this.param[param] = silent;
+        var _key = param;
+        param = {};
+        param[_key] = silent;
         silent = arguments[2];
-      } else {
-        for (var k in param) {
-          var val = param[k];
-          if (val || val === 0) {
-            this.param[k] = val;
-          } else {
-            delete this.param[k];
-          }
+      }
+
+      for (var k in param) {
+        var val = param[k];
+        if (val || val === 0) {
+          this.param[k] = val;
+        } else {
+          delete this.param[k];
         }
       }
+
       !silent && this.fetch();
     },
 
@@ -308,12 +321,22 @@
     },
 
     add: function(data) {
-      var model = new (this.Model || Model)({
-        data: data
+      if (Array.isArray(data)) {
+        data.forEach(function(item) {
+          this.addOne(item);
+        }, this);
+      } else {
+        this.addOne(data);
+      }
+      this.trigger('change');
+    },
+
+    addOne: function(item) {
+      var model = new(this.Model || Model)({
+        data: item
       });
       model.collection = this;
       this.trigger('add', model, this.list.push(model) - 1);
-      this.trigger('change');
     },
 
     reduce: function(model) {
@@ -337,9 +360,11 @@
     },
 
     clear: function() {
-      while (this.length()) {
-        this.list[0].remove();
-      }
+      this.list.forEach(function(model) {
+        model.view.el.remove();
+      });
+      this.list.length = 0;
+      this.trigger('change');
       return this;
     }
   });
@@ -353,6 +378,7 @@
     }
 
     if (prop) {
+
       if (typeof prop.init === 'function' && typeof this.init === 'function') {
         var _this = this.init;
         var _init = prop.init;
@@ -374,7 +400,7 @@
 
     if (this.model || this.Model) {
 
-      this.model instanceof Model || (this.model = new (this.Model || Model)(this.model));
+      this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
 
       this.model.view = this;
 
@@ -414,6 +440,11 @@
     $: function(selector) {
       return this.el.find(selector);
     },
+
+    // Get model data
+    // get: function(prop) {
+    //   return this.model.data[prop];
+    // },
 
     render: function() {
       this.model && this.template && this.el.html(this.template(this.model && this.model.data));
