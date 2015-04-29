@@ -1,6 +1,7 @@
 define([
   'jquery',
-  'trunk'
+  'trunk',
+  'jquery.extend',
 ], function($, Trunk) {
 
   var Model = Trunk.Model.extend({
