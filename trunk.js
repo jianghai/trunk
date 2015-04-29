@@ -120,7 +120,7 @@
 
       for (var k in arg) {
         if (arg.hasOwnProperty(k)) {
-          if (arg[k].constructor === Object || arg[k].constructor === Array) {
+          if (arg[k].constructor === Object || Array.isArray(arg[k])) {
             Child.prototype[k] = $.extend(true, {}, Child.prototype[k], arg[k])
           } else {
             Child.prototype[k] = arg[k];
@@ -136,7 +136,7 @@
 
     if (prop) {
       for (var k in prop) {
-        if (prop[k].constructor === Object || prop[k].constructor === Array) {
+        if (prop[k].constructor === Object || Array.isArray(prop[k])) {
           this[k] = $.extend(true, {}, this[k], prop[k])
         } else {
           this[k] = prop[k];
@@ -202,15 +202,15 @@
     },
 
     // Why not just read the property 'data' to get what you want, Because by this method, the return value could be deep copied.
-    get: function(prop) {
-      var value = this.data[prop];
-      var isObject = $.isPlainObject(value);
-      var isArray = $.isArray(value);
-      if (isObject || isArray) {
-        return $.extend(true, isObject && {} || [], value);
-      }
-      return value;
-    },
+    // get: function(prop) {
+    //   var value = this.data[prop];
+    //   var isObject = $.isPlainObject(value);
+    //   var isArray = $.isArray(value);
+    //   if (isObject || isArray) {
+    //     return $.extend(true, isObject && {} || [], value);
+    //   }
+    //   return value;
+    // },
 
     isEqual: function(a, b) {
       var isEqual = true;
@@ -291,7 +291,7 @@
 
     // Get index of this.collection
     index: function() {
-      return $.inArray(this, this.collection.list);
+      return this.collection.list.indexOf(this);
     },
 
     // Get the model before this
@@ -340,10 +340,8 @@
     },
 
     reduce: function(model) {
-      var index = !isNaN(model) ? model : $.inArray(model, this.list);
-      var _model = this.list[index];
-      this.list.splice(index, 1);
-      this.trigger('reduce', _model);
+      this.list.splice(model.index(), 1);
+      this.trigger('reduce', model);
       this.trigger('change');
     },
 
@@ -389,7 +387,7 @@
       }
 
       for (var k in prop) {
-        if (prop[k].constructor === Object || prop[k].constructor === Array) {
+        if (prop[k].constructor === Object || Array.isArray(prop[k])) {
           this[k] = $.extend(true, {}, this[k], prop[k])
         } else {
           this[k] = prop[k];
@@ -548,7 +546,7 @@
             // Don't forget to decode the query string
             single[1] = decodeURIComponent(single[1]);
             if (single[0] in param) {
-              if (!$.isArray(param[single[0]])) {
+              if (!Array.isArray(param[single[0]])) {
                 param[single[0]] = [param[single[0]]];
               }
               param[single[0]].push(single[1]);
