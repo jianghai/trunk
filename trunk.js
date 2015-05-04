@@ -4,6 +4,8 @@
  * see: http://github.com/jianghai for details.
  */
 
+'use strict';
+
 (function(root, factory) {
 
   if (typeof define === 'function' && define.amd) {
@@ -11,15 +13,11 @@
     define('trunk', ['jquery', 'vjs'], function($, vjs) {
       return factory(root, $, vjs)
     });
-  }
-
-  if (root.jQuery && root.vjs) {
+  } else {
     root.Trunk = factory(root, jQuery, vjs);
   }
 
 })(window, function(win, $, vjs) {
-
-  'use strict';
 
   // Caller as array method
   var array = [];
@@ -312,6 +310,8 @@
       }
     }
     this.list = [];
+
+    this.init && this.init();
   };
 
   $.extend(Collection.prototype, events, ajax, {
@@ -357,11 +357,12 @@
       });
     },
 
-    clear: function() {
-      this.list.forEach(function(model) {
+    clear: function(models) {
+      (models || this.list).forEach(function(model) {
+        models && this.list.splice(model.index(), 1);
         model.view.el.remove();
-      });
-      this.list.length = 0;
+      }, this);
+      !models && (this.list.length = 0);
       this.trigger('change');
       return this;
     }
@@ -462,7 +463,7 @@
 
         if (child.silent) continue;
 
-        child.model ? child.model.fetch() : child.render();
+        child.model && (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch() : child.render();
       }
     },
 

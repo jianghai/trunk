@@ -1,6 +1,7 @@
 define([
   'jquery',
-  'trunk'
+  'trunk',
+  'jquery.extend'
 ], function($, Trunk) {
   
   var Model = Trunk.Model.extend({
@@ -41,7 +42,7 @@ define([
         $.ajax({
           type: 'post',
           url: this.model.url,
-          data: this.model.data
+          data: $.jsonParam(this.model.data)
         }).done(this.onDone.bind(this));
       }
       return false;

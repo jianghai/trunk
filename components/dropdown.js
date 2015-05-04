@@ -21,16 +21,16 @@ define([
     dropdown.toggleClass('open');
 
     // position reset
-    if (dropdown.hasClass('open')) {
-      var o_t = target.offset().top;
-      var layer = target.next();
-      var _h = layer.outerHeight();
-      if (o_t - $(window).scrollTop() + target.height() + _h > $(window).height()) {
-        layer.css('top', '-' + _h + 'px');
-      } else {
-        layer.css('top', '100%');
-      }
-    }
+    // if (dropdown.hasClass('open')) {
+    //   var o_t = target.offset().top;
+    //   var layer = target.next();
+    //   var _h = layer.outerHeight();
+    //   if (o_t - $(window).scrollTop() + target.height() + _h > $(window).height()) {
+    //     layer.css('top', '-' + _h + 'px');
+    //   } else {
+    //     layer.css('top', '100%');
+    //   }
+    // }
 
     return false;
 
