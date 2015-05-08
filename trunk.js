@@ -447,8 +447,8 @@
 
     render: function() {
       this.model && this.template && this.el.html(this.template(this.model && this.model.data));
-      this.children && this.renderChildren();
       this.trigger('render:after');
+      this.children && this.renderChildren();
       return this.el;
     },
 
