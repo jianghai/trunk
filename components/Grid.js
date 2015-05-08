@@ -22,8 +22,9 @@ define([
             limit: 10
           },
 
-          restart: function() {
+          restart: function(fetch) {
             this.param.start = 0;
+            fetch && this.fetch();
             return this;
           }
         }),

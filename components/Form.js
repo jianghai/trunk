@@ -41,7 +41,7 @@ define([
       if (this.model.set(data)) {
         $.ajax({
           type: 'post',
-          url: this.model.url,
+          url: this.model.post,
           data: $.jsonParam(this.model.data)
         }).done(this.onDone.bind(this));
       }

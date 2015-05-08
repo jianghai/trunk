@@ -17,7 +17,7 @@ define([
 
     events: {
       'wheel .scroll': 'onWheel',
-      // 'click': 'onClick',
+      'click': 'onClick',
       'click .dialog-close': 'close'
     },
 
@@ -26,11 +26,11 @@ define([
       return false;
     },
 
-    // onClick: function(e) {
-    //     if ($(e.target).hasClass(this.className)) {
-    //         this.close();
-    //     }
-    // },
+    onClick: function(e) {
+      if ($(e.target).hasClass('dialog-overlay')) {
+        this.close();
+      }
+    },
 
     close: function() {
       // this.isOpen = false;
@@ -78,14 +78,14 @@ define([
 
     init: function() {
       if (this.child) {
-        
+
         this.child.dialog = this;
-        
+
         if (this.child.model && this.child.model.url) {
           // this.listen(this.child.model, 'request', this.waiting);
           this.listen(this.child.model, 'error', this.show);
         }
-          
+
         this.listen(this.child, 'render:after', this.show);
       }
     }
