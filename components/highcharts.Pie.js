@@ -50,7 +50,7 @@ define([
           }
         }
       },
-      colors: ['#69b4ee', '#9574d9', '#86b320', '#2ec7c9'],
+      colors: ['#69b4ee', '#9574d9', '#86b320', '#2ec7c9', '#a7abba'],
       series: [{
         type: 'pie'
       }]
