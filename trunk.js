@@ -355,7 +355,7 @@
 
       // this.getTemplate();
 
-      if (this.model && this.model.fetch) {
+      if (this.model && this.model.url) {
         this.model.fetch();
       } else {
         this.render();
