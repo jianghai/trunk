@@ -16,8 +16,7 @@ define([
       this.trigger('input', value);
       if (value) {
         this.el.addClass('clear');
-      }
-      else {
+      } else {
         this.clear()
       }
     },

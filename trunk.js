@@ -397,7 +397,7 @@
 
     }
 
-    if (this.model || this.Model) {
+    // if (this.model || this.Model) {
 
       this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
 
@@ -416,7 +416,7 @@
       this.onRequest && this.listen(this.model, 'request', this.onRequest);
       this.onError && this.listen(this.model, 'error', this.onError);
       this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
-    }
+    // }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
