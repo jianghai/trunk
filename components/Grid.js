@@ -13,7 +13,9 @@ define([
 
     init: function() {
 
-      this.tbody = new Trunk.View({
+      var _setParam = Trunk.Model.prototype.setParam;
+
+      this.list = new Trunk.View({
 
         Model: Trunk.Model.extend({
 
@@ -22,21 +24,20 @@ define([
             limit: 10
           },
 
-          restart: function(fetch) {
+          setParam: function() {
             this.param.start = 0;
-            fetch && this.fetch();
-            return this;
+            _setParam.apply(this, arguments)
           }
         }),
 
         el: 'tbody'
 
-      }, this.tbody);
+      }, this.list);
 
-      this.listen(this.tbody.model, 'sync', function(res) {
+      this.listen(this.list.model, 'sync', function(res) {
 
-        var start = this.tbody.model.param.start;
-        var limit = this.tbody.model.param.limit;
+        var start = this.list.model.param.start;
+        var limit = this.list.model.param.limit;
 
         if (res.total > limit) {
 
@@ -46,12 +47,12 @@ define([
 
             this.el.append(this.pagination.el);
 
-            this.tbody.listen(this.pagination, 'change', function(current) {
+            this.list.listen(this.pagination, 'change', function(current) {
               this.model.setParam('start', (current - 1) * limit);
             });
             
-            this.listen(this.tbody.model, 'empty', this.noPaging);
-            this.listen(this.tbody.model, 'error', this.noPaging);
+            this.listen(this.list.model, 'empty', this.noPaging);
+            this.listen(this.list.model, 'error', this.noPaging);
           }
 
           this.pagination.model.set({
@@ -65,7 +66,7 @@ define([
         }
       });
 
-      this.children = [this.tbody];
+      this.children = [this.list];
     }
   });
 });

@@ -11,12 +11,12 @@ define([
 
     template: '#template-select',
 
-    loading: function() {
+    onRequest: function() {
       this.el.html('<option value="">加载中</option>');
     },
 
-    error: function() {
-      this.el.html('<option value="">加载错误</option>');
+    onError: function() {
+      this.el.html('<option value="">服务器错误，请重试</option>');
     }
   });
 });

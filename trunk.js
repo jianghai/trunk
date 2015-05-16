@@ -196,19 +196,9 @@
   $.extend(Model.prototype, events, ajax, {
 
     onFetch: function(res) {
-      this.reset(typeof this.parse === 'function' && this.parse(res) || res);
+      $.extend(this.data, typeof this.parse === 'function' && this.parse(res) || res);
+      this.view.render();
     },
-
-    // Why not just read the property 'data' to get what you want, Because by this method, the return value could be deep copied.
-    // get: function(prop) {
-    //   var value = this.data[prop];
-    //   var isObject = $.isPlainObject(value);
-    //   var isArray = $.isArray(value);
-    //   if (isObject || isArray) {
-    //     return $.extend(true, isObject && {} || [], value);
-    //   }
-    //   return value;
-    // },
 
     isEqual: function(a, b) {
       var isEqual = true;
@@ -237,6 +227,7 @@
         var _data = data;
         data = {};
         data[_data] = options;
+        options = arguments[2]
       }
 
       options || (options = {});
@@ -250,14 +241,13 @@
         }
       }
 
-      for (var k in data) {
-        if (!this.isEqual(data[k], this.data[k])) {
-          this.data[k] = data[k];
-          this.trigger('change:' + k, data[k]);
+      if (!options.silent) {
+        for (var k in data) {
+          if (!this.isEqual(data[k], this.data[k])) {
+            this.data[k] = data[k];
+            this.trigger('change:' + k, data[k]);
+          }
         }
-      }
-
-      if (options.change !== false) {
         this.trigger('change', data);
         this.collection && this.collection.trigger('change');
       }
@@ -345,12 +335,6 @@
       this.trigger('change');
     },
 
-    each: function(fn) {
-      $.each(this.list, function(i, n) {
-        return fn.call(null, n, i);
-      });
-    },
-
     toArray: function() {
       return this.list.map(function(model) {
         return model.data;
@@ -363,6 +347,7 @@
         model.view.el.remove();
       }, this);
       !models && (this.list.length = 0);
+      this.trigger('reduce');
       this.trigger('change');
       return this;
     }
@@ -413,9 +398,9 @@
       // Events
       this.listen(this.model, 'reset', this.render);
 
-      this.onRequest && this.listen(this.model, 'request', this.onRequest);
-      this.onError && this.listen(this.model, 'error', this.onError);
-      this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
+      // this.onRequest && this.listen(this.model, 'request', this.onRequest);
+      // this.onError && this.listen(this.model, 'error', this.onError);
+      // this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
     // }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
@@ -463,7 +448,7 @@
 
         if (child.silent) continue;
 
-        child.model && (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch() : child.render();
+        (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch() : child.render();
       }
     },
 
