@@ -29,39 +29,28 @@ define([
     //   }
     // },
 
-    getSingleData: function(col, store) {
-      return store[col];
-    },
+    // getSingleData: function(col, store) {
+    //   return store[col] ;
+    // },
 
-    getSingleCategory: function(val) {
-      return val;
-    },
+    // getSingleCategory: function(val) {
+    //   return val;
+    // },
 
     parse: function(data) {
-      // var d = new Date(this.param.begin);
-      // d.setDate(d.getDate() + 1);
-      // d < this.param.end && this.fill(data);
-      var _this = this;
       var _category = [];
-      var _series = {};
-      typeof this.cols === 'function' && (this._cols = this.cols());
-      $.each(this._cols || this.cols, function() {
-        _series[this.col] = {
-          name: this.name,
-          data: []
-        };
-      });
+      var _series = typeof this.cols === 'function' ? this.cols() : this.cols;
 
-      $.each(data.stores || [], function(i, store) {
-        $.each(_series, function(col) {
-          this.data.push(col in store ? _this.getSingleData(col, store) : 0);
-        });
-        _category.push(_this.getSingleCategory(store[_this.group]));
+      _series.forEach(function(serie) {
+        serie.data = [];
       });
-
-      _series = $.map(_series, function(serie) {
-        return serie;
-      });
+      
+      data.stores.forEach(function(store) {
+        _series.forEach(function(serie) {
+          serie.data.push(store[serie.key] || 0);
+        }, this);
+        _category.push(store[this.group]);
+      }, this);
 
       return {
         categories: _category,

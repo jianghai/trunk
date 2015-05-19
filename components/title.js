@@ -1,14 +1,15 @@
 define([
   'jquery',
   'trunk',
-  'vjs',
   'Popover'
-], function($, Trunk, vjs, Popover) {
+], function($, Trunk, Popover) {
 
   var title = new Trunk.View({
     tag: 'div',
-    template: vjs('<#- data.text #>'),
-    className: 'title'
+    template: function(data) {
+      return data.text;
+    },
+    className: 'popover-title'
   });
 
   var popover = new Popover({

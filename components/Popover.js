@@ -9,9 +9,18 @@ define([
 
     className: 'popover',
 
+    events: {
+      'mouseover': 'onMouseover'
+    },
+
+    onMouseover: function() {
+      console.log(1);
+    },
+
     open: function() {
+      this.el.css('left', 0);
       this.el.html(this.child.el);
-      this.child.delegateEvents();
+      // this.child.delegateEvents();
       this.setPosition();
       this.trigger.one('mouseleave', this.close.bind(this));
       this.el.addClass('open');

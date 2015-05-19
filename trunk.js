@@ -384,23 +384,23 @@
 
     // if (this.model || this.Model) {
 
-      this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
+    this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
 
-      this.model.view = this;
+    this.model.view = this;
 
-      this.model.collection && (this.collection = this.model.collection);
+    this.model.collection && (this.collection = this.model.collection);
 
-      if (this.model.validate) {
-        this.onValidate && this.listen(this.model, 'validate', this.onValidate);
-        this.onInvalid && this.listen(this.model, 'invalid', this.onInvalid);
-      }
+    if (this.model.validate) {
+      this.onValidate && this.listen(this.model, 'validate', this.onValidate);
+      this.onInvalid && this.listen(this.model, 'invalid', this.onInvalid);
+    }
 
-      // Events
-      this.listen(this.model, 'reset', this.render);
+    // Events
+    this.listen(this.model, 'reset', this.render);
 
-      // this.onRequest && this.listen(this.model, 'request', this.onRequest);
-      // this.onError && this.listen(this.model, 'error', this.onError);
-      // this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
+    // this.onRequest && this.listen(this.model, 'request', this.onRequest);
+    // this.onError && this.listen(this.model, 'error', this.onError);
+    // this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
     // }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
@@ -448,7 +448,7 @@
 
         if (child.silent) continue;
 
-        (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch() : child.render();
+        (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch(): child.render();
       }
     },
 
@@ -492,11 +492,9 @@
 
     this.init && this.init();
 
-    var _this = this;
-
     // Bind router rules
-    $.each(this.router, function(rule, handle) {
-      handle = _this[handle];
+    for (var rule in this.router) {
+      var handle = this[this.router[rule]];
       if (Router.routers) {
         if (Router.routers[rule]) {
           Router.routers[rule].push(handle);
@@ -517,7 +515,7 @@
         reg = '^' + reg + '$';
         Router.regs[rule] = new RegExp(reg);
       }
-    });
+    }
 
     // Listen hash change and trigger handles of router rules 
     if (!Router.isListen) {
@@ -527,37 +525,38 @@
         Trunk.get = null;
         if (hash[1]) {
           var param = {};
-          $.each(hash[1].split('&'), function() {
-            var single = this.split('=');
+          hash[1].split('&').forEach(function(query) {
+            var query = query.split('=');
             // Don't forget to decode the query string
-            single[1] = decodeURIComponent(single[1]);
-            if (single[0] in param) {
-              if (!Array.isArray(param[single[0]])) {
-                param[single[0]] = [param[single[0]]];
+            query[1] = decodeURIComponent(query[1]);
+            if (query[0] in param) {
+              if (!Array.isArray(param[query[0]])) {
+                param[query[0]] = [param[query[0]]];
               }
-              param[single[0]].push(single[1]);
+              param[query[0]].push(query[1]);
             } else {
-              param[single[0]] = single[1];
+              param[query[0]] = query[1];
             }
           });
           Trunk.get = param;
         }
         hash = hash[0];
         if (Router.routers[hash]) {
-          $.each(Router.routers[hash], function() {
-            this.call(_this);
-          });
+          // Execute every handle
+          Router.routers[hash].forEach(function(handle) {
+            handle.call(this);
+          }, this);
         } else {
-          $.each(Router.regs, function(k, v) {
-            var match;
-            if (match = hash.match(v)) {
+          for (var k in Router.regs) {
+            var match, reg = Router.regs[k];
+            if (match = hash.match(reg)) {
               match.shift();
-              $.each(Router.routers[k], function() {
-                this.apply(_this, match);
-              });
+              Router.routers[k].forEach(function(handle) {
+                handle.apply(this, match);
+              }, this);
               return false;
             }
-          });
+          }
         }
       };
 
