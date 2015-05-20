@@ -1,7 +1,8 @@
 define([
   'jquery',
   'trunk',
-  'highcharts'
+  'highcharts',
+  'highcharts.config',
 ], function($, Trunk) {
 
   var Model = Trunk.Model.extend({
