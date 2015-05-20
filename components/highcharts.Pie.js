@@ -5,18 +5,6 @@ define([
 ], function($, Trunk) {
 
   var Model = Trunk.Model.extend({
-
-    parse: function(data) {
-      var self = this;
-      var _data = [];
-      $.each(data || [], function(k, v) {
-        _data.push([self.cols[k] || k, v]);
-      });
-      return {
-        name: this.name,
-        data: _data
-      };
-    }
   });
 
   return Trunk.View.extend({
@@ -24,11 +12,6 @@ define([
     Model: Model,
 
     defultOption: {
-      chart: {
-        style: {
-          fontFamily: 'Arial "Microsoft Yahei"'
-        }
-      },
       title: {
         text: null
       },
@@ -50,18 +33,19 @@ define([
           }
         }
       },
-      colors: ['#69b4ee', '#9574d9', '#86b320', '#2ec7c9', '#a7abba'],
       series: [{
         type: 'pie'
       }]
     },
 
     parseOption: function(data) {
-      var option = $.extend(true, {}, this.defultOption);
-      $.extend(true, option, this.option);
 
-      option.series[0].name = data.name;
-      option.series[0].data = data.data;
+      var option = $.extend(true, {}, this.defultOption, this.option);
+
+      option.series[0].data.forEach(function(item) {
+        item.y = data[item.key];
+      });
+      
       return option;
     },
 
