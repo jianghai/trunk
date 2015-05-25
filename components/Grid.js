@@ -4,6 +4,24 @@ define([
   'Pagination'
 ], function($, Trunk, Pagination) {
 
+  var List = Trunk.View.extend({
+
+    Model: Trunk.Model.extend({
+
+      param: {
+        start: 0,
+        limit: 10
+      },
+
+      setParam: function() {
+        this.param.start = 0;
+        Trunk.Model.prototype.setParam.apply(this, arguments)
+      }
+    }),
+
+    el: 'tbody'
+  });
+
   return Trunk.View.extend({
 
     noPaging: function() {
@@ -13,26 +31,7 @@ define([
 
     init: function() {
 
-      var _setParam = Trunk.Model.prototype.setParam;
-
-      this.list = new Trunk.View({
-
-        Model: Trunk.Model.extend({
-
-          param: {
-            start: 0,
-            limit: 10
-          },
-
-          setParam: function() {
-            this.param.start = 0;
-            _setParam.apply(this, arguments)
-          }
-        }),
-
-        el: 'tbody'
-
-      }, this.list);
+      this.list = new List(this.list);
 
       this.listen(this.list.model, 'sync', function(res) {
 

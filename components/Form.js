@@ -1,7 +1,6 @@
 define([
   'jquery',
   'trunk',
-  'jquery.extend'
 ], function($, Trunk) {
   
   var Model = Trunk.Model.extend({
@@ -36,9 +35,20 @@ define([
         this.$('.' + k).addClass('error').find('.error-tip').text(error[k]);
       }
     },
+    serialize: function() {
+      var res = {};
+      this.el.serializeArray().forEach(function(field) {
+        if (field.name in res) {
+          Array.isArray(res[field.name]) && (res[field.name] = [res[field.name]]);
+          res[field.name].push(field.value);
+        } else {
+          res[field.name] = field.value;
+        }
+      });
+      return res;
+    },
     onSubmit: function() {
-      var data = this.el.serializeObject();
-      if (this.model.set(data)) {
+      if (this.model.set(this.serialize())) {
         $.ajax({
           type: 'post',
           url: this.model.post,

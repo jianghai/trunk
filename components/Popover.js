@@ -12,10 +12,9 @@ define([
     open: function() {
       this.el.css('left', 0);
       this.el.html(this.child.el);
-      // this.child.delegateEvents();
       this.setPosition();
-      this.trigger.one('mouseleave', this.close.bind(this));
       this.el.addClass('open');
+      this.triggerElement.one('mouseleave', this.close.bind(this));
     },
 
     setPosition: function() {
@@ -26,9 +25,9 @@ define([
         h: rect.height
       };
 
-      var offset = this.trigger.offset();
-      var rect = this.trigger[0].getBoundingClientRect();
-      var trigger = {
+      var offset = this.triggerElement.offset();
+      var rect = this.triggerElement[0].getBoundingClientRect();
+      var triggerElement = {
         x: offset.left,
         y: offset.top,
         w: rect.width,
@@ -36,8 +35,8 @@ define([
       };
 
       this.el.css({
-        left: trigger.x - popover.w / 2 + trigger.w / 2,
-        top: trigger.y - popover.h - 8
+        left: triggerElement.x - popover.w / 2 + triggerElement.w / 2,
+        top: triggerElement.y - popover.h - 8
       });
     },
 

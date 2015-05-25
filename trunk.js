@@ -134,7 +134,11 @@
 
     if (prop) {
       for (var k in prop) {
-        this[k] = prop[k];
+        if (k === 'param') {
+          this[k] = $.extend(true, {}, this[k], prop[k]);
+        } else {
+          this[k] = prop[k];
+        }
       }
     }
 

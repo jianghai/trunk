@@ -50,7 +50,7 @@ define([
         option.series.forEach(function(serie) {
           serie.data.push(store[serie.key] || 0);
         }, this);
-        categories.push(this.model.getCategory(store));
+        categories.push(store[this.model.group]);
       }, this);
 
       option.xAxis.categories = categories;
@@ -68,9 +68,7 @@ define([
 
       var data = this.model.data;
 
-      if (!data.code !== 200) {
-        this.chart.showLoading('服务器错误，请重试');
-      } else if (!data.stores || !data.stores.length) {
+      if (!data.stores || !data.stores.length) {
         this.chart.showLoading('暂无数据');
       } else {
         this.chart = new Highcharts.Chart(this.parseOption(data));

@@ -20,7 +20,7 @@ define([
     var target = $(e.currentTarget);
     var text = target.attr('data-title');
     if (!text) return;
-    popover.trigger = target;
+    popover.triggerElement = target;
     title.model.reset({
       text: text
     });
