@@ -10,7 +10,7 @@ define([
 
     parse: function() {
       var _this = this;
-      this.selected = $.arrayToObject(this.selected || [], function(i, v) {
+      this.selected = $.arrayToObject(this.selected || [], function(v) {
         return {
           key: v,
           value: 1
