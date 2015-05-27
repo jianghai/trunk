@@ -1,9 +1,8 @@
 define([
   'jquery',
   'base',
-  'app',
-  'highcharts'
-], function($, base, app) {
+  'highcharts',
+], function($, base) {
 
   var Model = base.Model.extend({
 
@@ -51,7 +50,7 @@ define([
           }
         }
       },
-      colors: app.color,
+      colors: ['#dd515c', '#22beef'],
       series: [{
         type: 'pie'
       }]

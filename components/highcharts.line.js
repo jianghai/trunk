@@ -1,9 +1,8 @@
 define([
   'jquery',
   'base',
-  'app',
-  'highcharts'
-], function($, base, app) {
+  'highcharts',
+], function($, base) {
 
   var Model = base.Model.extend({
 
@@ -39,9 +38,11 @@ define([
     },
 
     parse: function(data) {
-      var d = new Date(this.param.begin);
-      d.setDate(d.getDate() + 1);
-      d < this.param.end && this.fill(data);
+      if (this.param) {
+        var d = new Date(this.param.begin);
+        d.setDate(d.getDate() + 1);
+        d < this.param.end && this.fill(data);
+      }
       var _this = this;
       var _category = [];
       var _series = {};
@@ -107,7 +108,7 @@ define([
       credits: {
         enabled: false
       },
-      colors: ['#dd515c', '#22beef'],
+      colors: ['#2ec7c9', '#5ab1ef', '#ffb980', '#eea03b', '#eee55a', '#8e9cbc', '#b0ce6b', '#48a935', '#956d95', '#dc69aa', '#E0585A', '#333'],
       xAxis: {
         gridLineWidth: 1
       },
@@ -115,7 +116,8 @@ define([
         title: {
           text: null
         },
-        min: 0
+        min: 0,
+        allowDecimals: false
       },
       series: []
     },

@@ -53,24 +53,24 @@ define([
     template_noData: $('#template-noData').html(),
 
     loading: function() {
-      // this.requestTip && this.requestTip.remove();
-      // this.requestTip = $(this.template_loading);
-      // this.el.append(this.requestTip);
-      this.el.html(this.template_loading);
+      this.requestTip && this.requestTip.remove();
+      this.requestTip = $(this.template_loading);
+      this.el.append(this.requestTip);
+      // this.el.html(this.template_loading);
     },
 
     error: function() {
-      // this.requestTip && this.requestTip.remove();
-      // this.requestTip = $(this.template_error);
-      // this.el.append(this.requestTip);
-      this.el.html(this.template_error);
+      this.requestTip && this.requestTip.remove();
+      this.requestTip = $(this.template_error);
+      this.el.append(this.requestTip);
+      // this.el.html(this.template_error);
     },
 
     empty: function() {
-      // this.requestTip && this.requestTip.remove();
-      // this.requestTip = $(this.template_noData);
-      // this.el.append(this.requestTip);
-      this.el.html(this.template_noData);
+      this.requestTip && this.requestTip.remove();
+      this.requestTip = $(this.template_noData);
+      this.el.append(this.requestTip);
+      // this.el.html(this.template_noData);
     },
 
     beforeRender: function() {
