@@ -68,11 +68,11 @@ define([
 
       var data = this.model.data;
 
-      if (!data.stores || !data.stores.length) {
-        this.chart.showLoading('暂无数据');
-      } else {
+      // if (!data.stores || !data.stores.length) {
+      //   this.chart.showLoading('暂无数据');
+      // } else {
         this.chart = new Highcharts.Chart(this.parseOption(data));
-      }
+      // }
     }
   });
 });

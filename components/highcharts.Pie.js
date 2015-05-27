@@ -47,7 +47,7 @@ define([
       var option = $.extend(true, {}, this.defultOption, this.option);
 
       option.series[0].data.forEach(function(item) {
-        item.y = data[item.key] || 0;
+        item.y = +data[item.key] || 0;
       });
       
       return option;
@@ -62,11 +62,11 @@ define([
 
       var data = this.model.data;
 
-      if (!Object.keys(data).length) {
-        this.chart.showLoading('暂无数据');
-      } else {
+      // if (!Object.keys(data).length) {
+      //   this.chart.showLoading('暂无数据');
+      // } else {
         this.chart = new Highcharts.Chart(this.parseOption(data));
-      }
+      // }
     }
   });
 });

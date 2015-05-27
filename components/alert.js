@@ -7,7 +7,16 @@ define([
 
     model: new Trunk.Model(),
 
-    tag: 'div',
+    tag: 'form',
+
+    events: {
+      'submit': 'onSubmit'
+    },
+
+    onSubmit: function() {
+      this.dialog.close();
+      return false;
+    },
 
     className: 'alert',
 

@@ -25,7 +25,6 @@ define([
       this.dialog = new Dialog({
         model: {
           data: {
-            icon: 'info',
             title: '确认提示'
           }
         },

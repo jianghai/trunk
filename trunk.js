@@ -196,8 +196,7 @@
   $.extend(Model.prototype, events, ajax, {
 
     onFetch: function(res) {
-      $.extend(this.data, typeof this.parse === 'function' && this.parse(res) || res);
-      this.view.render();
+      this.reset(typeof this.parse === 'function' && this.parse(res) || res);
     },
 
     isEqual: function(a, b) {
