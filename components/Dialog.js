@@ -36,6 +36,7 @@ define([
       // this.isOpen = false;
       // this.isShow = false;
       this.el.removeClass('open');
+      this.trigger('close');
     },
 
     open: function() {

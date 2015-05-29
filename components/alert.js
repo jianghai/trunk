@@ -7,22 +7,14 @@ define([
 
     model: new Trunk.Model(),
 
-    tag: 'form',
-
-    events: {
-      'submit': 'onSubmit'
-    },
-
-    onSubmit: function() {
-      this.dialog.close();
-      return false;
-    },
+    tag: 'div',
 
     className: 'alert',
 
     template: '#template-alert',
 
     init: function() {
+
       new Dialog({
         model: {
           data: {
@@ -30,6 +22,21 @@ define([
           }
         },
         child: this
+      });
+
+      // Close on enter
+      var doc = $(document);
+      var that = this;
+      var handle = function(e) {
+        e.keyCode == 13 && that.dialog.close();
+      };
+
+      this.on('render:after', function() {
+        doc.on('keydown', handle);
+      });
+
+      this.listen(this.dialog, 'close', function() {
+        doc.off('keydown', handle);
       });
     }
   });

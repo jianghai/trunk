@@ -27,7 +27,7 @@ define([
 
     clear: function() {
       this.el.removeClass('clear');
-      this.el.find('input').val('');
+      this.$('input').val('');
       if (this.searched) {
         this.trigger('search', '');
         this.searched = false;
@@ -42,6 +42,7 @@ define([
       if (!kw) return input.focus();
       this.trigger('search', $.trim(kw));
       this.searched = true;
+      this.$('input').blur();
     }
   });
 });
