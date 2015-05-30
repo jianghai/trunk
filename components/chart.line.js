@@ -15,10 +15,10 @@ define([
 
         var self = this;
 
-        var _stores = $.arrayToObject(res.stores || [], function() {
+        var _stores = $.arrayToObject(res.stores || [], function(store) {
           return {
-            key: this[self.group],
-            value: this
+            key: store[self.group],
+            value: store
           };
         });
 

@@ -305,7 +305,7 @@
         : prop[i];
     }
 
-    if (this.model || this.modelProperty) {
+    // if (this.model || this.modelProperty) {
 
       // Bind model
       if (this.model) {
@@ -329,7 +329,7 @@
 
       // Events
       this.listen(this.model, 'reset', this.render);
-    }
+    // }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
