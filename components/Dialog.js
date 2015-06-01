@@ -16,15 +16,15 @@ define([
     template: '#template-dialog',
 
     events: {
-      'wheel .scroll': 'onWheel',
+      // 'wheel .scroll': 'onWheel',
       'click': 'onClick',
       'click .dialog-close': 'close'
     },
 
-    onWheel: function(e) {
-      e.currentTarget.scrollTop -= e.originalEvent.wheelDeltaY;
-      return false;
-    },
+    // onWheel: function(e) {
+    //   e.currentTarget.scrollTop -= e.originalEvent.wheelDeltaY;
+    //   return false;
+    // },
 
     onClick: function(e) {
       if ($(e.target).hasClass('dialog-overlay')) {
@@ -35,11 +35,13 @@ define([
     close: function() {
       // this.isOpen = false;
       // this.isShow = false;
+      $('body').removeClass('dialog-open');
       this.el.removeClass('open');
       this.trigger('close');
     },
 
     open: function() {
+      $('body').addClass('dialog-open');
       // this.isOpen = true;
       this.el.addClass('open');
     },
