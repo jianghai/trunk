@@ -4,6 +4,7 @@ define([
 ], function($, Trunk) {
   
   var Model = Trunk.Model.extend({
+    
     validate: function(data) {
       this.error = {};
       var isValid = true;
@@ -13,7 +14,7 @@ define([
           if (msg) {
             this.error[i] = msg;
             isValid = false;
-            break;
+            // break;
           }
         }
       }
@@ -22,19 +23,31 @@ define([
   });
 
   return Trunk.View.extend({
+
     Model: Model,
+
     events: {
+      'blur input[type="text"]': 'onBlur',
+      'blur textarea': 'onBlur',
       'submit': 'onSubmit'
     },
+
+    onBlur: function(e) {
+      var target = e.target;
+      this.model.set(target.name, target.value);
+    },
+
     onValidate: function() {
       this.$('.error').removeClass('error');
     },
+
     onInvalid: function() {
       var error = this.model.error;
       for (var k in error) {
         this.$('.' + k).addClass('error').find('.error-tip').text(error[k]);
       }
     },
+
     serialize: function() {
       var res = {};
       this.el.serializeArray().forEach(function(field) {
@@ -47,6 +60,7 @@ define([
       });
       return res;
     },
+
     onSubmit: function() {
       if (this.model.set(this.serialize())) {
         $.ajax({

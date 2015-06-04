@@ -371,6 +371,10 @@
         };
       }
 
+      if (prop.className && this.className) {
+        prop.className = this.className + ' ' + prop.className;
+      }
+
       for (var k in prop) {
         this[k] = prop[k];
       }

@@ -9,6 +9,14 @@ define([
 
     className: 'popover',
 
+    events: {
+      'mouseover': 'on'
+    },
+
+    on: function() {
+      console.log(1);
+    },
+
     open: function() {
       this.el.css('left', 0);
       this.el.html(this.child.el);

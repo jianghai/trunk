@@ -16,14 +16,8 @@ define([
       chart: {
 
       },
-      title: {
-        text: null
-      },
       tooltip: {
         pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-      },
-      credits: {
-        enabled: false
       },
       plotOptions: {
         pie: {
@@ -46,27 +40,31 @@ define([
 
       var option = $.extend(true, {}, this.defultOption, this.option);
 
-      option.series[0].data.forEach(function(item) {
-        item.y = +data[item.key] || 0;
-      });
-      
+      if (option.series[0].data) {
+        // data
+        // option.series[0].data.forEach(function(item) {
+        //   item.y = +data[item.key] || 0;
+        // });
+      } else {
+        option.series[0].data = [];
+        data.forEach(function(store) {
+          option.series[0].data.push([store[this.model.group], store[this.model.value]]);
+        }, this);
+      }
+
       return option;
     },
 
     render: function() {
       this.defultOption.chart.renderTo = this.el[0];
 
-      if (!this.chart) {
-        this.chart = new Highcharts.Chart(this.defultOption);
-      }
-
       var data = this.model.data;
 
-      // if (!Object.keys(data).length) {
-      //   this.chart.showLoading('暂无数据');
-      // } else {
-        this.chart = new Highcharts.Chart(this.parseOption(data));
-      // }
+      if (!data.stores || !data.stores.length) {
+        this.el.html('<div class="empty">暂无数据</div>');
+      } else {
+        this.chart = new Highcharts.Chart(this.parseOption(data.stores || []));
+      }
     }
   });
 });

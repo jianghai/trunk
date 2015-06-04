@@ -17,14 +17,8 @@ define([
       chart: {
         marginTop: 30
       },
-      title: {
-        text: null
-      },
       tooltip: {
         shared: true
-      },
-      credits: {
-        enabled: false
       },
       xAxis: {
         gridLineWidth: 1
@@ -46,11 +40,11 @@ define([
 
       var categories = [];
       
-      data.stores.forEach(function(store) {
+      data.forEach(function(store) {
         option.series.forEach(function(serie) {
           serie.data.push(store[serie.key] || 0);
         }, this);
-        categories.push(store[this.model.group]);
+        categories.push(this.model.getCategory ? this.model.getCategory(store) : store[this.model.group]);
       }, this);
 
       option.xAxis.categories = categories;
@@ -68,11 +62,11 @@ define([
 
       var data = this.model.data;
 
-      // if (!data.stores || !data.stores.length) {
-      //   this.chart.showLoading('暂无数据');
-      // } else {
-        this.chart = new Highcharts.Chart(this.parseOption(data));
-      // }
+      if (!data.stores || !data.stores.length) {
+        this.el.html('<div class="empty">暂无数据</div>');
+      } else {
+        this.chart = new Highcharts.Chart(this.parseOption(data.stores || []));
+      }
     }
   });
 });

@@ -9,8 +9,6 @@ define([
 
     tag: 'div',
 
-    className: 'confirm',
-
     template: '#template-confirm',
 
     events: {
@@ -28,6 +26,7 @@ define([
             title: '确认提示'
           }
         },
+        className: 'confirm',
         child: this
       });
 
