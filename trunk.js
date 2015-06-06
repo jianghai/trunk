@@ -376,7 +376,11 @@
       }
 
       for (var k in prop) {
-        this[k] = prop[k];
+        if (k === 'events') {
+          this[k] = $.extend(true, {}, this[k], prop[k]);
+        } else {
+          this[k] = prop[k];
+        }
       }
 
     }

@@ -27,18 +27,21 @@ define([
     Model: Model,
 
     events: {
-      'blur input[type="text"]': 'onBlur',
-      'blur textarea': 'onBlur',
+      'change input[type="text"]': 'onChange',
+      'change textarea': 'onChange',
       'submit': 'onSubmit'
     },
 
-    onBlur: function(e) {
+    onChange: function(e) {
       var target = e.target;
       this.model.set(target.name, target.value);
     },
 
-    onValidate: function() {
-      this.$('.error').removeClass('error');
+    onValidate: function(data) {
+      var error = this.$('.error');
+      for (var k in data) {
+        error.filter('.' + k).removeClass('error');
+      }
     },
 
     onInvalid: function() {

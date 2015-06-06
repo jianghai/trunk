@@ -9,8 +9,6 @@ define([
 
     tag: 'div',
 
-    className: 'alert',
-
     template: '#template-alert',
 
     init: function() {
@@ -18,9 +16,10 @@ define([
       new Dialog({
         model: {
           data: {
-            title: '提示'
+            title: '系统提示'
           }
         },
+        className: 'alert',
         child: this
       });
 
