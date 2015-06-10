@@ -118,8 +118,8 @@
 
       for (var k in arg) {
         if (arg.hasOwnProperty(k)) {
-          if (arg[k].constructor === Object || Array.isArray(arg[k])) {
-            Child.prototype[k] = $.extend(true, {}, Child.prototype[k], arg[k])
+          if (Child.prototype[k] && typeof Child.prototype[k] === 'object') {
+            Child.prototype[k] = $.extend(true, Child.prototype[k], arg[k]);
           } else {
             Child.prototype[k] = arg[k];
           }
@@ -243,7 +243,11 @@
       if (!options.silent) {
         for (var k in data) {
           if (!this.isEqual(data[k], this.data[k])) {
-            this.data[k] = data[k];
+            // if (this.data[k] && typeof data[k] === 'object') {
+            //   this.data[k] = $.extend(true, this.data[k], data[k]);
+            // } else {
+              this.data[k] = data[k];
+            // }
             this.trigger('change:' + k, data[k]);
           }
         }

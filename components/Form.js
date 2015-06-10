@@ -10,7 +10,7 @@ define([
       var isValid = true;
       for (var i in data) {
         if (this.rules[i]) {
-          var msg = this.rules[i](data[i]);
+          var msg = this.rules[i].call(this, data[i]);
           if (msg) {
             this.error[i] = msg;
             isValid = false;
@@ -29,6 +29,7 @@ define([
     events: {
       'change input[type="text"]': 'onChange',
       'change textarea': 'onChange',
+      'change select': 'onChange',
       'submit': 'onSubmit'
     },
 
@@ -54,6 +55,7 @@ define([
     serialize: function() {
       var res = {};
       this.el.serializeArray().forEach(function(field) {
+        field.value = field.value.trim();
         if (field.name in res) {
           Array.isArray(res[field.name]) && (res[field.name] = [res[field.name]]);
           res[field.name].push(field.value);
@@ -71,6 +73,7 @@ define([
           url: this.model.post,
           data: $.jsonParam(this.model.data)
         }).done(this.onDone.bind(this));
+        // this.onDone();
       }
       return false;
     }

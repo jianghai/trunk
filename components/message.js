@@ -21,7 +21,7 @@ define([
 
     open: function() {
       this.el.addClass('open');
-      this.model.data.close && setTimeout(this.close.bind(this), 2800);
+      this.model.data.close && setTimeout(this.close.bind(this), 3000);
     },
 
     init: function() {

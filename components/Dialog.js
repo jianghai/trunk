@@ -32,14 +32,14 @@ define([
     },
 
     close: function() {
-      --this.stat.opens || this.body.removeClass('dialog-open');
+      --this.stat.opens || this.doc.removeClass('dialog-open');
       this.el.removeClass('open');
       this.trigger('close');
     },
 
     open: function() {
       this.stat.opens++;
-      this.body.addClass('dialog-open');
+      this.doc.addClass('dialog-open');
       this.el.addClass('open');
     },
 
@@ -54,6 +54,7 @@ define([
     init: function() {
 
       this.body = $('body');
+      this.doc = $('html');
       
       if (this.child) {
 
