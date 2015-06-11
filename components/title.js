@@ -16,7 +16,7 @@ define([
     child: title
   });
 
-  $('body').on('mouseenter', '.title', function(e) {
+  $('body').on('mouseenter', '[data-title]', function(e) {
     var target = $(e.currentTarget);
     var text = target.attr('data-title');
     if (!text) return;
