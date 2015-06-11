@@ -174,22 +174,18 @@
       !silent && this.fetch();
     },
 
+    onDone: function(res) {
+      this.trigger('sync', res);
+      this.onFetch(res);
+    },
+
     fetch: function() {
       var self = this;
       this.trigger('request');
       $.ajax({
         url: this.url,
-        // data: this.param && $.param(this.param, true)
         data: this.param
-      }).done(function(res) {
-        if (res === '' || (self.isEmpty && self.isEmpty(res))) {
-          return self.trigger('empty');
-        }
-        self.trigger('sync', res);
-        self.onFetch(res);
-      }).fail(function(xhr, text_status) {
-        text_status !== 'abort' && self.trigger('error');
-      });
+      }).done(this.onDone.bind(this));
     }
   };
 
