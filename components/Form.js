@@ -27,10 +27,10 @@ define([
     Model: Model,
 
     events: {
+      'submit': 'onSubmit',
       'change input[type="text"]': 'onChange',
       'change textarea': 'onChange',
       'change select': 'onChange',
-      'submit': 'onSubmit'
     },
 
     onChange: function(e) {

@@ -60,9 +60,9 @@ define([
 
         this.child.dialog = this;
 
-        if (this.child.model && this.child.model.url) {
-          this.listen(this.child.model, 'error', this.show);
-        }
+        // if (this.child.model && this.child.model.url) {
+        //   this.listen(this.child.model, 'error', this.show);
+        // }
 
         this.listen(this.child, 'render:after', this.show);
       }

@@ -40,9 +40,10 @@ define([
       var input = form.find('input');
       var kw = input.val();
       if (!kw) return input.focus();
-      this.trigger('search', $.trim(kw));
       this.searched = true;
-      this.$('input').blur();
+      input.blur();
+      this.$('[type="submit"]').blur();
+      this.trigger('search', $.trim(kw));
     }
   });
 });

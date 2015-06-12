@@ -434,7 +434,7 @@
     // },
 
     render: function() {
-      this.model && this.template && this.el.html(this.template(this.model && this.model.data));
+      this.template && this.el.html(this.template(this.model.data));
       this.trigger('render:after');
       this.children && this.renderChildren();
       return this.el;
