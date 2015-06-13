@@ -196,24 +196,23 @@
     },
 
     isEqual: function(a, b) {
-      var isEqual = true;
-      (function check(a, b) {
-        if (typeof a !== 'object' || a === null) {
-          a !== b && (isEqual = false);
-        } else if (typeof b !== 'object') {
-          isEqual = false;
+      return function check(a, b) {
+        if (!b) return false;
+        if (typeof a === 'object') {
+          if (Array.isArray(a)) {
+            for (var i = 0; i < a.length; i++) {
+              if (!check(a[i], b[i])) return false;
+            }
+          } else {
+            for (var k in a) {
+              if (!check(a[k], b[k])) return false;
+            }
+          }
         } else {
-          if (Object.keys(a).length !== Object.keys(b)) {
-            return isEqual = false;
-          }
-          for (var k in a) {
-            typeof a[k] !== 'object' ? a[k] !== b[k] && (isEqual = false) : check(a[k], b[k]);
-            if (!isEqual) break;
-          }
+          if (a !== b) return false;          
         }
-      })(a, b);
-
-      return isEqual;
+        return true;
+      }(a, b);
     },
 
     set: function(data, options) {
