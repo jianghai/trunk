@@ -196,23 +196,20 @@
     },
 
     isEqual: function(a, b) {
-      return function check(a, b) {
-        if (!b) return false;
-        if (typeof a === 'object') {
-          if (Array.isArray(a)) {
-            for (var i = 0; i < a.length; i++) {
-              if (!check(a[i], b[i])) return false;
-            }
-          } else {
-            for (var k in a) {
-              if (!check(a[k], b[k])) return false;
-            }
+      if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
+        if (a !== b) return false;
+      } else {
+        if (Array.isArray(a)) {
+          for (var i = 0; i < a.length; i++) {
+            if (!this.isEqual(a[i], b[i])) return false;
           }
         } else {
-          if (a !== b) return false;          
+          for (var k in a) {
+            if (!this.isEqual(a[k], b[k])) return false;
+          }
         }
-        return true;
-      }(a, b);
+      }
+      return true;
     },
 
     set: function(data, options) {
@@ -260,8 +257,9 @@
     },
 
     remove: function() {
+      this.data = this.defaults;
       this.view.el.remove();
-      this.collection.reduce(this);
+      this.collection && this.collection.reduce(this);
     },
 
     // Insert a model after this to this.collection
@@ -433,6 +431,7 @@
     // },
 
     render: function() {
+      this.trigger('render:before');
       this.template && this.el.html(this.template(this.model.data));
       this.trigger('render:after');
       this.children && this.renderChildren();
