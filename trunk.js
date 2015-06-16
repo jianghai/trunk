@@ -257,7 +257,7 @@
     },
 
     remove: function() {
-      this.data = this.defaults;
+      this.data = this.defaults || {};
       this.view.el.remove();
       this.collection && this.collection.reduce(this);
     },
