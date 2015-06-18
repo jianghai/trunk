@@ -257,9 +257,9 @@
     },
 
     remove: function() {
+      this.collection && this.collection.reduce(this);
       this.data = this.defaults || {};
       this.view.el.remove();
-      this.collection && this.collection.reduce(this);
     },
 
     // Insert a model after this to this.collection
