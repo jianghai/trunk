@@ -108,7 +108,7 @@ define([
       credits: {
         enabled: false
       },
-      colors: ['#2ec7c9', '#5ab1ef', '#ffb980', '#eea03b', '#eee55a', '#8e9cbc', '#b0ce6b', '#48a935', '#956d95', '#dc69aa', '#E0585A', '#333'],
+      colors: ['#2ec7c9', '#5ab1ef', '#ffb980', '#8e9cbc', '#eee55a', '#eea03b', '#b0ce6b', '#48a935', '#956d95', '#dc69aa', '#E0585A', '#333'],
       xAxis: {
         gridLineWidth: 1
       },
