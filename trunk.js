@@ -235,11 +235,7 @@
       if (!options.silent) {
         for (var k in data) {
           if (!this.isEqual(data[k], this.data[k])) {
-            // if (this.data[k] && typeof data[k] === 'object') {
-            //   this.data[k] = $.extend(true, this.data[k], data[k]);
-            // } else {
-              this.data[k] = data[k];
-            // }
+            this.data[k] = data[k];
             this.trigger('change:' + k, data[k]);
           }
         }

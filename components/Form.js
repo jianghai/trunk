@@ -39,16 +39,19 @@ define([
     },
 
     onValidate: function(data) {
-      var error = this.$('.error');
       for (var k in data) {
-        error.filter('.' + k).removeClass('error');
+        this.$('.' + k)
+          .removeClass('error')
+          .addClass('success')
+          .find('.tip')
+          .text('ok');
       }
     },
 
     onInvalid: function() {
       var error = this.model.error;
       for (var k in error) {
-        this.$('.' + k).addClass('error').find('.error-tip').text(error[k]);
+        this.$('.' + k).removeClass('success').addClass('error').find('.tip').text(error[k]);
       }
     },
 
