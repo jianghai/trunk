@@ -35,6 +35,22 @@ define([
       this.on('sure', function() {
         this.dialog.close();
       });
+
+      // Close on enter
+      var doc = $(document);
+      var that = this;
+      var handle = function(e) {
+        e.keyCode == 13 && that.trigger('sure');
+      };
+
+      this.on('render:after', function() {
+        $(document.activeElement).blur();
+        doc.on('keydown', handle);
+      });
+
+      this.listen(this.dialog, 'close', function() {
+        doc.off('keydown', handle);
+      });
     }
   });
 });

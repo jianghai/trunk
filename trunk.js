@@ -199,6 +199,7 @@
       if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
         if (a !== b) return false;
       } else {
+        if (Object.keys(a).length != Object.keys(b).length) return false;
         if (Array.isArray(a)) {
           for (var i = 0; i < a.length; i++) {
             if (!this.isEqual(a[i], b[i])) return false;

@@ -31,6 +31,7 @@ define([
       };
 
       this.on('render:after', function() {
+        $(document.activeElement).blur();
         doc.on('keydown', handle);
       });
 

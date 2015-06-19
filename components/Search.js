@@ -41,8 +41,8 @@ define([
       var kw = input.val();
       if (!kw) return input.focus();
       this.searched = true;
-      input.blur();
-      this.$('[type="submit"]').blur();
+      // input.blur();
+      // this.$('[type="submit"]').blur();
       this.trigger('search', $.trim(kw));
     }
   });
