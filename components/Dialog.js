@@ -32,40 +32,47 @@ define([
     },
 
     close: function() {
-      --this.stat.opens || this.doc.removeClass('dialog-open');
+      var self = this;
+      --this.stat.opens || setTimeout(function() {
+        self.el.hide();
+        $('html').removeClass('dialog-open');
+      }, 300);
       this.el.removeClass('open');
       this.trigger('close');
     },
 
     open: function() {
       this.stat.opens++;
-      this.doc.addClass('dialog-open');
-      this.el.addClass('open');
+      $('html').addClass('dialog-open');
+      var self = this;
+      setTimeout(function() {
+        self.el.show().addClass('open');
+      }, 150);
     },
 
-    show: function() {
-      this.render();
-      this.$('.dialog-body').html(this.child.el);
-      this.child.delegateEvents();
-      (this.wapper || this.body).append(this.el);
-      this.open();
-    },
+    // show: function() {
+    //   this.body.html(this.child.el);
+    //   this.child.delegateEvents();
+    //   this.open();
+    // },
 
     init: function() {
 
-      this.body = $('body');
-      this.doc = $('html');
-      
-      if (this.child) {
+      this.render();
 
-        this.child.dialog = this;
+      (this.wapper || $('body')).append(this.el);
 
-        // if (this.child.model && this.child.model.url) {
-        //   this.listen(this.child.model, 'error', this.show);
-        // }
+      this.listen(this.model, 'change:title', function(title) {
+        this.$('.dialog-title').text(title);
+      });
 
-        this.listen(this.child, 'render:after', this.show);
-      }
+      this.$('.dialog-body').append(this.child.el);
+
+      // this.child.delegateEvents();
+
+      this.child.dialog = this;
+
+      this.listen(this.child, 'render:after', this.open);
     }
   });
 });
