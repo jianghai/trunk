@@ -32,11 +32,9 @@ define([
     },
 
     close: function() {
-      var self = this;
-      --this.stat.opens || setTimeout(function() {
-        self.el.hide();
+      --this.stat.opens || this.el.one('transitionend', function() {
         $('html').removeClass('dialog-open');
-      }, 300);
+      });
       this.el.removeClass('open');
       this.trigger('close');
     },
@@ -44,17 +42,8 @@ define([
     open: function() {
       this.stat.opens++;
       $('html').addClass('dialog-open');
-      var self = this;
-      setTimeout(function() {
-        self.el.show().addClass('open');
-      }, 150);
+      this.el.css('z-index', this.stat.opens).addClass('open');
     },
-
-    // show: function() {
-    //   this.body.html(this.child.el);
-    //   this.child.delegateEvents();
-    //   this.open();
-    // },
 
     init: function() {
 

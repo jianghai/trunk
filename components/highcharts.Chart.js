@@ -38,16 +38,14 @@ define([
         serie.data = [];
       });
 
-      var categories = [];
-      
       data.forEach(function(store) {
         option.series.forEach(function(serie) {
-          serie.data.push(store[serie.key] || 0);
+          serie.data.push(this.model.getData ? this.model.getData(store) : {
+            name: store[this.model.group],
+            y: store[serie.key] || 0
+          });
         }, this);
-        categories.push(this.model.getCategory ? this.model.getCategory(store) : store[this.model.group]);
       }, this);
-
-      option.xAxis.categories = categories;
 
       return option;
     },
