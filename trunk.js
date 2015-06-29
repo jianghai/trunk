@@ -350,8 +350,18 @@
   var View = function(prop) {
 
     if (arguments.length > 1) {
-      array.unshift.call(arguments, true, {});
-      prop = $.extend.apply($, arguments);
+      var _init_0 = prop.init;
+      for (var i = 1; i < arguments.length; i++) {
+        var _prop = arguments[i];
+        var _init = _prop.init;
+        if (_init) {
+          _prop.init = function() {
+            _init_0 && _init_0.call(this);
+            _init.call(this);
+          }
+        }
+        $.extend(true, prop, _prop);
+      }
     }
 
     if (prop) {
