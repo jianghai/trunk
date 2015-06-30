@@ -79,6 +79,11 @@ define([
         // this.onDone();
       }
       return false;
+    },
+
+    init: function() {
+      this.listen(this.model, 'validate', this.onValidate);
+      this.listen(this.model, 'invalid', this.onInvalid);
     }
   });
 });

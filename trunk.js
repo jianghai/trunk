@@ -86,48 +86,43 @@
 
 
   /**
-   * Class inherit by multiple Class or entend by mutiple object
+   * Class inherit
    */
-  var extend = function() {
-    var Parent = this;
-    var Child = function() {
-      Parent.apply(this, arguments);
+  var extend = function(prop) {
+    var Super = this;
+    var Subclass = function() {
+      Super.apply(this, arguments);
     };
 
+    Subclass.extend = extend;
+
     if (Object.create) {
-      Child.prototype = Object.create(Parent.prototype);
+      Subclass.prototype = Object.create(Super.prototype);
     } else {
       var F = function() {}
-      F.prototype = Parent.prototype;
-      Child.prototype = new F();
+      F.prototype = Super.prototype;
+      Subclass.prototype = new F();
     }
-    Child.prototype.constructor = Child;
+    Subclass.prototype.constructor = Subclass;
 
-    var args = arguments;
-    for (var i = 0, len = args.length; i < len; i++) {
-      var arg = args[i].prototype || args[i];
-
-      if (typeof arg.init === 'function' && typeof Child.prototype.init === 'function') {
-        var _child = Child.prototype.init;
-        var _init = arg.init;
-        arg.init = function() {
-          _child.call(this);
-          _init.call(this);
-        }
-      }
-
-      for (var k in arg) {
-        if (arg.hasOwnProperty(k)) {
-          if (Child.prototype[k] && typeof Child.prototype[k] === 'object') {
-            Child.prototype[k] = $.extend(true, Child.prototype[k], arg[k]);
-          } else {
-            Child.prototype[k] = arg[k];
-          }
-        }
+    if (typeof Subclass.prototype.init === 'function' && typeof prop.init === 'function') {
+      var _sub = Subclass.prototype.init;
+      var _prop = prop.init;
+      prop.init = function() {
+        _sub.call(this);
+        _prop.call(this);
       }
     }
 
-    return Child;
+    for (var k in prop) {
+      if (Subclass.prototype[k] && typeof Subclass.prototype[k] === 'object') {
+        Subclass.prototype[k] = $.extend(true, {}, Subclass.prototype[k], prop[k]);
+      } else {
+        Subclass.prototype[k] = prop[k];
+      }
+    }
+
+    return Subclass;
   };
 
   var Model = function(prop) {
@@ -389,26 +384,14 @@
 
     }
 
-    // if (this.model || this.Model) {
-
     this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
 
     this.model.view = this;
 
     this.model.collection && (this.collection = this.model.collection);
 
-    if (this.model.validate) {
-      this.onValidate && this.listen(this.model, 'validate', this.onValidate);
-      this.onInvalid && this.listen(this.model, 'invalid', this.onInvalid);
-    }
-
     // Events
     this.listen(this.model, 'reset', this.render);
-
-    // this.onRequest && this.listen(this.model, 'request', this.onRequest);
-    // this.onError && this.listen(this.model, 'error', this.onError);
-    // this.onEmpty && this.listen(this.model, 'empty', this.onEmpty);
-    // }
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
@@ -431,11 +414,6 @@
     $: function(selector) {
       return this.el.find(selector);
     },
-
-    // Get model data
-    // get: function(prop) {
-    //   return this.model.data[prop];
-    // },
 
     render: function() {
       this.trigger('render:before');
