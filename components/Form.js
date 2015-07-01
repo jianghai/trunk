@@ -71,13 +71,11 @@ define([
 
     onSubmit: function() {
       if (this.model.set(this.serialize())) {
-        this.model.data.userId = $('#userId').val();
         $.ajax({
           type: 'post',
           url: this.model.post,
           data: $.jsonParam(this.model.data)
         }).done(this.onDone.bind(this));
-        // this.onDone();
       }
       return false;
     },
