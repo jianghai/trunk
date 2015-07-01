@@ -6,6 +6,8 @@
 
 'use strict';
 
+var a = 1;
+
 (function(root, factory) {
 
   if (typeof define === 'function' && define.amd) {
