@@ -27,7 +27,7 @@ define([
         $.ajax({
           url: self.url,
           data: self.param && $.param(self.param, true),
-		      dataType:'json'
+		      // dataType:'json'
         }).done(function(res) {
           self.trigger('request:done');
           if (res === '' || (self.isEmpty && self.isEmpty(res))) {
