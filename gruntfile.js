@@ -1,29 +1,38 @@
 module.exports = function(grunt) {
 
-    // Project configuration.
-    grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
-        uglify: {
-            options: {
-                banner: 
-                    '/**\n' +
-                    ' * <%= pkg.name %>.min.js \n' +
-                    ' * http://github.com/jianghai/<%= pkg.name %>\n' +
-                    ' */\n'
-            },
-            build: {
-                src: '<%= pkg.name %>.js',
-                dest: '<%= pkg.name %>.min.js'
-            }
-        }
-    });
+  var fs   = require('fs');
+  var jade = require('jade');
 
-    // These plugins provide necessary tasks.
-    require('load-grunt-tasks')(grunt, {
-        scope: 'devDependencies'
-    });
+  grunt.registerTask('generate', function() {
+    var fn = jade.compileFile('views/index.jade');
+    fs.writeFileSync('index.html', fn({
+      title: 'BBBB'
+    }));
+  });
 
-    // Default task(s).
-    grunt.registerTask('default', ['uglify']);
+  // Project configuration.
+  // grunt.initConfig({
+  //   pkg: grunt.file.readJSON('package.json'),
+  //   uglify: {
+  //     options: {
+  //       banner: '/**\n' +
+  //         ' * <%= pkg.name %>.min.js \n' +
+  //         ' * http://github.com/jianghai/<%= pkg.name %>\n' +
+  //         ' */\n'
+  //     },
+  //     build: {
+  //       src: '<%= pkg.name %>.js',
+  //       dest: '<%= pkg.name %>.min.js'
+  //     }
+  //   }
+  // });
+
+  // // These plugins provide necessary tasks.
+  // require('load-grunt-tasks')(grunt, {
+  //   scope: 'devDependencies'
+  // });
+
+  // Default task(s).
+  // grunt.registerTask('default', ['uglify']);
 
 };
