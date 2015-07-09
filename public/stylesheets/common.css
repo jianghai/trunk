@@ -1,0 +1,172 @@
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+textarea,
+p,
+button,
+blockquote,
+th,
+td {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+ul {
+  list-style: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+textarea {
+  resize: none;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  color: inherit;
+  background-color: inherit;
+  border: 0;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+}
+
+button:focus,
+textarea:focus,
+input:focus,
+select:focus {
+  outline: 0;
+}
+
+a {
+  color: #2681cc;
+  text-decoration: none;
+}
+
+a[disabled] {
+  pointer-events: none;
+  color: #acacac;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.flex {
+  display: flex;
+  display: -webkit-flex;
+}
+
+.flex.wrap {
+  flex-wrap: wrap;
+}
+
+.flex.align-middle {
+  align-items: center;
+}
+
+.flex.align-right {
+  justify-content: flex-end;
+}
+
+
+.flex-1 {
+  flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+}
+
+.flex-2 {
+  flex: 2;
+  -webkit-flex: 2;
+  -ms-flex: 2;
+}
+
+.center {
+  width: 900px;
+  margin: 0 auto;
+}
+
+svg.icon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  margin-right: .3em;
+  vertical-align: -.12em;
+}
+
+body {
+  font-size: 12px;
+  font-family: "ff-tisa-web-pro-1","ff-tisa-web-pro-2","Lucida Grande","Helvetica Neue",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3","WenQuanYi Micro Hei",sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+  background-color: #fff;
+  color: #262626;
+  min-width: 1250px;
+  min-height: 500px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px; 
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: #ccc;
+}
+
+header {
+  line-height: 80px;
+  height: 80px;
+  background-color: #fff;
+  /*color: #fff;*/
+  padding: 0 28px;
+}
+
+#logo {
+  color: #fff;
+  font-style: italic;
+}
+#logo:hover {
+  /*text-decoration: none;*/
+}
+
+#nav {
+  text-align: center;
+}
+#nav a {
+  color: #686868;
+  margin: 0 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
+#nav a.active {
+  color: #fff;
+}

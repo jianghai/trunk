@@ -2,6 +2,16 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/common.css')
+    block head
   body
+    header(class={'flex align-center': page !== 'index'})
+      if page !== 'index'
+        h2.flex-1
+         a#logo(href='/') TRUNK
+      ul#nav
+        li
+          a(href='') DOCS
+          a(href='') COMPONENTS
+          a(href='') GITHUB
     block content
