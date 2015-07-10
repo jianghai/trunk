@@ -22,9 +22,8 @@ define([
       this.trigger('request');
 
       // setTimeout(function() {
-        // this.ajaxManager[this.url] && this.ajaxManager[this.url].abort();
-        // this.ajaxManager[this.url] = $.ajax({
-        $.ajax({
+        this.ajaxManager[this.url] && this.ajaxManager[this.url].abort();
+        this.ajaxManager[this.url] = $.ajax({
           url: self.url,
           data: self.param && $.param(self.param, true),
 		      // dataType:'json'

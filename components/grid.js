@@ -6,6 +6,11 @@ define([
 
   var Model = base.Model.extend({
 
+    setParam: function() {
+      this.param.start = 0;
+      Trunk.Model.prototype.setParam.apply(this, arguments);
+    },
+
     init: function() {
 
       var self = this;
