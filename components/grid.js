@@ -1,8 +1,9 @@
 define([
   'jquery',
+  'trunk',
   'base',
   'pagination'
-], function($, base, Pagination) {
+], function($, Trunk, base, Pagination) {
 
   var Model = base.Model.extend({
 
