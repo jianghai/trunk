@@ -1,0 +1,71 @@
+.sidebar {
+  width: 200px;
+  background-color: #fafafa;
+  padding: 20px 0;
+}
+.sidebar a {
+  color: #6c6c6c;
+  display: block;
+  padding: .5em 2em;
+  /*text-align: right;*/
+}
+.sidebar a:hover {
+  text-decoration: none;
+  background-color: #fff;
+}
+.sidebar a:before {
+  line-height: 1;
+  padding: 0 .3em;
+  color: #fff;
+  /*font-weight: bold;*/
+  border-radius: .3em;
+  margin-right: .3em;
+}
+.sidebar a.class:before {
+  background-color: #09f;
+  content: 'C';
+}
+.sidebar a.events:before {
+  background-color: #E0A91A;
+  content: 'E';
+}
+.sidebar a.method:before {
+  background-color: #795da3;
+  content: 'M';
+}
+.sidebar a.static:before {
+  background-color: #F06F6F;
+  content: 'S';
+}
+.sidebar a.property:before {
+  background-color: #5C5C5C;
+  content: 'P';
+}
+.sidebar ul ul a {
+  padding-left: 4em;
+}
+
+.content {
+  padding: 25px 30px;
+}
+.docs section + section {
+  margin-top: 3em;
+}
+.docs pre {
+  font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+  padding: 10px 12px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.docs pre .kwd {
+  color: #795da3;
+}
+.docs h1 {
+  font-size: 1.5em;
+  font-weight: normal;
+}
+.docs p,
+.docs svg {
+  margin-top: 2em;
+}

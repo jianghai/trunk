@@ -8,10 +8,14 @@ html
     header(class={'flex align-center': page !== 'index'})
       if page !== 'index'
         h2.flex-1
-         a#logo(href='/') TRUNK
+         a#logo(href='/') TRUNK.JS
       ul#nav
+        li(class={active: page === 'docs'})
+          a(href='docs') DOCS
+        li(class={active: page === 'components'})
+          a(href='components') COMPONENTS
+        li(class={active: page === 'components'})
+          a(href='faq') F.A.Q.
         li
-          a(href='') DOCS
-          a(href='') COMPONENTS
           a(href='') GITHUB
     block content

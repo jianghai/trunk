@@ -1,0 +1,60 @@
+extends ../layout
+block head
+  link(rel='stylesheet', href='/stylesheets/docs/index.css')
+block content
+  main.flex
+    .sidebar
+      ul
+        li
+          a(href='#overview') Overview
+        li
+          a.class(href='#') Trunk.View
+          ul
+            li
+              a.events(href='#') events
+            li
+              a.static(href='#') extend
+            li
+              a.method(href='#') render
+            li
+              a.method(href='#') render
+            li
+              a.property(href='#') events
+        li
+          a(href='#') Trunk.Model
+          ul
+            li
+              a(href='#') render
+            li
+              a(href='#') render
+            li
+              a(href='#') render
+        li
+          a(href='#') Trunk.Collection
+          ul
+            li
+              a(href='#') render
+            li
+              a(href='#') render
+            li
+              a(href='#') render
+    .content.docs.flex-1
+      section#overview 
+        h1 概述
+        p Trunk.js把前端开发划分成view（页面最终呈现，事件交互）、model（view背后逻辑、数据处理）和collection(模型集合)，view和model一一对应作为一个微观世界。view因业务需求可能变得很复杂，所以支持嵌套，即一个微观世界里可能囊括多个微观世界。随着越来越多的微观世界产生，那些通用的逻辑、操作、现象就可以抽象出一个抽象的世界（本身也可能是nested）。到最后，前端开发就像搭积木一样简单而又清晰。
+        include ../include/structure.svg
+        //- p 当你处理一些业务逻辑，用jQuery选择元素绑定事件写一堆面条式代码变得混乱不清时；当你ajax获取json数据拼装繁杂的html时；
+        
+        p dasdsa
+      section
+        h1 Trunk.View
+        pre
+          :highlight(lang='js')
+            var highlight = function(source, lang) {
+              return parse(source, lang);
+            };
+
+
+
+
+
