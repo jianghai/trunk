@@ -9,7 +9,7 @@ define([
 
     setParam: function() {
       this.param.start = 0;
-      Trunk.Model.prototype.setParam.apply(this, arguments);
+      base.Model.prototype.setParam.apply(this, arguments);
     },
 
     init: function() {
