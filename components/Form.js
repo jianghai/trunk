@@ -35,7 +35,7 @@ define([
 
     onChange: function(e) {
       var target = e.target;
-      this.model.set(target.name, target.value);
+      target.name && this.model.set(target.name, target.value);
     },
 
     onValidate: function(data) {

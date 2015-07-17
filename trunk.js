@@ -423,6 +423,10 @@
       return this.el;
     },
 
+    remove: function() {
+      this.model.remove();
+    },
+
     // For nested view
     renderChildren: function() {
       for (var i = 0, len = this.children.length; i < len; i++) {
