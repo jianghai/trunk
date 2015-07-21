@@ -1,0 +1,18 @@
+extends ../layout
+block head
+  link(rel='stylesheet', href='/stylesheets/components.css')
+
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.19/require.min.js')
+  script(src='../require.config.js')
+
+block main
+  .sidebar
+    ul
+      li(class={active: !current})
+        a(href='../components') 说明
+      - each component in components
+        li(class={active: current == component})
+          a(href=component + '.html')= component
+  .content.docs.flex-1
+    block content
+

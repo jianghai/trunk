@@ -17,13 +17,13 @@ main ul {
 main ul li {
   margin: 5px 0;
 }
-footer {
+.footer {
   background-color: #7f8c8d;
   color: #fff;
   padding: 4em 0;
   text-align: center;
 }
-footer .start {
+.footer .start {
   font-size: 15px;
   color: #fff;
   text-decoration: none;
@@ -35,12 +35,12 @@ footer .start {
   transition: all 0.15s ease;
   margin-bottom: 2em;
 }
-footer .start:hover {
+.footer .start:hover {
   background-color: #fff;
   color: #7f8c8d;
   transform: scale(1.05);
 }
-footer .last-commit .avator {
+.footer .last-commit .avator {
   width: 40px;
   height: 40px;
   border-radius: 50%;

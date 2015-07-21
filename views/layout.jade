@@ -5,17 +5,19 @@ html
     link(rel='stylesheet', href='/stylesheets/common.css')
     block head
   body
-    header(class={'flex align-center': page !== 'index'})
-      if page !== 'index'
-        h2.flex-1
-         a#logo(href='/') TRUNK.JS
-      ul#nav
-        li(class={active: page === 'docs'})
-          a(href='docs') DOCS
-        li(class={active: page === 'components'})
-          a(href='components') COMPONENTS
-        li(class={active: page === 'components'})
-          a(href='faq') F.A.Q.
-        li
-          a(href='') GITHUB
-    block content
+    #wrapper.flex
+      header(class={'flex align-center': page !== 'index'})
+        if page !== 'index'
+          h2.flex-1
+           a#logo(href='/') TRUNK.JS
+        ul#nav
+          li(class={active: page === 'docs'})
+            a(href='../docs') DOCS
+          li(class={active: page === 'components'})
+            a(href='../components') COMPONENTS
+          li(class={active: page === 'faq'})
+            a(href='../faq') F.A.Q.
+          li
+            a(href='') GITHUB
+      main.flex.flex-1
+        block main

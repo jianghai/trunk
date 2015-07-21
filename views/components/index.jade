@@ -1,0 +1,21 @@
+extends layout
+block content
+  p 所有组件遵循AMD规范，加载器采用requirejs，所以使用组件前
+  pre
+    :highlight(lang='markup')
+      <script src="lib/require.min.js"></script>
+      <!-- requirejs模块路径配置 -->
+      <script src="require.config.js"></script>
+      <!-- 页面业务逻辑 -->
+      <script src="page.js"></script>
+  p page.js示例
+  pre
+    :highlight(lang='js')
+      require([
+        'ComponentA'
+      ], function(ComponentA) {
+        var componentA = new ComponentA();
+        // Do something...
+      });
+
+

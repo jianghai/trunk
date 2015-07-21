@@ -1,0 +1,33 @@
+extends layout
+block content
+  .flex
+    #chart.flex-1(style='height:400px')
+    pre.flex-1
+      :highlight(lang='js')
+        require([
+          'LineColumn'
+        ], function(LineColumn) {
+          var line = new LineColumn({
+            model: {
+              url: '../json/line-column.json'
+            },
+            el: '#chart'
+          });
+          line.model.fetch();
+        });
+  script.
+    require([
+      'LineColumn'
+    ], function(LineColumn) {
+      
+      var line = new LineColumn({
+        model: {
+          url: '../json/line-column.json'
+        },
+        el: '#chart'
+      });
+
+      line.model.fetch();
+
+    });
+
