@@ -29,6 +29,8 @@ define([
     events: {
       'submit': 'onSubmit',
       'change input[type="text"]': 'onChange',
+      'change input[type="file"]': 'onFileChange',
+      'change input[type="checkbox"]': 'onCheckboxChange',
       'change textarea': 'onChange',
       'change select': 'onChange',
     },
@@ -36,6 +38,28 @@ define([
     onChange: function(e) {
       var target = e.target;
       target.name && this.model.set(target.name, target.value);
+    },
+
+    onFileChange: function(e) {
+      var target = e.target;
+      target.name && this.model.set(target.name, target.files[0]);
+    },
+
+    onCheckboxChange: function(e) {
+      var target = e.target;
+      if (!target.name) return;
+      
+      var checked = target.checked;
+      var data = this.model[target.name];
+      if (!data) {
+        data = [];
+      }
+      if (checked) {
+        data.push(target.value);
+      } else {
+        data.splice(data.indexOf(target.value), 1);
+      }
+      this.model.set(target.name, data);
     },
 
     onValidate: function(data) {
@@ -57,13 +81,14 @@ define([
 
     serialize: function() {
       var res = {};
-      this.el.serializeArray().forEach(function(field) {
-        field.value = field.value.trim();
-        if (field.name in res) {
-          Array.isArray(res[field.name]) && (res[field.name] = [res[field.name]]);
-          res[field.name].push(field.value);
+      this.$('[name]').each(function(i, el) {
+        if (el.type === 'file') {
+          res[el.name] = el.files[0];
+        } else if (el.type === 'checkbox') {
+          if (!res[el.name]) res[el.name] = [];
+          el.checked && res[el.name].push(el.value);
         } else {
-          res[field.name] = field.value;
+          res[el.name] = el.value;
         }
       });
       return res;
