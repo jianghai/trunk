@@ -465,27 +465,16 @@
       this.trigger('render:before');
       this.template && this.el.html(this.template(this.model.data));
       this.trigger('render:after');
-      this.children && this.renderChildren();
       return this.el;
+    },
+
+    setElement: function(el) {
+      this.el = el;
+      this.delegateEvents();
     },
 
     remove: function() {
       this.model.remove();
-    },
-
-    // For nested view
-    renderChildren: function() {
-      for (var i = 0, len = this.children.length; i < len; i++) {
-        var child = this.children[i];
-        typeof child.el === 'string' && (child._el = child.el);
-        child._el && (child.el = this.$(child._el)) && child.delegateEvents();
-
-        typeof child.template === 'string' && child.getTemplate();
-
-        if (child.silent) continue;
-
-        (child.model.url || child.model.fetch !== Model.prototype.fetch) ? child.model.fetch(): child.render();
-      }
     },
 
     getTemplate: function() {
