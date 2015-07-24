@@ -80,7 +80,7 @@ block main
           var app = new Trunk.View();
       
       h2.property el
-      p 非动态创建的view根元素节点，支持jQuery元素、#id，如果是 <a href="#view-children">children</a> 场景，则使用selectors语法。 children场景下el元素只会在父view渲染后（render:after事件）再绑定el对象。
+      p 非动态创建的view根元素节点，支持jQuery元素、#id
       pre
         :highlight(lang='js')
           var app = new Trunk.View({
@@ -97,13 +97,13 @@ block main
           $('ul').append(item.el);
       
       h2.property template
-      p view渲染不再是繁杂的HTML拼装，而是基于字符串的模版模式，目前依赖 <a href="http://github.com/jianghai/vjs" target="_blank">vjs</a> ，实际使用时先在HTML中添加模板（模板定义时不包括el元素本身）。
+      p view渲染不再是繁杂的HTML拼装，而是基于字符串的模版模式，实际使用时先在HTML中添加模板（模板定义时不包括el元素本身）。语句：<# statement #>，表达式：<#- expression #>。
       pre
         :highlight(lang='markup')
           <script id="template-list-item" type="text">
           <h1><#- data.message #><h1>
           </script>
-      p 指定模版script元素选择器（class或者id），id的话则从整个DOM中获取，class则从当前view根元素下获取，当el准备好（存在于DOM中）就会获取模板，此时请确保模版存在于DOM中。
+      p 指定模版script元素选择器（class或者id），id的话则从整个DOM中获取（适合实例化时el不存在于DOM中的场景），class则从el元素下获取（适合并确保el存在于DOM中，模版存在于el中）。
       pre
         :highlight(lang='js')
           var item = new Trunk.View({
@@ -149,8 +149,8 @@ block main
           });
 
       h2.method render
-      p view渲染，默认将模版输出的html添加到el元素中，model执行 <a href="#model-reset">reset</a> 后会执行render。两个事件 <a href="#view-events-render:before">render:before</a> 和 <a href="#view-events-render:after">render:after</a> ，如果有children views，则继续渲染children。
-      p 一般很少需要重写，除非不依赖模版，如使用highcharts或者d3渲染。
+      p view渲染，默认将模版输出的html添加到el元素中，model执行 <a href="#model-reset">reset</a> 后会执行render。两个事件 <a href="#view-events-render:before">render:before</a> 和 <a href="#view-events-render:after">render:after</a>。
+      p 一般很少需要重写，除非不依赖模版，如使用Highcharts或者D3渲染。
       pre
         :highlight(lang='js')
           var app = new Trunk.View({
@@ -161,8 +161,34 @@ block main
             }
           });
 
-      h2.property children
-      p 
+      h2.method remove
+      p 删除当前view以及对应的model，与model.remove等效。
+
+      h2.method setElement
+      p 设置el属性并绑定DOM事件，一般用于模版中嵌套其他组件，等待渲染完成获取DOM对象后绑定已经实例化的view。
+      pre
+        :highlight(lang='markup')
+          <div id="app">
+            <script type="text" class="template-app">
+              <h1><#- data.title #></h1>
+              <select></select>
+            </script>
+          </div>
+      pre
+        :highlight(lang='js')
+          var app = new Trunk.View({
+            el: '#app',
+            template: '.template-app',
+            init: function() {
+              this.select = new Select();
+              this.on('render:after', function() {
+                this.select.setElement(this.$('select'));
+              });
+            }
+          });
+
+      h2.method delegateEvents
+      p 绑定DOM事件
 
       h2.property className
       p 根元素className。如果el元素已经有className，则追加。

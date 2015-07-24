@@ -19,7 +19,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/:component.html', function(req, res, next) {
-  console.log(req.params);
   res.render('components/' + req.params.component, {
     page: 'components',
     current: req.params.component

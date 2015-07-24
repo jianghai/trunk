@@ -1,7 +1,7 @@
 extends layout
 block content
   .flex
-    #chart.flex-1(style='height:400px')
+    #chart.demo.flex-1(style='height:400px')
     pre.flex-1
       :highlight(lang='js')
         require([
@@ -9,7 +9,7 @@ block content
         ], function(LineColumn) {
           var line = new LineColumn({
             model: {
-              url: '../json/line-column.json'
+              url: '/trunk/json/line-column.json'
             },
             el: '#chart'
           });
@@ -22,7 +22,7 @@ block content
       
       var line = new LineColumn({
         model: {
-          url: '../json/line-column.json'
+          url: '/trunk/json/line-column.json'
         },
         el: '#chart'
       });
