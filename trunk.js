@@ -449,8 +449,6 @@
       this.className && this.el.addClass(this.className);
     }
 
-    this.children = [];
-
     this.init && this.init();
   };
 
