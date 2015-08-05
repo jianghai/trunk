@@ -1,3 +1,5 @@
+var $ = require('jquery')
+
 function Router(prop) {
 
   for (var i in prop) {

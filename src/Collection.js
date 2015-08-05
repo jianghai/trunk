@@ -1,6 +1,7 @@
-var Model = require('./Model.js')
-var events = require('./events.js')
-var ajax = require('./ajax.js')
+var $ = require('jquery')
+var Model = require('./Model')
+var events = require('./events')
+var ajax = require('./ajax')
 
 function Collection(prop) {
   if (prop) {
@@ -31,7 +32,7 @@ $.extend(Collection.prototype, events, ajax, {
   },
 
   addOne: function(item) {
-    var model = new(this.Model || Model)({
+    var model = new(this.constructor.Model || Model)({
       data: item
     });
     model.collection = this;

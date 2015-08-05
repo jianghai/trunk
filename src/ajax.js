@@ -1,3 +1,5 @@
+var $ = require('jquery')
+
 exports.setParam = function(param, silent) {
 
   this.param || (this.param = {});

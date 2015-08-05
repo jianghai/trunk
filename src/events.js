@@ -1,3 +1,4 @@
+var $ = require('jquery')
 /**
  * @module events
  * @description 监听自身自定义事件
@@ -7,13 +8,11 @@
 /**
  * @name on
  * @kind method
- * 
  * @description 监听自身自定义事件，如果不指定context参数，调用者即handle的this对象
  * ```js
  * var a = 1
  *   var b = 2
  * ```
- * 
  * @param {String} name 自定义事件名称
  * @param {Function} handle 事件触发后回调
  * @param {[Object]} context handle的this对象

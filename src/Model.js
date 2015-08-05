@@ -1,5 +1,6 @@
-var events = require('./events.js')
-var ajax = require('./ajax.js')
+var $ = require('jquery')
+var events = require('./events')
+var ajax = require('./ajax')
 
 function Model(prop) {
 
@@ -80,8 +81,9 @@ $.extend(Model.prototype, events, ajax, {
   reset: function(data) {
     this.data = $.extend({}, this.defaults, data);
     // this.trigger('change', data);
-    this.trigger('reset', data);
-    this.collection && this.collection.trigger('change');
+    this.trigger('reset', data)
+    this.collection && this.collection.trigger('change')
+    this.view.render()
   },
 
   remove: function() {

@@ -3,8 +3,11 @@ require.config({
   paths: {
     'jquery': 'lib/jquery.min',
     'highcharts': 'lib/highcharts',
-    'trunk': 'trunk',
-    'LineColumn': 'components/LineColumn'
+    'Trunk': 'Trunk',
+    'LineColumn': 'components/LineColumn',
+    'DataList': 'components/DataList',
+    'Pagination': 'components/Pagination',
+    'DataTable': 'components/DataTable',
   },
   shim: {
     highcharts: {

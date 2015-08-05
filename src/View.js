@@ -1,6 +1,7 @@
-var Model = require('./Model.js')
-var events = require('./events.js')
-var vjs = require('./vjs.js')
+var $ = require('jquery')
+var Model = require('./Model')
+var events = require('./events')
+var vjs = require('./vjs')
 
 /**
  * @constructor
@@ -48,14 +49,13 @@ function View(prop) {
 
   }
 
-  this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
+  this.model instanceof Model || (this.model = new(this.constructor.Model || Model)(this.model));
 
   this.model.view = this;
 
   this.model.collection && (this.collection = this.model.collection);
 
-  // Events
-  this.listen(this.model, 'reset', this.render);
+  this.el || this.tag || (this.tag = 'div') 
 
   this.tag && (this.el = $('<' + this.tag + '>'));
   typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));

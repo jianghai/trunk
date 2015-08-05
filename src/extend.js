@@ -1,3 +1,4 @@
+var $ = require('jquery')
 /**
  * Class inherit
  */
@@ -5,7 +6,10 @@ function extend(prop) {
   var Super = this;
   var Subclass = function() {
     Super.apply(this, arguments);
-  };
+  }
+
+  // 继承Model
+  Super.Model && (Subclass.Model = Super.Model)
 
   Subclass.extend = extend;
 

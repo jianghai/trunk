@@ -1,17 +1,17 @@
-var Model = require('./Model.js')
-var View = require('./View.js')
-var Collection = require('./Collection.js')
-var Router = require('./Router.js')
-var extend = require('./extend.js')
+var $ = require('jquery')
+var Model = require('./Model')
+var View = require('./View')
+var Collection = require('./Collection')
+var Router = require('./Router')
+var extend = require('./extend')
 
 
-var Trunk = {}
+var Trunk = View
 
 Trunk.Model = Model
 Trunk.Collection = Collection
-Trunk.View = View
 Trunk.Router = Router
 
-Trunk.Model.extend = Trunk.Collection.extend = Trunk.View.extend = Trunk.Router.extend = extend
+Trunk.extend = Trunk.Model.extend = Trunk.Collection.extend = Trunk.Router.extend = extend
 
 module.exports = Trunk

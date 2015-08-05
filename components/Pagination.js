@@ -1,35 +1,9 @@
 define([
   'jquery',
-  'trunk'
+  'Trunk'
 ], function($, Trunk) {
 
-  return Trunk.View.extend({
-
-    Model: Trunk.Model.extend({
-
-      shows: 5,
-
-      onChange: function() {
-        var current = this.data.current;
-        var counts = this.data.counts;
-        var start = Math.max(Math.min(current - Math.floor(this.shows / 2), counts - this.shows + 1), 1);
-        var end = Math.min(Math.max(current + Math.floor(this.shows / 2), this.shows), counts);
-        if (start <= 3) {
-          start = 1;
-        }
-        if (end > counts - 3) {
-          end = counts;
-        }
-        this.reset({
-          counts: counts,
-          current: current,
-          start: start,
-          end: end
-        });
-      }
-    }),
-
-    tag: 'div',
+  var View = Trunk.extend({
 
     className: 'pagination-container',
 
@@ -50,24 +24,44 @@ define([
       } else if (page > this.model.data.counts) {
         page = this.model.data.counts;
       }
-      this.trigger('change', +page);
+      this.model.set('current', +page)
     },
 
     onPageChange: function(e) {
       e.preventDefault();
       var target = $(e.target);
-      var page = target.attr('data');
+      var page = target.attr('data-page');
       if (!page) return;
       if (page === 'prev') {
         page = this.model.data.current - 1;
       } else if (page === 'next') {
         page = this.model.data.current + 1;
       }
-      this.trigger('change', +page);
-    },
+      this.model.set('current', +page)
+    }
+  })
+
+  View.Model = Trunk.Model.extend({
+
+    shows: 5,
 
     init: function() {
-      this.model.on('change', this.model.onChange);
+      this.on('reset', function(data) {
+        var current = data.current;
+        var counts = data.counts;
+        var start = Math.max(Math.min(current - Math.floor(this.shows / 2), counts - this.shows + 1), 1);
+        var end = Math.min(Math.max(current + Math.floor(this.shows / 2), this.shows), counts);
+        if (start <= 3) {
+          start = 1;
+        }
+        if (end > counts - 3) {
+          end = counts;
+        }
+        this.data.start = start
+        this.data.end = end
+      })
     }
-  });
-});
+  })
+
+  return View
+})  

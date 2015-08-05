@@ -1,16 +1,12 @@
 define([
   'jquery',
-  'trunk',
+  'Trunk',
   'highcharts',
 ], function($, Trunk, Highcharts) {
 
-  var Model = Trunk.Model.extend({
+  var View = Trunk.extend({
 
-  });
-
-  return Trunk.View.extend({
-
-    Model: Model,
+    el: '#lineColumn',
 
     defultOption: {
       chart: {},
@@ -46,7 +42,13 @@ define([
     },
 
     render: function() {
-      this.chart = new Highcharts.Chart(this.parseOption(this.model.data || []));
+      this.trigger('render:before')
+      this.chart = new Highcharts.Chart(this.parseOption(this.model.data || []))
+      this.trigger('render:after')
     }
-  });
-});
+  })
+
+  View.Model = Trunk.Model.extend({})
+
+  return View
+})

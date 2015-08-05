@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
+		module.exports = factory(require("jquery"));
 	else if(typeof define === 'function' && define.amd)
-		define(factory);
+		define(["jquery"], factory);
 	else if(typeof exports === 'object')
-		exports["Trunk"] = factory();
+		exports["Trunk"] = factory(require("jquery"));
 	else
-		root["Trunk"] = factory();
-})(this, function() {
+		root["Trunk"] = factory(root["jquery"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -54,21 +54,21 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Model = __webpack_require__(1)
-	var View = __webpack_require__(4)
-	var Collection = __webpack_require__(6)
-	var Router = __webpack_require__(7)
-	var extend = __webpack_require__(8)
+	var $ = __webpack_require__(2)
+	var Model = __webpack_require__(3)
+	var View = __webpack_require__(6)
+	var Collection = __webpack_require__(1)
+	var Router = __webpack_require__(8)
+	var extend = __webpack_require__(9)
 
 
-	var Trunk = {}
+	var Trunk = View
 
 	Trunk.Model = Model
 	Trunk.Collection = Collection
-	Trunk.View = View
 	Trunk.Router = Router
 
-	Trunk.Model.extend = Trunk.Collection.extend = Trunk.View.extend = Trunk.Router.extend = extend
+	Trunk.extend = Trunk.Model.extend = Trunk.Collection.extend = Trunk.Router.extend = extend
 
 	module.exports = Trunk
 
@@ -76,8 +76,86 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var events = __webpack_require__(2)
-	var ajax = __webpack_require__(3)
+	var $ = __webpack_require__(2)
+	var Model = __webpack_require__(3)
+	var events = __webpack_require__(4)
+	var ajax = __webpack_require__(5)
+
+	function Collection(prop) {
+	  if (prop) {
+	    for (var i in prop) {
+	      this[i] = prop[i];
+	    }
+	  }
+	  this.list = [];
+
+	  this.init && this.init();
+	}
+
+	$.extend(Collection.prototype, events, ajax, {
+
+	  length: function() {
+	    return this.list.length;
+	  },
+
+	  add: function(data) {
+	    if (Array.isArray(data)) {
+	      data.forEach(function(item) {
+	        this.addOne(item);
+	      }, this);
+	    } else {
+	      this.addOne(data);
+	    }
+	    this.trigger('change');
+	  },
+
+	  addOne: function(item) {
+	    var model = new(this.constructor.Model || Model)({
+	      data: item
+	    });
+	    model.collection = this;
+	    this.trigger('add', model, this.list.push(model) - 1);
+	  },
+
+	  reduce: function(model) {
+	    this.list.splice(model.index(), 1);
+	    this.trigger('reduce', model);
+	    this.trigger('change');
+	  },
+
+	  toArray: function() {
+	    return this.list.map(function(model) {
+	      return model.data;
+	    });
+	  },
+
+	  clear: function(models) {
+	    (models || this.list).forEach(function(model) {
+	      models && this.list.splice(model.index(), 1);
+	      model.view.el.remove();
+	    }, this);
+	    !models && (this.list.length = 0);
+	    this.trigger('reduce');
+	    this.trigger('change');
+	    return this;
+	  }
+	})
+
+	module.exports = Collection
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(2)
+	var events = __webpack_require__(4)
+	var ajax = __webpack_require__(5)
 
 	function Model(prop) {
 
@@ -158,8 +236,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  reset: function(data) {
 	    this.data = $.extend({}, this.defaults, data);
 	    // this.trigger('change', data);
-	    this.trigger('reset', data);
-	    this.collection && this.collection.trigger('change');
+	    this.trigger('reset', data)
+	    this.collection && this.collection.trigger('change')
+	    this.view.render()
 	  },
 
 	  remove: function() {
@@ -198,9 +277,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Model
 
 /***/ },
-/* 2 */
-/***/ function(module, exports) {
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
 
+	var $ = __webpack_require__(2)
 	/**
 	 * @module events
 	 * @description 监听自身自定义事件
@@ -210,13 +290,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @name on
 	 * @kind method
-	 * 
 	 * @description 监听自身自定义事件，如果不指定context参数，调用者即handle的this对象
 	 * ```js
 	 * var a = 1
 	 *   var b = 2
 	 * ```
-	 * 
 	 * @param {String} name 自定义事件名称
 	 * @param {Function} handle 事件触发后回调
 	 * @param {[Object]} context handle的this对象
@@ -284,8 +362,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 3 */
-/***/ function(module, exports) {
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(2)
 
 	exports.setParam = function(param, silent) {
 
@@ -325,12 +405,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Model = __webpack_require__(1)
-	var events = __webpack_require__(2)
-	var vjs = __webpack_require__(5)
+	var $ = __webpack_require__(2)
+	var Model = __webpack_require__(3)
+	var events = __webpack_require__(4)
+	var vjs = __webpack_require__(7)
 
 	/**
 	 * @constructor
@@ -378,14 +459,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  }
 
-	  this.model instanceof Model || (this.model = new(this.Model || Model)(this.model));
+	  this.model instanceof Model || (this.model = new(this.constructor.Model || Model)(this.model));
 
 	  this.model.view = this;
 
 	  this.model.collection && (this.collection = this.model.collection);
 
-	  // Events
-	  this.listen(this.model, 'reset', this.render);
+	  this.el || this.tag || (this.tag = 'div') 
 
 	  this.tag && (this.el = $('<' + this.tag + '>'));
 	  typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
@@ -461,7 +541,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = View
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports) {
 
 	/**
@@ -508,78 +588,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = vjs
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Model = __webpack_require__(1)
-	var events = __webpack_require__(2)
-	var ajax = __webpack_require__(3)
-
-	function Collection(prop) {
-	  if (prop) {
-	    for (var i in prop) {
-	      this[i] = prop[i];
-	    }
-	  }
-	  this.list = [];
-
-	  this.init && this.init();
-	}
-
-	$.extend(Collection.prototype, events, ajax, {
-
-	  length: function() {
-	    return this.list.length;
-	  },
-
-	  add: function(data) {
-	    if (Array.isArray(data)) {
-	      data.forEach(function(item) {
-	        this.addOne(item);
-	      }, this);
-	    } else {
-	      this.addOne(data);
-	    }
-	    this.trigger('change');
-	  },
-
-	  addOne: function(item) {
-	    var model = new(this.Model || Model)({
-	      data: item
-	    });
-	    model.collection = this;
-	    this.trigger('add', model, this.list.push(model) - 1);
-	  },
-
-	  reduce: function(model) {
-	    this.list.splice(model.index(), 1);
-	    this.trigger('reduce', model);
-	    this.trigger('change');
-	  },
-
-	  toArray: function() {
-	    return this.list.map(function(model) {
-	      return model.data;
-	    });
-	  },
-
-	  clear: function(models) {
-	    (models || this.list).forEach(function(model) {
-	      models && this.list.splice(model.index(), 1);
-	      model.view.el.remove();
-	    }, this);
-	    !models && (this.list.length = 0);
-	    this.trigger('reduce');
-	    this.trigger('change');
-	    return this;
-	  }
-	})
-
-	module.exports = Collection
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
+	var $ = __webpack_require__(2)
 
 	function Router(prop) {
 
@@ -669,9 +681,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Router
 
 /***/ },
-/* 8 */
-/***/ function(module, exports) {
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
 
+	var $ = __webpack_require__(2)
 	/**
 	 * Class inherit
 	 */
@@ -679,7 +692,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var Super = this;
 	  var Subclass = function() {
 	    Super.apply(this, arguments);
-	  };
+	  }
+
+	  Super.Model && (Subclass.Model = Super.Model)
 
 	  Subclass.extend = extend;
 

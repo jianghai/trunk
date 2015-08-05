@@ -2,11 +2,11 @@ module.exports = {
   entry: "./src/trunk.js",
   output: {
     path: __dirname,
-    filename: "trunk.js",
+    filename: "Trunk.js",
     library: 'Trunk',
     libraryTarget: 'umd'
   },
   externals: {
-    "jquery": "jQuery"
+    "jquery": "jquery"
   }
 }
