@@ -5,7 +5,7 @@ require([
   var search = new Search()
   
   /**
-   * 一般由其他组件监听search行为
+   * 一般由其他组件监听search行为，例如
    * dataTable.listen(search, 'search', function(kw) {
    *   this.model.setParam('keyword', kw)
    * })

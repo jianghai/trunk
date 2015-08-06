@@ -1,6 +1,6 @@
 extends ../layout
 block head
-  link(rel='stylesheet', href='/stylesheets/docs/index.css')
+  link(rel='stylesheet', href='/stylesheets/docs.css')
 block main
   .sidebar
     ul
@@ -40,7 +40,11 @@ block main
     - each module in doc
       section(id=module.name)
         h1= module.name
-        p= module.desc
+        - each desc in module.desc
+          if typeof desc === 'string'
+            p= desc
+          else
+            pre!= desc.code
         - each prop in module.props
           - var name = prop.name
           - if (prop.param) {
@@ -48,18 +52,30 @@ block main
           -     return !item.optional ? item.name : '[' + item.name + ']'
           -   }).join(', ')
           -   name += '( ' + params + ' )'
+          - } else {
+          -   name += '( )'
           - }
-          h2(class=prop.kind)= name
-          ol
-            each param in prop.param
-              li 
-                | {#{param.type}} 
-                | #{param.name} #{param.desc}
-            li
-              b return 
-              | {#{prop.return.type}} #{prop.return.desc}
-          if prop.description
-            each desc in prop.description
+          h2(class={method: !prop.type})= name
+          if prop.param || prop.return
+            table
+              if prop.param
+                each param in prop.param
+                  tr
+                    td.name= param.name
+                    td
+                      code.type= param.type
+                    td.desc= param.desc
+                    td
+                      em.optional= param.optional && 'optional' || ''
+              if prop.return
+                tr
+                  td 
+                    b return 
+                  td
+                    code.type= prop.return.type
+                  td.desc= prop.return.desc
+          if prop.desc
+            - each desc in prop.desc
               if typeof desc === 'string'
                 p= desc
               else

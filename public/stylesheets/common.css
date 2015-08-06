@@ -79,6 +79,21 @@ a:hover {
   text-decoration: underline;
 }
 
+table {
+  border-collapse: collapse;
+}
+table td {
+  padding: 2px 5px;
+  /*border-bottom: 1px solid #ccc;*/
+}
+
+code {
+  padding: 2px 4px;
+  color: #c7254e;
+  white-space: nowrap;
+  border-radius: 0;
+  background-color: #f8f8f8;
+}
 pre {
   font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
   padding: .8rem 1rem;
@@ -103,16 +118,6 @@ pre .com {
 }
 pre .str {
   color: #df5000;
-}
-
-p,
-pre {
-  margin-top: 1.2em;
-}
-
-p:first-child,
-pre:first-child {
-  margin-top: 0;
 }
 
 .iconfont {
@@ -174,7 +179,7 @@ body {
 }
 
 body {
-  font-family: "ff-tisa-web-pro-1","ff-tisa-web-pro-2","Lucida Grande","Helvetica Neue",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3","WenQuanYi Micro Hei",sans-serif;
+  font-family: "Helvetica Neue",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3","WenQuanYi Micro Hei",sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.62;
   background-color: #fff;
@@ -222,7 +227,7 @@ header a:hover {
 }
 #nav a {
   padding: 0 20px;
-  color: #C3C3C3;
+  color: #135177;
   font-size: 13px;
   font-weight: 600;
   transition: .3s;

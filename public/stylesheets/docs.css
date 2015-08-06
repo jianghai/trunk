@@ -6,6 +6,7 @@
   color: #fff;
   border-radius: .3em;
   margin-right: .3em;
+  font-size: 85%;
 }
 .class:before {
   background-color: #09f;
@@ -29,10 +30,11 @@
 }
 
 .content section + section h1 {
-  margin-top: 3rem;
+  margin-top: 4rem;
 }
 .content h1,
 .content h2 {
+  line-height: 1;
   /* font-weight: normal; */
 }
 .content h1 {
@@ -41,7 +43,7 @@
 }
 .content h2 {
   font-size: 1.1rem;
-  margin-top: 2rem;
+  margin-top: 3rem;
 }
 .content ol {
   list-style: disc;
@@ -53,6 +55,11 @@
 .content p,
 .content pre,
 .content svg,
+.content table,
 .content ol {
   margin-top: 1.5rem;
+}
+
+.content .optional {
+  color: #B6B6B6;
 }
