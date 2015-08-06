@@ -1,0 +1,345 @@
+input[type="text"],
+textarea,
+select {
+  border: 1px solid #c1c1c1;
+  border-radius: 3px;
+  padding: 0 5px;
+  line-height: 25px;
+  /*transition: border .3s;*/
+}
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #5aa4e0;
+}
+
+input[type="text"] {
+  height: 27px;
+}
+
+input[type="text"].sm {
+  padding: 0 2px;
+  height: 22px;
+  line-height: 20px;
+}
+
+select {
+  /* padding: 0px 6px; */
+  height: 27px;
+  vertical-align: bottom;
+  background-color: #fff;
+}
+
+select + select,
+select + form {
+  margin-left: 10px;
+}
+
+.btn {
+  border-radius: 3px;
+  padding: 0px 8px;
+  height: 27px;
+  line-height: 25px;
+  border: 1px solid #bbc5d1;
+  background-color: #f4f5f8;
+  color: #333;
+  cursor: pointer;
+}
+
+.btns > .btn + .btn {
+  margin-left: 10px;
+}
+
+.btn[disabled] .icon {
+  fill: #bbb;
+}
+
+.btn + .btn.icon {
+  margin-left: 5px;
+}
+
+.btn.icon + .btn.icon {
+  margin-left: 0;
+}
+
+.btn:hover {
+  background-color: #e0e3ed;
+}
+
+.btn:active {
+  background-color: #bbc5d1;
+}
+
+.btn.primary,
+.btn.primary[disabled]:hover,
+.btn.primary[disabled]:active,
+.btn.active,
+.active > .btn {
+  background-color: #2681cc;
+  color: #fff;
+  border-color: #2681cc;
+}
+
+.btn.primary:hover,
+.btn.active:hover,
+.active > .btn:hover {
+  background-color: #0a61a4;
+  border-color: #0a61a4;
+}
+
+.btn.primary:active,
+.btn.active:active
+.active > .btn:active {
+  background-color: #105085;
+  border-color: #105085;
+}
+
+a.btn {
+  display: inline-block;
+}
+a.btn:hover {
+  text-decoration: none;
+}
+
+.btn.sm {
+  padding: 0px 6px;
+  height: 22px;
+  line-height: 20px;
+}
+
+.btn .icon:last-child {
+  margin-right: 0;
+  margin-left: 4px;
+}
+
+.btn .icon:first-child {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.btn.lg {
+  /*padding: 5px 10px;*/
+}
+
+.btn.icon {
+  color: #a4acb5;
+  border-color: transparent;
+  background-color: transparent;
+  min-width: 20px;
+}
+
+.btn.icon:hover {
+  color: #5aa4e0;
+  background: transparent;
+}
+
+.btn.icon:active {
+  color: #3471a0;
+}
+
+.btn.icon[disabled],
+.btn.icon[disabled]:hover,
+.btn.icon[disabled]:active {
+  color: #ccc;
+}
+
+.btn.icon svg.icon {
+  margin-right: 0;
+}
+
+.list li {
+  margin-top: 20px;
+}
+.list li:first-child {
+  margin-top: 0;
+}
+.list li > label img {
+  border-radius: 50%;
+}
+.list li > label + div {
+  font-size: 12px;
+}
+
+.table {
+  text-align: center;
+  background-color: #fff;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table caption {
+  background-color: #f8f8f8;
+  padding: 8px;
+  border: 1px solid #bbc5d1;
+  border-bottom: 0;
+}
+
+.table thead {
+  background-color: #f8f8f8;
+  color: #5a607c;
+}
+
+.table th,
+.table td {
+  font-weight: normal;
+  /*border: 1px solid #bbc5d1;*/
+  border-bottom: 1px solid #bbc5d1;
+  padding: 6px 8px;
+  word-break: break-word;
+}
+/*.table th:first-child,
+.table td:first-child {
+  border-left: 0;
+}
+.table th:last-child,
+.table td:last-child {
+  border-right: 0;
+}*/
+.table tbody td {
+  padding: 9px;
+}
+
+.table td.empty {
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+
+.table > tbody > tr:nth-child(even) td {
+  background-color: #f8f8f9;
+}
+
+.table > tbody > tr:hover td {
+  background-color: #eef6fc;
+}
+
+.table > tbody > tr:hover td.empty {
+  background: transparent;
+}
+
+.table a + a {
+  margin-left: 10px;
+}
+
+.table .divider {
+  margin: 0 7px;
+}
+
+.pagination-container {
+  /* padding: 9px; */
+  text-align: right;
+  /* background-color: #fff; */
+  /* border: 1px solid #bbc5d1; */
+  border-top: 0;
+  margin-top: 1rem;
+}
+
+.pagination li {
+  border-right: 0;
+  display: inline-block;
+}
+
+.pagination li a,
+.pagination li .not-page {
+  display: block;
+  padding: 0px 10px;
+}
+
+.pagination li a {
+  color: #666;
+}
+
+.pagination li .not-page {
+  cursor: default;
+}
+
+.pagination li .disabled {
+  color: #c6c6c6;
+}
+
+.pagination li a {
+  text-decoration: none;
+  text-align: center;
+}
+
+.pagination li a:hover,
+.pagination li.active a {
+  color: #5aa4e0;
+}
+
+.pagination form {
+  padding-left: 10px;
+}
+
+.pagination input {
+  width: 30px;
+  border-color: #e2e2e2;
+  margin: 0 5px;
+}
+
+.pagination button {
+  margin-left: 5px;
+}
+
+
+.search {
+  position: relative;
+}
+
+.search input {
+  padding-left: 2em;
+  padding-right: 2em;
+}
+
+.search .iconfont {
+  position: absolute;
+  top: 50%;
+  margin-top: -.5em;
+  color: #8a92a5;
+}
+
+.search .icon-search {
+  left: .6em;
+}
+
+.search .icon-close {
+  right: .6em;
+  display: none;
+  margin-right: 0;
+  cursor: pointer;
+}
+
+.search.tk-weighty .icon-close {
+  display: block;
+}
+
+.search .icon-close:hover {
+  color: #333;
+}
+
+.search button {
+  margin-left: 9px;
+}
+
+.search .input-group {
+  position: relative;
+  display: inline-block;
+}
+.search .input-group .layer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #bbc5d1;
+  background-color: #fff;
+  z-index: 999;
+  display: none;
+}
+.search .input-group .layer li {
+  padding: 5px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.search .input-group .layer li:hover {
+  background-color: #fbfbfb;
+}

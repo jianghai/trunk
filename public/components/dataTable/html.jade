@@ -1,0 +1,36 @@
+div(id=component)
+  table.table
+    thead
+      tr
+        td 申请类型
+        td 申请要求
+        td 申请名称
+        td 申请人
+        td 最后处理人
+        td 最后处理时间
+        td 处理结果
+        td(width='110') 操作
+    tbody
+      script(type='text', class='template-' + component).
+        <# if (data.stores && data.stores.length) { #>
+          <# data.stores.forEach(function(store, i) { #>
+            <tr>
+              <td><#- store.auditTypeCn #></td>
+              <td><#- store.applyTypeCn || '--' #></td>
+              <td><#- store.name || '--' #></td>
+              <td><#- store.applyUserName || '--' #></td>
+              <td><#- store.auditUserName || '--' #></td>
+              <td><#- store.auditTime || '--' #></td>
+              <td><#- 'auditResult' in store ? store.auditResult && '通过' || '不通过' : '未处理' #></td>
+              <td>
+                <a href="" data-index="<#- i #>" class="show">查看</a> |
+                <a href="" data-index="<#- i #>" class="remove">取消</a>
+              </td>
+            </tr><# }); #>
+          <# } else { #>
+            <tr>
+              <td colspan="8" class="empty">暂无数据</td>
+            </tr>
+          <# } #>
+// 依赖分页模版
+include ../pagination/template.jade

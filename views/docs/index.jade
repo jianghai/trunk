@@ -4,7 +4,7 @@ block head
 block main
   .sidebar
     ul
-      li
+      li.active
         a(href='#overview') Overview
       li
         a.class(href='#view') Trunk.View
@@ -19,40 +19,6 @@ block main
             a.method(href='#') render
           li
             a.method(href='#') render
-          
-      li
-        a(href='#') Trunk.Model
-        ul
-          li
-            a(href='#') render
-          li
-            a(href='#') render
-          li
-            a(href='#') render
-      li
-        a(href='#') Trunk.Collection
-        ul
-          li
-            a(href='#') render
-          li
-            a(href='#') render
-          li
-            a(href='#') render
-      li
-        a(href='#') Events
-        ul
-          li
-            a.method(href='#') listen
-          li
-            a.method(href='#') listenOnce
-          li
-            a.method(href='#') on
-          li
-            a.method(href='#') once
-          li
-            a.method(href='#') off
-          li
-            a.method(href='#') trigger
   .content.flex-1
     section#overview 
       h1 Overview
@@ -68,135 +34,38 @@ block main
           // Register event
           view1.listen(model2, 'save', function() {
             // Do something
-          });
+          })
           // Fire event
-          model2.trigger('save');
-    section#view
+          model2.trigger('save')
+    - each module in doc
+      section(id=module.name)
+        h1= module.name
+        p= module.desc
+        - each prop in module.props
+          - var name = prop.name
+          - if (prop.param) {
+          -   var params = prop.param.map(function(item) {
+          -     return !item.optional ? item.name : '[' + item.name + ']'
+          -   }).join(', ')
+          -   name += '( ' + params + ' )'
+          - }
+          h2(class=prop.kind)= name
+          ol
+            each param in prop.param
+              li 
+                | {#{param.type}} 
+                | #{param.name} #{param.desc}
+            li
+              b return 
+              | {#{prop.return.type}} #{prop.return.desc}
+          if prop.description
+            each desc in prop.description
+              if typeof desc === 'string'
+                p= desc
+              else
+                pre!= desc.code
 
-      h1.class Trunk.View
-      p view主要定义页面事件交互、响应model事件等等。
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View();
-      
-      h2.property el
-      p 非动态创建的view根元素节点，支持jQuery元素、#id
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            el: '#app'
-          });
 
-      h2.property tag
-      p 动态创建的view根元素tagName。
-      pre
-        :highlight(lang='js')
-          var item = new Trunk.View({
-            tag: 'li'
-          });
-          $('ul').append(item.el);
-      
-      h2.property template
-      p view渲染不再是繁杂的HTML拼装，而是基于字符串的模版模式，实际使用时先在HTML中添加模板（模板定义时不包括el元素本身）。语句：<# statement #>，表达式：<#- expression #>。
-      pre
-        :highlight(lang='markup')
-          <script id="template-list-item" type="text">
-          <h1><#- data.message #><h1>
-          </script>
-      p 指定模版script元素选择器（class或者id），id的话则从整个DOM中获取（适合实例化时el不存在于DOM中的场景），class则从el元素下获取（适合并确保el存在于DOM中，模版存在于el中）。
-      pre
-        :highlight(lang='js')
-          var item = new Trunk.View({
-            tag: 'li',
-            template: '#template-list-item'
-          });
-      p 执行 <a href="#view-render">render</a> 时会把model的 <a href="#model-data">data</a> 属性值传到模版作用域中。
-      
-      h2#view-events.property events
-      p 传统的事件绑定比较分散，不容易统一管理和维护，这里定义了events属性，所有的事件以key:value的形式统一定义，handle的参数与jQuery定义的的相同，只是this指向了当前的view对象。所有事件都是绑定在当前view根元素节点上的，支持事件委托（'event selector': 'handle'）。
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            events: {
-              'click': 'onClick',
-              'change select': 'onChange' // Event delegation
-            },
-            onClick: function(e) {},
-            onChange: function(e) {}
-          });
 
-      h2.method init
-      p 实例化时执行的函数，执行前所有定义的属性和方法均已关联到当前view对象中。
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            say: function() {
-              console.log('Hello world!');
-            },
-            init: function() {
-              this.say(); // Hello world!
-            }
-          });
 
-      h2.method $
-      p 选择器（当前view中）。
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            init: function() {
-              this.$('.list'); // Equal to this.el.find('.list')
-            }
-          });
 
-      h2.method render
-      p view渲染，默认将模版输出的html添加到el元素中，model执行 <a href="#model-reset">reset</a> 后会执行render。两个事件 <a href="#view-events-render:before">render:before</a> 和 <a href="#view-events-render:after">render:after</a>。
-      p 一般很少需要重写，除非不依赖模版，如使用Highcharts或者D3渲染。
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            render: function() {
-              new Highcharts.Chart({
-                renderTo: this.el[0]
-              });
-            }
-          });
-
-      h2.method remove
-      p 删除当前view以及对应的model，与model.remove等效。
-
-      h2.method setElement
-      p 设置el属性并绑定DOM事件，一般用于模版中嵌套其他组件，等待渲染完成获取DOM对象后绑定已经实例化的view。
-      pre
-        :highlight(lang='markup')
-          <div id="app">
-            <script type="text" class="template-app">
-              <h1><#- data.title #></h1>
-              <select></select>
-            </script>
-          </div>
-      pre
-        :highlight(lang='js')
-          var app = new Trunk.View({
-            el: '#app',
-            template: '.template-app',
-            init: function() {
-              this.select = new Select();
-              this.on('render:after', function() {
-                this.select.setElement(this.$('select'));
-              });
-            }
-          });
-
-      h2.method delegateEvents
-      p 绑定DOM事件
-
-      h2.property className
-      p 根元素className。如果el元素已经有className，则追加。
-      pre
-        :highlight(lang='js')
-          var item = new Trunk.View({
-            tag: 'li',
-            className: 'list-item'
-          });
-          // After render: <li className="list-item"></li>
-        

@@ -1,11 +1,23 @@
-pre.flex-1 {
-  margin-top: 0;
-  margin-left: 2em;
-}
 .demo {
-  /*-webkit-animation: fadein 2s;*/
+  /*overflow: hidden;*/
 }
-@-webkit-keyframes fadein {
+.demo.dynamic {
+  height: 400px;
+  overflow: hidden;
+  opacity: 0;
+}
+.demo.in {
+  -webkit-animation: fadeIn .15s ease-in;
+  opacity: 1;
+}
+@-webkit-keyframes fadeIn {
   from { opacity: 0; }
-  to   { opacity: 1; }
+    to { opacity: 1; }
+}
+
+.tab.code {
+  margin-top: 2rem;
+}
+.tab.code pre {
+  min-height: 200px;
 }

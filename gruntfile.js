@@ -1,13 +1,14 @@
 module.exports = function(grunt) {
 
-  var fs   = require('fs');
-  var jade = require('jade');
+  var fs   = require('fs')
+  var jade = require('jade')
+  
 
   grunt.registerTask('generate', function() {
-    var fn = jade.compileFile('views/index.jade');
+    var fn = jade.compileFile('views/index.jade')
     fs.writeFileSync('index.html', fn({
       title: 'BBBB'
-    }));
+    }))
   });
 
   // Project configuration.

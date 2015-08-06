@@ -1,0 +1,47 @@
+script#template-pagination(type='text').
+  <ul class="pagination">
+    <li>
+      <# if (data.current > 1) { #>
+        <a href="#" data-page="prev" class="page">&lt;</a><
+      # } else { #>
+        <span class="not-page disabled">&lt;</span>
+      <# } #>
+    </li>
+    <# if (data.start !== 1 ) { #>
+      <# for (var i = 1; i <= 2; i++) { #>
+        <li>
+          <a href="#" data-page="<#- i #>" class="page"><#- i #></a>
+        </li>
+      <# } #>
+      <li>
+        <div class="not-page">...</div>
+      </li>
+    <# } #>
+    <# for (var i = data.start; i <= data.end; i++) { #>
+      <li class="<#- data.current === i && 'active' || '' #>">
+        <a href="#" data-page="<#- i #>" class="page"><#- i #></a>
+      </li>
+    <# } #>
+    <# if (data.end !== data.counts) { #>
+      <li>
+        <div class="not-page">...</div>
+      </li>
+    <# } #>
+    <li>
+      <# if (data.current < data.counts) { #>
+        <a href="#" data-page="next" class="page">&gt;</a>
+      <# } else { #>
+        <span class="not-page disabled">&gt;</span>
+      <# } #>
+    </li>
+    <li>
+      <div class="not-page">共 <#- data.counts #> 页</div>
+    </li>
+    <li>
+      <form>
+        <label>跳转到第</label>
+        <input type="text" autocomplete="off" name="page" class="sm"/>页
+        <button type="submit" class="btn sm primary">确定</button>
+      </form>
+    </li>
+  </ul>

@@ -1,0 +1,18 @@
+div(id=component)
+  script(type='text', class='template-' + component).
+    <# if (data.stores && data.stores.length) { #>
+      <ul class="list">
+        <# data.stores.forEach(function(store, i) { #>
+          <li class="flex">
+            <label style="width:50px;margin-right:1rem">
+              <img src="<#- store.iconIMG #>">
+            </label>
+            <div class="flex-1"><#- store.content #></div>
+          </li>
+        <# }); #>
+      </ul>
+    <# } else { #>
+      <div>暂无数据</div>
+    <# } #>
+// 依赖分页模版
+include ../pagination/template.jade
