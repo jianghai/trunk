@@ -6,7 +6,7 @@ define([
 ], function($, Trunk) {
 
   var Model = Trunk.Model.extend({
-  });
+  })
 
   return Trunk.View.extend({
 
@@ -38,33 +38,33 @@ define([
 
     parseOption: function(data) {
 
-      var option = $.extend(true, {}, this.defultOption, this.option);
+      var option = $.extend(true, {}, this.defultOption, this.option)
 
       if (option.series[0].data) {
         // data
         // option.series[0].data.forEach(function(item) {
-        //   item.y = +data[item.key] || 0;
-        // });
+        //   item.y = +data[item.key] || 0
+        // })
       } else {
-        option.series[0].data = [];
+        option.series[0].data = []
         data.forEach(function(store) {
-          option.series[0].data.push([store[this.model.group], store[this.model.value]]);
-        }, this);
+          option.series[0].data.push([store[this.model.group], store[this.model.value]])
+        }, this)
       }
 
-      return option;
+      return option
     },
 
     render: function() {
-      this.defultOption.chart.renderTo = this.el[0];
+      this.defultOption.chart.renderTo = this.el[0]
 
-      var data = this.model.data;
+      var data = this.model.data
 
       if (!data.stores || !data.stores.length) {
-        this.el.html('<div class="empty">暂无数据</div>');
+        this.el.html('<div class="empty">暂无数据</div>')
       } else {
-        this.chart = new Highcharts.Chart(this.parseOption(data.stores || []));
+        this.chart = new Highcharts.Chart(this.parseOption(data.stores || []))
       }
     }
-  });
+  })
 });

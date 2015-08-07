@@ -57,7 +57,7 @@ define([
      * 条件改变后分页重置
      */
     setParam: function() {
-      this.param.start = 0;
+      this.param.start = 0
       Trunk.Model.prototype.setParam.apply(this, arguments)
     }
   })

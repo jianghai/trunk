@@ -7,7 +7,7 @@
 		exports["Trunk"] = factory(require("jquery"));
 	else
 		root["Trunk"] = factory(root["jquery"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -54,15 +54,150 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
-	var Model = __webpack_require__(3)
-	var View = __webpack_require__(6)
-	var Collection = __webpack_require__(1)
-	var Router = __webpack_require__(8)
-	var extend = __webpack_require__(9)
+	var $ = __webpack_require__(1)
+	var Model = __webpack_require__(2)
+	var Collection = __webpack_require__(5)
+	var Router = __webpack_require__(6)
+	var extend = __webpack_require__(7)
+	var events = __webpack_require__(3)
+	var vjs = __webpack_require__(8)
 
 
-	var Trunk = View
+	/**
+	 * 视图类，提供基础的视图操作，直接处理和反馈用户的操作
+	 * ```js
+	 * var view = new Trunk()
+	 * ```
+	 * @param {Object...} [prop...] 实例属性，支持多个对象
+	 */
+	function Trunk(prop) {
+
+	  // 多个参数先合并
+	  if (arguments.length > 1) {
+	    var _init_0 = prop.init;
+	    for (var i = 1; i < arguments.length; i++) {
+	      var _prop = arguments[i];
+	      var _init = _prop.init;
+	      if (_init) {
+	        _prop.init = function() {
+	          _init_0 && _init_0.call(this);
+	          _init.call(this);
+	        }
+	      }
+	      $.extend(true, prop, _prop);
+	    }
+	  }
+
+	  if (prop) {
+
+	    if (typeof prop.init === 'function' && typeof this.init === 'function') {
+	      var _this = this.init;
+	      var _init = prop.init;
+	      prop.init = function() {
+	        _this.call(this);
+	        _init.call(this);
+	      };
+	    }
+
+	    if (prop.className && this.className) {
+	      prop.className = this.className + ' ' + prop.className;
+	    }
+
+	    for (var k in prop) {
+	      if (k === 'events') {
+	        this[k] = $.extend(true, {}, this[k], prop[k]);
+	      } else {
+	        this[k] = prop[k];
+	      }
+	    }
+	  }
+
+	  // 建立视图、模型、集合三者间的关系
+	  this.model instanceof Model || (this.model = new(this.constructor.Model || Model)(this.model));
+	  this.model.view = this;
+	  this.model.collection && (this.collection = this.model.collection);
+
+	  // el元素初始化并绑定事件
+	  if (this.el) {
+	    this.el instanceof $ || (this.el = $(this.el))
+	  } else {
+	    this.el = $('<' + (this.tag || 'div') + '>')
+	  }
+	  this.className && this.el.addClass(this.className)
+	  this.delegateEvents()
+
+	  // 初始化模版
+	  this.setTemplate()
+
+	  this.init && this.init()
+	}
+
+	$.extend(Trunk.prototype, events, {
+
+	  /**
+	   * 在当前 view 容器下查询子元素，与 this.el.find 等效
+	   * @param  {string} selector 子元素选择器
+	   * @return {object}          子元素 jQuery 对象
+	   */
+	  $: function(selector) {
+	    return this.el.find(selector);
+	  },
+
+	  render: function() {
+	    this.trigger('render:before');
+	    this.template && this.el.html(this.template(this.model.data));
+	    this.trigger('render:after');
+	    return this.el;
+	  },
+
+	  setElement: function(el) {
+	    this.el = el;
+	    this.delegateEvents();
+	  },
+
+	  remove: function() {
+	    this.el.remove()
+	    this.model.remove()
+	  },
+
+	  setTemplate: function() {
+
+	    var template
+
+	    if (!this.template || typeof this.template !== 'string') return
+
+	    template = this.template.charCodeAt(0) === 35 ? $(this.template) : this.$(this.template)
+	    template = vjs(template.html())
+
+	    if (!template) throw '"' + this.template + '" not exist'
+	    
+	    if (this.hasOwnProperty('template')) {
+	      this.template = template
+	    } else {
+	      // Todo: template不一定是父类的
+	      this.constructor.prototype.template = template;
+	    }
+	  },
+
+	  // Bind events using events delegation, this methdo was opened because sometimes the
+	  // subView events need to be rebind manual because jQuery html will clean the events if
+	  // the parentView use html to add a childView.
+	  delegateEvents: function() {
+	    // events is a collection of dom events of the view
+	    if (!this.events) return;
+	    // Remove events avoid repeat events
+	    this.el.off('.trunk_delegateEvents');
+	    for (var k in this.events) {
+	      var event = this.events[k];
+	      if (!this[event]) throw 'Event handle "' + event + '" not existed';
+	      k = k.split(' ');
+	      var args = [k.shift()];
+	      args.push(k.join(' '));
+	      this.el.on(args[0] + '.trunk_delegateEvents', args[1], this[event].bind(this));
+	    }
+	  }
+	})
+
 
 	Trunk.Model = Model
 	Trunk.Collection = Collection
@@ -74,89 +209,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	var $ = __webpack_require__(2)
-	var Model = __webpack_require__(3)
-	var events = __webpack_require__(4)
-	var ajax = __webpack_require__(5)
-
-	function Collection(prop) {
-	  if (prop) {
-	    for (var i in prop) {
-	      this[i] = prop[i];
-	    }
-	  }
-	  this.list = [];
-
-	  this.init && this.init();
-	}
-
-	$.extend(Collection.prototype, events, ajax, {
-
-	  length: function() {
-	    return this.list.length;
-	  },
-
-	  add: function(data) {
-	    if (Array.isArray(data)) {
-	      data.forEach(function(item) {
-	        this.addOne(item);
-	      }, this);
-	    } else {
-	      this.addOne(data);
-	    }
-	    this.trigger('change');
-	  },
-
-	  addOne: function(item) {
-	    var model = new(this.constructor.Model || Model)({
-	      data: item
-	    });
-	    model.collection = this;
-	    this.trigger('add', model, this.list.push(model) - 1);
-	  },
-
-	  reduce: function(model) {
-	    this.list.splice(model.index(), 1);
-	    this.trigger('reduce', model);
-	    this.trigger('change');
-	  },
-
-	  toArray: function() {
-	    return this.list.map(function(model) {
-	      return model.data;
-	    });
-	  },
-
-	  clear: function(models) {
-	    (models || this.list).forEach(function(model) {
-	      models && this.list.splice(model.index(), 1);
-	      model.view.el.remove();
-	    }, this);
-	    !models && (this.list.length = 0);
-	    this.trigger('reduce');
-	    this.trigger('change');
-	    return this;
-	  }
-	})
-
-	module.exports = Collection
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
-
-/***/ },
-/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
-	var events = __webpack_require__(4)
-	var ajax = __webpack_require__(5)
+	var $ = __webpack_require__(1)
+	var events = __webpack_require__(3)
+	var ajax = __webpack_require__(4)
 
+	/**
+	 * @namespace Trunk
+	 * @param {[type]} prop [description]
+	 */
 	function Model(prop) {
 
 	  if (prop) {
@@ -244,7 +312,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  remove: function() {
 	    this.collection && this.collection.reduce(this);
 	    this.data = this.defaults || {};
-	    this.view.el.remove();
 	  },
 
 	  // Insert a model after this to this.collection
@@ -277,27 +344,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Model
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
+	var $ = __webpack_require__(1)
+
+
 	/**
-	 * @module events
-	 * @description 监听自身自定义事件
+	 * 监听自身自定义事件
 	 */
 
 
 	/**
-	 * @name on
-	 * @kind method
-	 * @description 监听自身自定义事件，如果不指定context参数，调用者即handle的this对象
+	 * 监听自身自定义事件，如果不指定context参数，调用者即handle的this对象
 	 * ```js
 	 * var a = 1
 	 *   var b = 2
 	 * ```
 	 * @param {String} name 自定义事件名称
 	 * @param {Function} handle 事件触发后回调
-	 * @param {[Object]} context handle的this对象
+	 * @param {*} [context] handle的this对象
 	 * @return {Object} 调用者
 	 */
 	exports.on = function(name, handle, context) {
@@ -362,10 +428,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
+	var $ = __webpack_require__(1)
 
 	exports.setParam = function(param, silent) {
 
@@ -405,193 +471,81 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
-	var Model = __webpack_require__(3)
-	var events = __webpack_require__(4)
-	var vjs = __webpack_require__(7)
+	var $ = __webpack_require__(1)
+	var Model = __webpack_require__(2)
+	var events = __webpack_require__(3)
+	var ajax = __webpack_require__(4)
 
-	/**
-	 * @constructor
-	 * @param {[type]} prop [description]
-	 */
-	function View(prop) {
-
-	  if (arguments.length > 1) {
-	    var _init_0 = prop.init;
-	    for (var i = 1; i < arguments.length; i++) {
-	      var _prop = arguments[i];
-	      var _init = _prop.init;
-	      if (_init) {
-	        _prop.init = function() {
-	          _init_0 && _init_0.call(this);
-	          _init.call(this);
-	        }
-	      }
-	      $.extend(true, prop, _prop);
-	    }
-	  }
-
+	function Collection(prop) {
 	  if (prop) {
-
-	    if (typeof prop.init === 'function' && typeof this.init === 'function') {
-	      var _this = this.init;
-	      var _init = prop.init;
-	      prop.init = function() {
-	        _this.call(this);
-	        _init.call(this);
-	      };
+	    for (var i in prop) {
+	      this[i] = prop[i];
 	    }
-
-	    if (prop.className && this.className) {
-	      prop.className = this.className + ' ' + prop.className;
-	    }
-
-	    for (var k in prop) {
-	      if (k === 'events') {
-	        this[k] = $.extend(true, {}, this[k], prop[k]);
-	      } else {
-	        this[k] = prop[k];
-	      }
-	    }
-
 	  }
+	  this.list = [];
 
-	  this.model instanceof Model || (this.model = new(this.constructor.Model || Model)(this.model));
-
-	  this.model.view = this;
-
-	  this.model.collection && (this.collection = this.model.collection);
-
-	  this.el || this.tag || (this.tag = 'div') 
-
-	  this.tag && (this.el = $('<' + this.tag + '>'));
-	  typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
-	  typeof this.template === 'string' && this.template.indexOf('#') === 0 && this.getTemplate();
-
-	  if (typeof this.el === 'object') {
-	    this.delegateEvents();
-	    !this.tag && typeof this.template === 'string' && this.getTemplate();
-	    this.className && this.el.addClass(this.className);
-	  }
-
-	  this.init && this.init()
+	  this.init && this.init();
 	}
 
-	$.extend(View.prototype, events, {
+	$.extend(Collection.prototype, events, ajax, {
 
-	  /**
-	   * 在当前 view 容器下查询子元素，与 this.el.find 等效
-	   * @param  {string} selector 子元素选择器
-	   * @return {object}          子元素 jQuery 对象
-	   */
-	  $: function(selector) {
-	    return this.el.find(selector);
+	  length: function() {
+	    return this.list.length;
 	  },
 
-	  render: function() {
-	    this.trigger('render:before');
-	    this.template && this.el.html(this.template(this.model.data));
-	    this.trigger('render:after');
-	    return this.el;
-	  },
-
-	  setElement: function(el) {
-	    this.el = el;
-	    this.delegateEvents();
-	  },
-
-	  remove: function() {
-	    this.model.remove();
-	  },
-
-	  getTemplate: function() {
-	    var template = vjs((
-	      this.template.indexOf('.') === 0 ? this.$(this.template) : $(this.template)).html());
-	    if (!template) throw '"' + this.template + '" not exist';
-	    if (this.hasOwnProperty('template')) {
-	      this.template = template;
+	  add: function(data) {
+	    if (Array.isArray(data)) {
+	      data.forEach(function(item) {
+	        this.addOne(item);
+	      }, this);
 	    } else {
-	      delete this.template;
-	      this.constructor.prototype.template = template;
+	      this.addOne(data);
 	    }
+	    this.trigger('change');
 	  },
 
-	  // Bind events using events delegation, this methdo was opened because sometimes the
-	  // subView events need to be rebind manual because jQuery html will clean the events if
-	  // the parentView use html to add a childView.
-	  delegateEvents: function() {
-	    // events is a collection of dom events of the view
-	    if (!this.events) return;
-	    // Remove events avoid repeat events
-	    this.el.off('.trunk_delegateEvents');
-	    for (var k in this.events) {
-	      var event = this.events[k];
-	      if (!this[event]) throw 'Event handle "' + event + '" not existed';
-	      k = k.split(' ');
-	      var args = [k.shift()];
-	      args.push(k.join(' '));
-	      this.el.on(args[0] + '.trunk_delegateEvents', args[1], this[event].bind(this));
-	    }
+	  addOne: function(item) {
+	    var model = new(this.constructor.Model || Model)({
+	      data: item
+	    });
+	    model.collection = this;
+	    this.trigger('add', model, this.list.push(model) - 1);
+	  },
+
+	  reduce: function(model) {
+	    this.list.splice(model.index(), 1);
+	    this.trigger('reduce', model);
+	    this.trigger('change');
+	  },
+
+	  toArray: function() {
+	    return this.list.map(function(model) {
+	      return model.data;
+	    });
+	  },
+
+	  clear: function(models) {
+	    (models || this.list).forEach(function(model) {
+	      models && this.list.splice(model.index(), 1);
+	      model.view.el.remove();
+	    }, this);
+	    !models && (this.list.length = 0);
+	    this.trigger('reduce');
+	    this.trigger('change');
+	    return this;
 	  }
 	})
 
-	module.exports = View
+	module.exports = Collection
 
 /***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	/**
-	 * Convert template string to javascript code, return a function which
-	 * has a parameter data and return html string.
-	 */
-	function vjs(str) {
-	  if (!str) return;
-	  str = "var out = '" + str.replace(/\s*\n\s*/g, '') + "'";
-	  str = str.replace(getReg.statement(), "';$1out+='");
-	  str = str.replace(getReg.express(), "'+($1)+'");
-	  str += ";return out;";
-	  return new Function(vjs.global, str);
-	};
-
-	var regRules = {
-	  statement: '\\s([\\s\\S]+?)', // Inertia match
-	  express: '-\\s([\\s\\S]+?)'
-	};
-
-	var getReg = {};
-
-	for (var i in regRules) {
-	  (function(i) {
-	    getReg[i] = function() {
-	      var _reg = new RegExp(vjs.leftTag + regRules[i] + vjs.rightTag, 'g');
-	      getReg[i] = function() {
-	        return _reg;
-	      }
-	      return _reg;
-	    }
-	  })(i);
-	}
-
-	/**
-	 * Global variable name in template
-	 */
-	vjs.global = 'data'
-
-
-	vjs.leftTag = '<#'
-	vjs.rightTag = '#>'
-
-	module.exports = vjs
-
-/***/ },
-/* 8 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
+	var $ = __webpack_require__(1)
 
 	function Router(prop) {
 
@@ -681,10 +635,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Router
 
 /***/ },
-/* 9 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $ = __webpack_require__(2)
+	var $ = __webpack_require__(1)
 	/**
 	 * Class inherit
 	 */
@@ -694,6 +648,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Super.apply(this, arguments);
 	  }
 
+	  // 继承Model
 	  Super.Model && (Subclass.Model = Super.Model)
 
 	  Subclass.extend = extend;
@@ -728,6 +683,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	module.exports = extend
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	/**
+	 * Convert template string to javascript code, return a function which
+	 * has a parameter data and return html string.
+	 */
+	function vjs(str) {
+	  if (!str) return;
+	  str = "var out = '" + str.replace(/\s*\n\s*/g, '') + "'";
+	  str = str.replace(getReg.statement(), "';$1out+='");
+	  str = str.replace(getReg.express(), "'+($1)+'");
+	  str += ";return out;";
+	  return new Function(vjs.global, str);
+	};
+
+	var regRules = {
+	  statement: '\\s([\\s\\S]+?)', // Inertia match
+	  express: '-\\s([\\s\\S]+?)'
+	};
+
+	var getReg = {};
+
+	for (var i in regRules) {
+	  (function(i) {
+	    getReg[i] = function() {
+	      var _reg = new RegExp(vjs.leftTag + regRules[i] + vjs.rightTag, 'g');
+	      getReg[i] = function() {
+	        return _reg;
+	      }
+	      return _reg;
+	    }
+	  })(i);
+	}
+
+	/**
+	 * Global variable name in template
+	 */
+	vjs.global = 'data'
+
+
+	vjs.leftTag = '<#'
+	vjs.rightTag = '#>'
+
+	module.exports = vjs
 
 /***/ }
 /******/ ])

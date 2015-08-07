@@ -1,52 +1,51 @@
 define([
   'jquery',
-  'trunk'
+  'Trunk'
 ], function($, Trunk) {
 
-  return {
-    
-    View: Trunk.View.extend({
+  var View = Trunk.extend({
 
-      events: {
-        'input input': 'onInput',
-        'submit': 'onSubmit',
-        'click .icon-clear': 'onClear',
-      },
+    el: '#search',
 
-      onInput: function(e) {
-        var value = e.target.value;
-        this.trigger('input', value);
-        if (value) {
-          this.el.addClass('clear');
-        } else {
-          this.clear()
-        }
-      },
+    events: {
+      'input input': 'onInput',
+      'submit': 'onSubmit',
+      'click .tk-clear': 'onClear',
+    },
 
-      onClear: function() {
-        this.clear();
-      },
-
-      clear: function() {
-        this.el.removeClass('clear');
-        this.$('input').val('');
-        if (this.searched) {
-          this.trigger('search', '');
-          this.searched = false;
-        }
-      },
-
-      onSubmit: function(e) {
-        e.preventDefault();
-        var form = $(e.target);
-        var input = form.find('input');
-        var kw = input.val();
-        if (!kw) return input.focus();
-        this.searched = true;
-        // input.blur();
-        // this.$('[type="submit"]').blur();
-        this.trigger('search', $.trim(kw));
+    onInput: function(e) {
+      var value = e.target.value
+      this.trigger('input', value)
+      if (value) {
+        this.el.addClass('tk-weighty')
+      } else {
+        this.clear()
       }
-    })
-  };
-});
+    },
+
+    onClear: function() {
+      this.clear()
+    },
+
+    clear: function() {
+      this.el.removeClass('tk-weighty')
+      this.$('input').val('')
+      if (this.searched) {
+        this.trigger('search', '')
+        this.searched = false
+      }
+    },
+
+    onSubmit: function(e) {
+      e.preventDefault()
+      var form = $(e.target)
+      var input = form.find('input')
+      var kw = input.val()
+      if (!kw) return input.focus()
+      this.searched = true
+      this.trigger('search', $.trim(kw))
+    }
+  })
+
+  return View
+})

@@ -13,11 +13,11 @@ define([
 
     onInput: function() {
 
-      this.show();
+      this.show()
     },
 
     render: function() {
-      this.$('.search_result').html(this.template(this.model.data));
+      this.$('.search_result').html(this.template(this.model.data))
     }
-  });
+  })
 });

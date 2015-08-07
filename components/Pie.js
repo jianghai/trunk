@@ -6,23 +6,20 @@ define([
 
   var View = Trunk.extend({
 
-    el: '#lineColumn',
+    el: '#pie',
 
     defultOption: {
-      chart: {},
+      chart: {
+        type: 'pie'
+      },
       credits: {
         enabled: false
       },
-      title: {},
       tooltip: {
-        shared: true
+        pointFormat: '<b>{point.y}</b> 占比{point.percentage:.1f}%'
       },
-      xAxis: {},
-      yAxis: {
-        title: {
-          text: null
-        }
-      }
+      title: {},
+      series: []
     },
 
     parseOption: function(data) {
@@ -33,10 +30,16 @@ define([
 
       option.title.text = data.title
 
-      option.xAxis.categories = data.xAxis.data
-      option.yAxis.title.text = data.yAxis.title
-
-      option.series = data.yAxis.data
+      var _data = []
+      for (var k in data.data) {
+        _data.push({
+          name: k,
+          y: data.data[k]
+        })
+      }
+      option.series[0] = {
+        data: _data
+      }
 
       return option
     },

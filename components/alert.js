@@ -21,23 +21,23 @@ define([
         },
         className: 'alert',
         child: this
-      });
+      })
 
       // Close on enter
-      var doc = $(document);
-      var that = this;
+      var doc = $(document)
+      var that = this
       var handle = function(e) {
-        e.keyCode == 13 && that.dialog.close();
-      };
+        e.keyCode == 13 && that.dialog.close()
+      }
 
       this.on('render:after', function() {
-        $(document.activeElement).blur();
-        doc.on('keydown', handle);
-      });
+        $(document.activeElement).blur()
+        doc.on('keydown', handle)
+      })
 
       this.listen(this.dialog, 'close', function() {
-        doc.off('keydown', handle);
-      });
+        doc.off('keydown', handle)
+      })
     }
-  });
+  })
 });

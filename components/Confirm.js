@@ -16,7 +16,7 @@ define([
     },
 
     onSure: function() {
-      this.trigger('sure');
+      this.trigger('sure')
     },
 
     init: function() {
@@ -28,29 +28,29 @@ define([
         },
         className: 'confirm',
         child: this
-      });
+      })
 
-      this.dialog.el.addClass(this.className);
+      this.dialog.el.addClass(this.className)
 
       this.on('sure', function() {
-        this.dialog.close();
-      });
+        this.dialog.close()
+      })
 
       // Close on enter
-      var doc = $(document);
-      var that = this;
+      var doc = $(document)
+      var that = this
       var handle = function(e) {
-        e.keyCode == 13 && that.trigger('sure');
-      };
+        e.keyCode == 13 && that.trigger('sure')
+      }
 
       this.on('render:after', function() {
-        $(document.activeElement).blur();
-        doc.on('keydown', handle);
-      });
+        $(document.activeElement).blur()
+        doc.on('keydown', handle)
+      })
 
       this.listen(this.dialog, 'close', function() {
-        doc.off('keydown', handle);
-      });
+        doc.off('keydown', handle)
+      })
     }
-  });
+  })
 });

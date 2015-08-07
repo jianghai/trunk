@@ -3,7 +3,7 @@ define([
   'trunk'
 ], function($, Trunk) {
 
-  var Model = Trunk.Model.extend();
+  var Model = Trunk.Model.extend()
 
   return Trunk.View.extend({
 
@@ -27,41 +27,41 @@ define([
 
     onClick: function(e) {
       if ($(e.target).hasClass('dialog-container')) {
-        this.close();
+        this.close()
       }
     },
 
     close: function() {
       --this.stat.opens || this.el.one('transitionend', function() {
-        $('html').removeClass('dialog-open');
-      });
-      this.el.removeClass('open');
-      this.trigger('close');
+        $('html').removeClass('dialog-open')
+      })
+      this.el.removeClass('open')
+      this.trigger('close')
     },
 
     open: function() {
-      this.stat.opens++;
-      $('html').addClass('dialog-open');
-      this.el.css('z-index', this.stat.opens).addClass('open');
+      this.stat.opens++
+      $('html').addClass('dialog-open')
+      this.el.css('z-index', this.stat.opens).addClass('open')
     },
 
     init: function() {
 
-      this.render();
+      this.render()
 
-      (this.wapper || $('body')).append(this.el);
+      (this.wapper || $('body')).append(this.el)
 
       this.listen(this.model, 'change:title', function(title) {
-        this.$('.dialog-title').text(title);
-      });
+        this.$('.dialog-title').text(title)
+      })
 
-      this.$('.dialog-body').append(this.child.el);
+      this.$('.dialog-body').append(this.child.el)
 
-      // this.child.delegateEvents();
+      // this.child.delegateEvents()
 
-      this.child.dialog = this;
+      this.child.dialog = this
 
-      this.listen(this.child, 'render:after', this.open);
+      this.listen(this.child, 'render:after', this.open)
     }
-  });
+  })
 });

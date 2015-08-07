@@ -5,9 +5,11 @@ require.config({
     'highcharts': 'lib/highcharts',
     'Trunk': 'Trunk',
     'LineColumn': 'components/LineColumn',
+    'Pie': 'components/Pie',
     'DataList': 'components/DataList',
     'Pagination': 'components/Pagination',
     'DataTable': 'components/DataTable',
+    'Search': 'components/Search',
   },
   shim: {
     highcharts: {

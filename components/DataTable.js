@@ -8,11 +8,8 @@ define([
 
     template: '.template-dataTable',
     
-    render: function() {
-      this.trigger('render:before')
+    renderer: function() {
       this.template && this.$('tbody').eq(0).html(this.template(this.model.data))
-      this.trigger('render:after')
-      return this.el
     }
   })
 
