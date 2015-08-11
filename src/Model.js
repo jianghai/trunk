@@ -7,22 +7,18 @@ var ajax = require('./ajax')
 /**
  * 模型类，主要进行数据处理，创建view时会自动创建model
  * ```js
- * var view = new Trunk({
- *   model: {
- *     url: 'test.json'
- *   },
- *   el: 'body'
- * })
- * ```
- * 相当于
- * ```js
- * var view = new Trunk({
- *   el: 'body'
- * })
  * var model = new Trunk.Model({
  *   url: 'test.json'
  * })
- * view.model = model
+ * var view = new Trunk({
+ *   model: model
+ * })
+ * // 推荐方式
+ * var view = new Trunk({
+ *   model: {
+ *     url: 'test.json'
+ *   }
+ * })
  * ```
  * @namespace Trunk
  * @module
@@ -58,28 +54,69 @@ function Model(attributes) {
 
 $.extend(Model.prototype, events, ajax, {
 
-  onFetch: function(res) {
-    this.reset(typeof this.parse === 'function' && this.parse(res) || res)
+  /**
+   * ajax加载成功后的操作，默认执行parse，再执行reset渲染视图
+   * @private
+   * @param {Object|Array} res 服务器返回的json
+   */
+  _onFetch: function(res) {
+    this.reset(this.parse === Model.prototype.parse ? res || this.parse(res))
   },
 
-  isEqual: function(a, b) {
-    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
-      if (a !== b) return false
-    } else {
-      if (Object.keys(a).length != Object.keys(b).length) return false
-      if (Array.isArray(a)) {
-        for (var i = 0; i < a.length; i++) {
-          if (!this.isEqual(a[i], b[i])) return false
-        }
-      } else {
-        for (var k in a) {
-          if (!this.isEqual(a[k], b[k])) return false
-        }
-      }
-    }
-    return true
-  },
+  /**
+   * 数据到模版的转换，重写parse即可定义自己的转换逻辑
+   * ```markup
+   * <div id="demo">
+   *   <script type="text">
+   *     <# data.stores.forEach(function(store) { #>
+   *       <div><#- store.name  #></div>
+   *     <# }) #>
+   *   </script>
+   * </div>
+   * ```
+   * ```js
+   * var demo = new Trunk({
+   *   model: {
+   *     parse: function(data) {
+   *       return {
+   *         stores: data
+   *       }
+   *     }
+   *   },
+   *   el: '#demo',
+   *   template: 'script'
+   * })
+   * demo.model.reset([{name: '1'}, {name: '2'}])
+   * ```
+   * @name parse
+   * @param {Object|Array} data 传入reset的数据
+   */
+  parse: function() {},
 
+  /**
+   * 设置模型数据
+   * ```js
+   * // 单个
+   * model.set('country', 'China')
+   * // 多个
+   * model.set({
+   *   country: 'China'
+   *   // ...
+   * })
+   * // 配置
+   * model.set({
+   *   country: 'China'
+   * }, {
+   *   safe: true, // 安全模式，存在validata方法但不进行数据验证（数据验证需要手动定义validate方法，返回布尔值）
+   *   silent: true // 静默模式，不触发change事件
+   * })
+   * ```
+   * @name set
+   * @param {Object|String} data|key 数据json或数据字段名
+   * @param {Object|*} [options]|value 配置项（safe/silent）或数据字段值
+   * @param {Object} [options]
+   * @return {Boolean} 默认返回true，如果存在validate且验证不通过，则返回false
+   */
   set: function(data, options) {
 
     if (typeof data === 'string') {
@@ -91,8 +128,8 @@ $.extend(Model.prototype, events, ajax, {
 
     options || (options = {})
 
-    // Validate if set
-    if (this.validate && options.validate !== false) {
+    // 数据验证，不通过则不会设置数据
+    if (this.validate && !options.safe) {
       this.trigger('validate', data)
       if (!this.validate(data)) {
         this.trigger('invalid')
@@ -100,33 +137,48 @@ $.extend(Model.prototype, events, ajax, {
       }
     }
 
+    // 数据变化判断，变化则触发change事件
     if (!options.silent) {
       for (var k in data) {
-        if (!this.isEqual(data[k], this.data[k])) {
+        if (!_.isEqual(data[k], this.data[k])) {
           this.data[k] = data[k]
           this.trigger('change:' + k, data[k])
         }
       }
       this.trigger('change', data)
       this.collection && this.collection.trigger('change')
+    } else {
+      $.extend(this.data, data)
     }
     return true
   },
 
+  /**
+   * 重置数据（扩展this.defaults），触发reset事件并渲染视图
+   * @name reset
+   * @param {Object|Array} [data]
+   */
   reset: function(data) {
-    this.data = $.extend(true, data.constructor === Object, this.defaults, data)
-    // this.trigger('change', data)
+    this.data = $.extend(true, _.isArray(data) ? [] : {}, this.defaults, data)
     this.trigger('reset', data)
     this.collection && this.collection.trigger('change')
     this.view.render()
   },
 
+  /**
+   * 删除模型并从集合中去除
+   * @name remove
+   */
   remove: function() {
-    this.collection && this.collection.reduce(this)
-    this.data = this.defaults || (data.constructor === Object ? {} : [])
+    this.collection && this.collection.remove(this)
+    this.data = this.defaults || (_.isArray(data) ? [] : {})
   },
 
-  // Insert a model after this to this.collection
+  /**
+   * 在当前模型后追加一个模型
+   * @name after
+   * @param {Object|Array} [data] 新模型的数据
+   */
   after: function(data) {
     var model = new this.constructor({
       data: data
@@ -137,17 +189,29 @@ $.extend(Model.prototype, events, ajax, {
     this.collection.trigger('change')
   },
 
-  // Get index of this.collection
+  /**
+   * 获取当前模型在集合中的索引
+   * @name index
+   * @return {Number} 索引值
+   */
   index: function() {
     return this.collection.list.indexOf(this)
   },
 
-  // Get the model before this
+  /**
+   * 获取当前模型的前一个模型
+   * @name prev
+   * @return {Model}
+   */
   prev: function() {
     return this.collection.list[this.index() - 1]
   },
 
-  // Get the model after this
+  /**
+   * 获取当前模型的后一个模型
+   * @name next
+   * @return {Model}
+   */
   next: function() {
     return this.collection.list[this.index() + 1]
   }

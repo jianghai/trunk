@@ -5,7 +5,7 @@ var Collection = require('./Collection')
 var Router = require('./Router')
 var extend = require('./extend')
 var events = require('./events')
-var vjs = require('./vjs')
+var template = require('./template')
 
 
 /**
@@ -22,11 +22,28 @@ var vjs = require('./vjs')
 function Trunk(attributes) {
 
   /**
-   * 当前view的model
+   * 当前视图的模型属性或模型
+   * ```js
+   * // 实例化后app.model变成Model类的一个实例
+   * var app = new Trunk({
+   *   model: {
+   *     init: function() {}
+   *   }
+   * })
+   * // 本身就是模型的实例
+   * var app = new Trunk({
+   *   model: new Trunk.Model({
+   *     init: function() {}
+   *   })
+   * })
+   * ```
    * @name model
-   * @type {Model}
+   * @type {Object|Model}
    */
-  this.model instanceof Model || (this.model = new(this.constructor.Model || Model)(this.model))
+  if (!(this.model instanceof Model)) {
+    
+    this.model = new(this.constructor.Model || Model)(this.model)
+  }
   
   this.model.view = this
   this.model.collection && (this.collection = this.model.collection)
@@ -65,7 +82,7 @@ function Trunk(attributes) {
   this.delegateEvents()
 
   // 初始化模版
-  this.setTemplate()
+  this._setTemplate()
 
   /**
    * 构造函数执行完毕前的接口，继承时不会覆盖父类的操作，定义Trunk.prototype.init则对所有view有效
@@ -159,16 +176,17 @@ $.extend(Trunk.prototype, events, {
 
   /**
    * 获取并绑定模版，实例化时读取template属性自动实现
+   * @private
    * @name setTemplate
    */
-  setTemplate: function() {
+  _setTemplate: function() {
 
     var template
 
     if (!this.template || typeof this.template !== 'string') return
 
     template = this.template.charCodeAt(0) === 35 ? $(this.template) : this.$(this.template)
-    template = vjs(template.html())
+    template = template(template.html())
 
     if (!template) throw '"' + this.template + '" not exist'
     
@@ -221,6 +239,7 @@ $.extend(Trunk.prototype, events, {
 Trunk.Model = Model
 Trunk.Collection = Collection
 Trunk.Router = Router
+Trunk.template = template
 
 Trunk.extend = Trunk.Model.extend = Trunk.Collection.extend = Trunk.Router.extend = extend
 

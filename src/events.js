@@ -4,6 +4,7 @@ var $ = require('jquery')
 /**
  * 事件模型，提供事件注册和触发的观察机制，Trunk、Trunk.Model、Trunk.Collection的实例均可调用
  * @module
+ * @type {[type]}
  */
 
 

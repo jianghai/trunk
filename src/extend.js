@@ -1,8 +1,20 @@
 var $ = require('jquery')
+var _ = require('./util')
+
+
 /**
- * Class inherit
+ * 类继承机制
+ * ```js
+ * var List = Trunk.extend({})
+ * List.Model = Trunk.Model.extend({})
+ * var MyList = List.extend({})
+ * MyList.Model = List.Model.extend({})
+ * ```
+ * @module
+ * @param {Object} attributes 扩展属性
+ * @return {Function} 子类，子类可以继续被继承
  */
-function extend(prop) {
+function extend(attributes) {
   var Super = this
   var Subclass = function() {
     Super.apply(this, arguments)
@@ -22,22 +34,7 @@ function extend(prop) {
   }
   Subclass.prototype.constructor = Subclass
 
-  if (typeof Subclass.prototype.init === 'function' && typeof prop.init === 'function') {
-    var _sub = Subclass.prototype.init
-    var _prop = prop.init
-    prop.init = function() {
-      _sub.call(this)
-      _prop.call(this)
-    }
-  }
-
-  for (var k in prop) {
-    if (Subclass.prototype[k] && typeof Subclass.prototype[k] === 'object') {
-      Subclass.prototype[k] = $.extend(true, {}, Subclass.prototype[k], prop[k])
-    } else {
-      Subclass.prototype[k] = prop[k]
-    }
-  }
+  _.mergeAttributes.call(Subclass.prototype, attributes)
 
   return Subclass
 }
