@@ -1,41 +1,33 @@
 extends layout
 block head
-  //- link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/stylesheets/index.css')
+block header
+  .banner
+    p.solgan Componentization、OOP、Template-based、Event-driven
+    a(href='tutorial').start GET STARTED
 block main
   .flex-1
-    svg(style='display:none', version='1.1', xmlns='http://www.w3.org/2000/svg', xmlns:xlink='http://www.w3.org/1999/xlink')
-      symbol#icon-check(viewBox='0 0 31.982 26.212')
-        path(d='M31.051,0.901c-1.826-1.803-5.042-0.345-5.042-0.345    L10.952,14.804L6.129,9.683c0,0-2.545-1.883-4.982,0.521c-2.437,2.399-0.236,5.147-0.236,5.147l10.226,10.862L31.452,5.992    C31.452,5.992,32.878,2.706,31.051,0.901z')
     .center
-      h1 Trunk.js
-      p 基于Backbone.js哲学思想的企业级项目前端开发模式.
-      //- iframe(width='100%', height='300' src='//jsfiddle.net/jianghai/trbxm3jx/5/embedded/', allowfullscreen='allowfullscreen', frameborder='0')
-      ul
-        li
-          svg.icon
-            use(xlink:href='#icon-check') 
-          | OOP，纯面向对象，业务逻辑继承基础功能，高复用，易维护；
-        li
-          svg.icon
-            use(xlink:href='#icon-check') 
-          | Componentization，组件化开发，各功能模块互相解耦，清晰的依赖关系，灵活的组合搭配；
-        li
-          svg.icon
-            use(xlink:href='#icon-check') 
-          | Template-based，基于模板动态渲染，大大降低可维护性以及大量的DOM操作；
-        li
-          svg.icon
-            use(xlink:href='#icon-check') 
-          | Event-driven，事件驱动机制，解决模块间通信问题，杜绝互相干扰；
-    div.footer
-      a.start(href='docs.html') GET STARTED
-      .last-commit
-        img#lastCommitAuthor.avator
-        span 
-          | latest commit: "
-          span#lastCommitMsg
-          | "
-    script.
+      mixin feature(name, icon, detail)
+        dl
+          dt
+            i.iconfont(class='icon-' + icon)
+            = name
+          dd= detail
+      .flex.wrap.features
+        +feature('Componentization', 'all', '组件化开发，各功能模块互相解耦，清晰的依赖关系，灵活的组合搭配')
+        +feature('OOP', 'box', '纯面向对象，业务逻辑继承基础功能，高复用，易维护')
+        +feature('Template-based', 'print', '基于模板动态渲染，大大降低可维护性以及大量的DOM操作')
+        +feature('Event-driven', 'process', '事件驱动机制，解决模块间通信问题，杜绝互相干扰')
+    //- div.footer
+    //-   a.start(href='docs.html') GET STARTED
+    //-   .last-commit
+    //-     img#lastCommitAuthor.avator
+    //-     span 
+    //-       | latest commit: "
+    //-       span#lastCommitMsg
+    //-       | "
+    // script.
       // var xhr = new XMLHttpRequest()
       // var self = this
       // xhr.open('GET', 'https://api.github.com/repos/jianghai/trunk/commits?per_page=1&sha=master')
@@ -45,4 +37,3 @@ block main
       //   lastCommitMsg.textContent = json[0].commit.message
       // }
       // xhr.send()
-

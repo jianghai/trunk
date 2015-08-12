@@ -1,23 +1,37 @@
-.demo {
-  /*overflow: hidden;*/
+header + main.center {
+  margin: 0 auto;
 }
-.demo.dynamic {
-  height: 400px;
-  overflow: hidden;
-  opacity: 0;
+.content {
+  padding: 0;
 }
-.demo.in {
-  -webkit-animation: fadeIn .15s ease-in;
-  opacity: 1;
+table th,
+table td {
+  border-bottom: 0;
 }
-@-webkit-keyframes fadeIn {
-  from { opacity: 0; }
-    to { opacity: 1; }
+table tbody td {
+  border-top: 1px solid #dfdfdf;
 }
-
-.tab.code {
-  margin-top: 2rem;
+table th,
+table td {
+  padding: 10px;
 }
-.tab.code pre {
-  min-height: 200px;
+.stage .dialog-container {
+  background-color: #fff;
+}
+.stage .dialog-content {
+  padding: 30px;
+}
+.stage .dialog-close {
+  font-size: 40px;
+  position: absolute;
+  right: 0;
+  top: 10px;
+  cursor: pointer;
+  color: #898989;
+}
+.stage .dialog-close:hover {
+  color: #222;
+}
+.stage .demo {
+  margin-right: 20px;
 }

@@ -1,85 +1,74 @@
 extends ../layout
-block head
-  link(rel='stylesheet', href='/stylesheets/docs.css')
 block main
   .sidebar
-    ul
-      li.active
-        a(href='#overview') Overview
-      li
-        a.class(href='#view') Trunk.View
-        ul
-          li
-            a.property(href='#view-events') events
-          li
-            a.events(href='#') events
-          li
-            a.static(href='#') extend
-          li
-            a.method(href='#') render
-          li
-            a.method(href='#') render
+    ul#apiList
+      each module in doc
+        li
+          - var moduleId = module.name
+          a(href='#' + moduleId)= module.name
+          ul
+            each prop in module.props
+              li
+                a(href='#' + moduleId + '-' + prop.name) - #{prop.name}
   .content.flex-1
-    section#overview 
-      h1 Overview
-      p Trunk.js把前端开发划分成view（页面最终呈现，事件交互）、model（view背后逻辑、数据处理）和collection(模型集合)，view和model一一对应作为一个微观世界。view因业务需求可能变得很复杂，所以支持嵌套，即一个微观世界里可能囊括多个微观世界。随着越来越多的微观世界产生，那些通用的逻辑、操作、现象就可以抽象出一个抽象的世界（本身也可能是nested）。到最后，前端开发就像搭积木一样简单而又清晰。
-      include ../include/structure.svg
-      //- p 当你处理一些业务逻辑，用jQuery选择元素绑定事件写一堆面条式代码变得混乱不清时；当你ajax获取json数据拼装繁杂的html时；
-      
-      p 如上图，一一对应的view和model构成了一个组件（component），组件的最大作用就是提高代码的可复用性，组件本身可以直接实例化或者被其他view、model继承（严格意义上Trunk.View和Trunk.Model是一个最基础的组件）。
-
-      p 跨模块通信由事件驱动，典型的观察者模式。
-      pre
-        :highlight(lang='js')
-          // Register event
-          view1.listen(model2, 'save', function() {
-            // Do something
-          })
-          // Fire event
-          model2.trigger('save')
-    - each module in doc
-      section(id=module.name)
-        h1= module.name
-        - each desc in module.desc
+    mixin doc(host)
+      if host.type
+        p
+          code= host.type
+      if host.param || host.return
+        table
+          if host.param
+            each param in host.param
+              tr
+                td.name= param.name.join(' | ')
+                td
+                  code.type= param.type.join(' | ')
+                td.desc= param.desc
+                td
+                  em.optional= param.optional && 'optional' || ''
+          if host.return
+            tr
+              td 
+                b return 
+              td
+                code.type= host.return.type
+              td.desc= host.return.desc
+      if host.desc
+        each desc in host.desc
           if typeof desc === 'string'
             p= desc
           else
             pre!= desc.code
-        - each prop in module.props
-          - var name = prop.name
-          - if (prop.param) {
-          -   var params = prop.param.map(function(item) {
-          -     return !item.optional ? item.name : '[' + item.name + ']'
-          -   }).join(', ')
-          -   name += '( ' + params + ' )'
-          - } else {
-          -   name += '( )'
-          - }
-          h2(class={method: !prop.type})= name
-          if prop.param || prop.return
-            table
-              if prop.param
-                each param in prop.param
-                  tr
-                    td.name= param.name
-                    td
-                      code.type= param.type
-                    td.desc= param.desc
-                    td
-                      em.optional= param.optional && 'optional' || ''
-              if prop.return
-                tr
-                  td 
-                    b return 
-                  td
-                    code.type= prop.return.type
-                  td.desc= prop.return.desc
-          if prop.desc
-            - each desc in prop.desc
-              if typeof desc === 'string'
-                p= desc
-              else
-                pre!= desc.code
+    each module in doc
+      - var moduleId = module.name
+      section(id=moduleId)
+        h1= module.fullName || module.name
+        +doc(module)
+        each prop in module.props
+          h2(id=moduleId + '-' + prop.name)= prop.fullName || prop.name
+          +doc(prop)
+  a#toTop(href='#') 返回顶部
+block foot
+  script.
+    (function() {
+      var wrapper = document.getElementById('wrapper')
+      var wrapperClass = wrapper.className
+      var apiList = document.getElementById('apiList')
+      var lastActive
+      apiList.addEventListener('click', function(e) {
+        e.target.className = 'active'
+        lastActive && lastActive.removeAttribute('class')
+        lastActive = e.target
+      })
+      window.addEventListener('scroll', function(e) {
+        var scrollTop = document.body.scrollTop
+        if (scrollTop > 75) {
+          wrapper.className = wrapperClass + ' fixed'
+        } else {
+          wrapper.className = wrapperClass
+        }
+      })
+    })()
 
 
 

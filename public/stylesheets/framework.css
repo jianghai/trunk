@@ -46,8 +46,13 @@ select + form {
   color: #333;
   cursor: pointer;
 }
+.btn[disabled] {
+  background-color: #f4f5f8!important;
+  color: #ccc!important;
+  border-color: #ccc!important;
+}
 
-.btns > .btn + .btn {
+.btn + .btn {
   margin-left: 10px;
 }
 
@@ -93,6 +98,21 @@ select + form {
 .active > .btn:active {
   background-color: #105085;
   border-color: #105085;
+}
+.btn.green {
+  color: #fff;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+}
+.btn.green:hover {
+  color: #fff;
+  background-color: #449d44;
+  border-color: #398439
+}
+.btn.green:active {
+  color: #fff;
+  background-color: #398439;
+  border-color: #255625
 }
 
 a.btn {
@@ -343,3 +363,82 @@ a.btn:hover {
 .search .input-group .layer li:hover {
   background-color: #fbfbfb;
 }
+
+html.dialog-open {
+  overflow: hidden;
+  padding-right: 8px;
+}
+.dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
+  visibility: hidden;
+}
+.dialog.open {
+  visibility: visible;
+}
+.dialog .dialog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: #000;
+  opacity: 0;
+  transition: visibility 0s .15s, opacity .15s;
+}
+.dialog.open .dialog-overlay {
+  opacity: .5;
+  transition-delay: 0s;
+}
+.dialog .dialog-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  overflow: hidden;
+  transform: translateY(-100%);
+  /*opacity: 0;*/
+  transition: visibility 0s .2s, transform .2s;
+}
+.dialog.open .dialog-container {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  transform: translateY(0%);
+  /*opacity: 1;*/
+  transition-delay: 0s;
+}
+/*.dialog .dialog-content {
+  width: 800px;
+  z-index: 1;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  border: 1px solid #bbc5d1;
+  margin: 30px auto;
+  position: relative;
+  transform: translateY(-60px);
+  transition: visibility 0s .3s, transform .3s ease-out;
+}
+.dialog.open .dialog-content {
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+.dialog .dialog-head {
+  background-color: #f8f8f8;
+  padding: 3px 8px;
+  padding-right: 3px;
+  border-bottom: 1px solid #bbc5d1;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+
+.dialog .dialog-body {
+  background-color: #fff;
+  padding: 28px;
+  border-bottom-left-radius: 2px;
+  border-bottom-right-radius: 2px;
+}*/

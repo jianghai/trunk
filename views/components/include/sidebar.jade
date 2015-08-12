@@ -1,7 +1,0 @@
-.sidebar
-  ul
-    li(class={active: !current})
-      a(href='/components') 说明
-    - for (var key in components)
-      li(class={active: current == key})
-        a(href='/components/' + key + '.html') #{key} #{components[key].name}

@@ -1,0 +1,75 @@
+extends ../layout
+block main
+  .sidebar
+    ul
+      li
+        a(href='#introduction') Introduction
+      li
+        a(href='#usage') How to use
+      li
+        a(href='#download') Download
+  .content.flex-1
+    section#introduction
+      h1 Introduction
+      p Trunk.js把前端开发划分成view（页面最终呈现，事件交互）、model（view背后逻辑、数据处理）和collection(模型集合)，view和model一一对应作为一个微观世界。view因业务需求可能变得很复杂，所以支持嵌套，即一个微观世界里可能囊括多个微观世界。随着越来越多的微观世界产生，那些通用的逻辑、操作、现象就可以抽象出一个抽象的世界（本身也可能是nested）。到最后，前端开发就像搭积木一样简单而又清晰。
+      include ../include/structure.svg
+      //- p 当你处理一些业务逻辑，用jQuery选择元素绑定事件写一堆面条式代码变得混乱不清时；当你ajax获取json数据拼装繁杂的html时；
+      
+      p 如上图，一一对应的view和model构成了一个组件（component），组件的最大作用就是提高代码的可复用性，组件本身可以直接实例化或者被其他view、model继承（严格意义上Trunk.View和Trunk.Model是一个最基础的组件）。
+
+      p 跨模块通信由事件驱动，典型的观察者模式。
+      pre
+        :highlight(lang='js')
+          // Register event
+          view1.listen(model2, 'save', function() {
+            // Do something
+          })
+          // Fire event
+          model2.trigger('save')
+    section#usage
+      h1 How to use
+      p Trunk.js依赖 <a href="https://jquery.com/">jQuery</a>，如果没有使用任何模块加载器
+      pre
+        :highlight(lang='markup')
+          <script src="dir/jquery.js"></script>
+          <script src="dir/Trunk.js"></script>
+      pre
+        :highlight(lang='js')
+          $(function() {
+            var app = new Trunk({
+              el: 'body'
+            })
+            // Do...
+          })
+      p 如果使用的是AMD规范，如requirejs
+      pre
+        :highlight(lang='js')
+          require.config({
+            paths: {
+              'jquery': 'dir/jquery',
+              'Trunk': 'dir/Trunk'
+            }
+          })
+          require(['Trunk'], function(Trunk) {
+            var app = new Trunk({
+              el: 'body'
+            })
+            // Do...
+          })
+      p 如果是CommonJS规范，如webpack
+      pre
+        :highlight(lang='js')
+          var Trunk = require('dir/Trunk')
+          var app = new Trunk({
+            el: 'body'
+          })
+          // Do...
+    section#download
+      h1 Download
+      p
+        a(href="https://github.com/jianghai/trunk/archive/master.zip") Trunk.zip
+
+
+
+
+

@@ -1,21 +1,28 @@
 extends ../layout
+block head
+  link(rel='stylesheet', href='/stylesheets/framework.css')
+  link(rel='stylesheet', href='/stylesheets/components.css')
 block main
-  include include/sidebar.jade
   .content.flex-1
-    p 所有组件遵循AMD规范，加载器采用RequireJS，所以使用组件前
-    pre
-      :highlight(lang='markup')
-        <script src="lib/require.min.js"></script>
-        <!-- requirejs模块路径配置 -->
-        <script src="require.config.js"></script>
-        <!-- 页面业务逻辑 -->
-        <script src="page.js"></script>
-    p page.js示例
-    pre
-      :highlight(lang='js')
-        require([
-          'ComponentA'
-        ], function(ComponentA) {
-          var componentA = new ComponentA()
-          // Do something...
-        })
+    table(width='100%')
+      thead
+        tr
+          th(align='left') Component
+          th(align='left') Size
+          th(align='left', colspan='2') Last modified
+      each component in components
+        tr
+          td= component.file
+          td= component.size
+          td= component.mtime
+          td(align='right')
+            button.btn.green.demo(data-component=component.foldername, disabled=component.disabled && 'disabled') Demo
+            a(href='https://raw.githubusercontent.com/jianghai/trunk/master/components/' + component.file, download).btn Download
+block foot
+  script#template-stage(type='text')
+    .dialog-container
+      i.iconfont.icon-close.dialog-close
+      .dialog-content.flex
+  script(src='/lib/require.min.js')
+  script(src='/require.config.js')
+  script(src='/javascript/components.js')

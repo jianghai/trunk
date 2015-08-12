@@ -3,7 +3,6 @@ div(id=component)
     thead
       tr
         td 申请类型
-        td 申请要求
         td 申请名称
         td 申请人
         td 最后处理人
@@ -16,7 +15,6 @@ div(id=component)
           <# data.stores.forEach(function(store, i) { #>
             <tr>
               <td><#- store.auditTypeCn #></td>
-              <td><#- store.applyTypeCn || '--' #></td>
               <td><#- store.name || '--' #></td>
               <td><#- store.applyUserName || '--' #></td>
               <td><#- store.auditUserName || '--' #></td>

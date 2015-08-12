@@ -1,20 +1,22 @@
-require([
-  'jquery',
-  'Trunk'
-], function($, Trunk) {
+// function Tab(tabs) {
+  
+// }
 
-  Trunk.prototype.init = function() {
-    this.on('render:after', function() {
-      this.el.parent().addClass('in')
-    })
-  }
+// (function() {
 
 
-  $('body').on('click', '.tab-nav button', function(e) {
-    var target = $(e.currentTarget)
-    var index = target.index()
-    target.addClass('active').siblings().removeClass('active')
-    target.closest('.tab').find('.tab-content').children().removeClass('active').eq(index).addClass('active')
-    return false
-  })
-})
+//   document.body.addEventListener('click', function(e) {
+//     var target = e.target
+//     if ([].indexOf.call(target.classList, 'tab-nav') > -1) {
+//       var index = 0
+//       var prev = target
+//       while (prev = prev.previousElementSibling) {
+//         index++
+//       }
+//       var items = target.parentElement.nextElementSibling.children
+//       [].forEach.call(items, function(item) {
+        
+//       })
+//     }
+//   })
+// })()

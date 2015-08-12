@@ -55,7 +55,7 @@ button {
 }
 
 button[disabled] {
-  cursor: not-allowed;
+  cursor: default;
 }
 
 button:focus,
@@ -82,11 +82,19 @@ a:hover {
 table {
   border-collapse: collapse;
 }
+table tbody tr:hover {
+  background-color: #f8f8f8;
+}
+table th,
 table td {
   padding: 2px 5px;
-  /*border-bottom: 1px solid #ccc;*/
 }
 
+code,
+pre {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
 code {
   padding: 2px 4px;
   color: #c7254e;
@@ -95,7 +103,6 @@ code {
   background-color: #f8f8f8;
 }
 pre {
-  font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
   padding: .8rem 1rem;
   background-color: #f8f5ec;
   border-radius: 4px;
@@ -110,6 +117,9 @@ pre .attr {
 pre .kwd {
   color: #795da3;
 }
+pre .kc {
+  color: #0086b3;
+}
 pre .num {
   color: #0086b3;
 }
@@ -121,7 +131,7 @@ pre .str {
 }
 
 .iconfont {
-  font-size:1rem;
+  font-size:1em;
   line-height: 1;
 }
 
@@ -181,9 +191,9 @@ body {
 body {
   font-family: "Helvetica Neue",Helvetica,Arial,"Microsoft YaHei","Hiragino Sans GB","Hiragino Sans GB W3","WenQuanYi Micro Hei",sans-serif;
   -webkit-font-smoothing: antialiased;
-  line-height: 1.62;
+  line-height: 1.7;
   background-color: #fff;
-  color: #262626;
+  color: #444;
   min-width: 1250px;
   min-height: 500px;
 }
@@ -204,7 +214,6 @@ body {
 }
 header {
   line-height: 45px;
-  height: 45px;
   background-color: rgb(79, 152, 234);
 }
 
@@ -240,13 +249,14 @@ header a:hover {
 }
 
 header + main.center {
-  margin: 2rem auto;
+  margin: 30px auto;
 }
 
 .sidebar {
   width: 180px;
-  padding: 1rem 0;
+  padding-bottom: 30px;
   background-color: #f7f7f7;
+  overflow-wrap: break-word;
 }
 .sidebar a {
   color: #6c6c6c;
@@ -258,63 +268,117 @@ header + main.center {
   text-decoration: none;
   background-color: #eaeaea;
 }
-.sidebar .active a {
+.sidebar a.active {
   background-color: #e0e0e0;
 }
 .sidebar > ul > li {
-  /* margin: 2rem 0; */
+  margin-top: 1rem;  
+}
+.sidebar > ul > li > a {
+  font-weight: bold;
 }
 .sidebar ul ul li {
-  margin: .4rem 0;
+  /*margin: .4rem 0;*/
 }
 .sidebar ul ul a {
-  padding-left: 4rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  /*padding-left: 4rem;*/
 }
 
-.content {
-  /* padding: 1.5rem 2rem; */
-  background-color: #fff;
-  margin-left: 2rem;
-  margin-right: 1.5rem;
-}
-
-.tab .tab-nav > button {
-  padding: .7rem .8rem;
-  /*transition: .2s;*/
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-.tab .tab-content {
-  /* border-bottom-left-radius: 4px; */
-  /* border-bottom-right-radius: 4px; */
-  /* border-top-right-radius: 4px; */
-}
-.tab .tab-content > * {
+#toTop {
   display: none;
 }
-.tab .tab-content > .active {
+#wrapper.fixed .sidebar {
+  position: fixed;
+  top: 0;
+  height: 100%;
+  overflow: auto;
+  overflow-wrap: normal;
+}
+#wrapper.fixed .sidebar + .content {
+  margin-left: 180px;
+}
+#wrapper.fixed #toTop {
   display: block;
 }
 
-.tab.code .tab-nav > button {
-  /* border: 1px solid #d5d5d5; */
+.content {
+  background-color: #fff;
+  padding: 30px;
+}
+
+.content section + section h1 {
+  margin-top: 4rem;
+}
+.content h1,
+.content h2 {
+  line-height: 1;
+  color: #212121;
+}
+.content h1 {
+  font-size: 1.8rem;
+}
+.content h2 {
+  font-size: 1.1rem;
+  margin-top: 3rem;
+}
+.content ol {
+  list-style: disc;
+  margin-left: 1.5rem;
+}
+.content p,
+.content pre,
+.content svg,
+.content table,
+.content ol {
+  margin-top: 1.5rem;
+}
+
+.tab .tab-nav {
+  padding: .7rem .8rem;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+.tab .tab-item {
+  display: none;
+}
+.tab .tab-item.active {
+  display: block;
+}
+
+.tab.code .tab-nav {
   background-color: #f1ede4;
   border-bottom: 0;
   color: #c2c0bc;
   font-weight: bold;
 }
-.tab.code .tab-nav > button + button {
-  /* border-left: 0; */
+.tab.code .tab-nav + .tab-nav {
   margin-left: 1px;
 }
-.tab.code .tab-nav > button.active {
+.tab.code .tab-nav.active {
   color: #222;
 }
-.tab.code .tab-content {
-  /* border: 1px solid #d5d5d5; */
-}
-.tab.code .tab-content > pre {
+.tab.code .tab-item {
   margin-top: 0;
   border-top-left-radius: 0;
-  /* border-top-right-radius: 0; */
+}
+
+footer {
+  margin-top: 1.5rem;
+  background-color: #555;
+  color: #999;
+  padding: 20px;
+}
+footer a {
+  text-decoration: none;
+  color: #999;
+  font-size: 15px;
+  margin-right: 10px;
+  transition: .2s;
+  line-height: 1;
+}
+footer a:hover {
+  color: #ccc;
+  text-decoration: none;
 }

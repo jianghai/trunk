@@ -1,7 +1,6 @@
 var fs   = require('fs')
 
 var docPattern = /\/\*\*([\s\S]+?)\*\//g
-var docItemPattern = /@([a-z]+)([\s\S]+?)@/g
 var docDescPattern = /```([a-z]+)([\s\S]+?)```/g
 var trim = function(v) {
   return v.replace(/[\n^]\s*\*/g, '').trim()
@@ -11,6 +10,7 @@ var docItemHandle = {
     // 分解代码和普通文本描述
     var frags = []
     var match
+    // lastIndex缓存上一次匹配的lastIndex
     var lastIndex = docDescPattern.lastIndex = 0
     while (match = docDescPattern.exec(v)) {
       var index = match.index
@@ -21,7 +21,7 @@ var docItemHandle = {
         lang: match[1],
         code: match[2].replace(/(\n)\s*\*\s/g, '$1').trim()
       })
-      lastIndex || (lastIndex = index + match[0].length)
+      lastIndex = docDescPattern.lastIndex
     }
     if (lastIndex < v.length) {
       frags.push(trim(v.slice(lastIndex)))
@@ -33,15 +33,18 @@ var docItemHandle = {
     v = trim(v).split(' ')
     v[0] = v[0].slice(1, -1)
     param = {
-      type: v[0],
-      name: v[1],
+      type: v[0].split('|'),
+      name: v[1].split('|'),
       desc: v[2]
     }
-    if (v[1].charCodeAt(0) === 91) {
-      param.name = param.name.slice(1, -1)
-      param.optional = true
-    }
-    (prop.param || (prop.param = [])).push(param)
+    // param.name.map(function(name) {
+    //   if (name.charCodeAt(0) === 91) {
+    //     return name.slice(1, -1)
+    //     param.optional = true
+    //   }
+    // })
+    
+    ;(prop.param || (prop.param = [])).push(param)
     return prop.param
   },
   'return': function(v) {
@@ -50,32 +53,22 @@ var docItemHandle = {
       type: v[0].slice(1, -1),
       desc: v[1]
     }
-  }
+  },
+  type: function(v) {
+    return v.trim().slice(1, -1)
+  } 
 }
 
-function generate(file) {
-  var modules = []
-  var module = {}
-  var str = fs.readFileSync('public/trunk/src/events.js', 'utf-8')
-  module.name = 'events'
+function parseModule(str, module) {
+  docPattern.lastIndex = 0
   module.props = []
-  // var match = docPattern.exec(str)
-  // if (match) {
-  //   if (match[1].indexOf('@module') > -1) {
-  //     var desc = match[1].trim().match(/\*\s*([\s\S]+?)\*\s@/)
-  //     if (desc) {
-  //       module.desc = trim(desc[1])
-  //     }
-  //   } else {
-  //     docPattern.lastIndex = 0
-  //   }
-  // }
   while (match = docPattern.exec(str)) {
-    var prop = {}, isModule = false
+    var prop = {}
+    var isModule = false
+    var isPrivate = false
     var frags = match[1]
     frags = frags.split('* @')
-    if (frags) {
-      // console.log(frags)
+    if (frags.length > 1) {
       prop.desc = docItemHandle.desc(frags.splice(0, 1)[0])
       frags.forEach(function(item) {
         if (item) {
@@ -86,20 +79,41 @@ function generate(file) {
             prop[match[1]] = hasHandle ? handle(match[2], prop) : trim(match[2])
           }
           if (match[1] === 'module') isModule = true
+          if (match[1] === 'private') isPrivate = true
         }
       })
-    }
-    // console.log(prop)
-    if (isModule) {
-      for (var k in prop) {
-        module[k] = prop[k]
+
+      if (isModule && isPrivate) {
+        return null
       }
-    } else {
-      module.props.push(prop)
+      
+      if (isPrivate) continue
+
+      if (isModule) {
+        for (var k in prop) {
+          module[k] = prop[k]
+        }
+      } else {
+        module.props.push(prop)
+      }
     }
   }
-  // console.log(module)
-  modules.push(module)
+  return module
+}
+
+function generate(file) {
+  var modules = []
+  var dir = 'public/trunk/src/'
+  var files = fs.readdirSync(dir)
+  files.forEach(function(file) {
+    file = file.split('.')
+    // if (file[0] === 'util') {
+      var module = parseModule(fs.readFileSync(dir + file[0] + '.js', 'utf-8'), {
+        name: file[0]
+      })
+      module && modules.push(module)
+    // }
+  })
   return modules
 }
 
