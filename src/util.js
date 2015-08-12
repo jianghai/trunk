@@ -13,27 +13,30 @@ var $ = require('jquery')
  * @param {*} obj
  * @return {Boolean}
  */
-exports.isPlainObject = function(obj) {
+var isPlainObject = function(obj) {
   return obj.constructor === Object
 }
+exports.isPlainObject = isPlainObject
 
 /**
  * 是否为数组
  * @param {*} arr
  * @return {Boolean}
  */
-exports.isArray = function(arr) {
+var isArray = function(arr) {
   return Object.prototype.toString.call(arr) === '[object Array]'
 }
+exports.isArray = isArray
 
 /**
  * 是否为函数
  * @param {*} fun
  * @return {Boolean}
  */
-exports.isFunction = function(fun) {
+var isFunction = function(fun) {
   return typeof fun === 'function'
 }
+exports.isFunction = isFunction
 
 /**
  * 合并属性，纯对象或数组执行深拷贝，init方法不会被重写
@@ -41,7 +44,7 @@ exports.isFunction = function(fun) {
  */
 exports.mergeAttributes = function(attributes) {
 
-  if (_.isFunction(attributes.init) && _.isFunction(this.init)) {
+  if (isFunction(attributes.init) && isFunction(this.init)) {
     var _this = this.init
     var _init = attributes.init
     attributes.init = function() {
@@ -51,7 +54,7 @@ exports.mergeAttributes = function(attributes) {
   }
 
   for (var k in attributes) {
-    if (_.isPlainObject(attributes[k]) || _.isArray(attributes[k])) {
+    if (attributes[k] && (isPlainObject(attributes[k]) || isArray(attributes[k]))) {
       this[k] = $.extend(true, {}, this[k], attributes[k])
     } else {
       this[k] = attributes[k]

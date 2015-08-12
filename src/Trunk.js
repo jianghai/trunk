@@ -2,7 +2,6 @@ var $ = require('jquery')
 var _ = require('./util')
 var Model = require('./Model')
 var Collection = require('./Collection')
-var Router = require('./Router')
 var extend = require('./extend')
 var events = require('./events')
 var template = require('./template')
@@ -48,13 +47,12 @@ function Trunk(attributes) {
   this.model.view = this
   this.model.collection && (this.collection = this.model.collection)
 
-  if (!attributes) return
-
-  if (attributes.className && this.className) {
-    attributes.className = this.className + ' ' + attributes.className
+  if (attributes) {
+    if (attributes.className && this.className) {
+      attributes.className = this.className + ' ' + attributes.className
+    }
+    _.mergeAttributes.call(this, attributes)
   }
-
-  _.mergeAttributes.call(this, attributes)
   
   if (this.el) {
     /**
@@ -181,20 +179,20 @@ $.extend(Trunk.prototype, events, {
    */
   _setTemplate: function() {
 
-    var template
+    var _template
 
     if (!this.template || typeof this.template !== 'string') return
 
-    template = this.template.charCodeAt(0) === 35 ? $(this.template) : this.$(this.template)
-    template = template(template.html())
+    _template = this.template.charCodeAt(0) === 35 ? $(this.template) : this.$(this.template)
+    _template = template(_template.html())
 
     if (!template) throw '"' + this.template + '" not exist'
     
     if (this.hasOwnProperty('template')) {
-      this.template = template
+      this.template = _template
     } else {
       // Todo: template不一定是父类的
-      this.constructor.prototype.template = template
+      this.constructor.prototype.template = _template
     }
   },
 
@@ -238,9 +236,8 @@ $.extend(Trunk.prototype, events, {
 
 Trunk.Model = Model
 Trunk.Collection = Collection
-Trunk.Router = Router
 Trunk.template = template
 
-Trunk.extend = Trunk.Model.extend = Trunk.Collection.extend = Trunk.Router.extend = extend
+Trunk.extend = Trunk.Model.extend = Trunk.Collection.extend = extend
 
 module.exports = Trunk

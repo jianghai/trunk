@@ -22,9 +22,7 @@ var _ = require('./util')
  */
 function Collection(attributes) {
 
-  if (!attributes) return
-
-  _.mergeAttributes.call(this, attributes)
+  if (attributes) _.mergeAttributes.call(this, attributes)
 
   /**
    * 模型集合数组
@@ -49,7 +47,7 @@ $.extend(Collection.prototype, events, ajax, {
    */
   _onFetch: function(res) {
     this.remove()
-    this.add(this.parse === Collection.prototype.parse ? res || this.parse(res))
+    this.add(this.parse === Collection.prototype.parse ? res : this.parse(res))
   },
 
   /**

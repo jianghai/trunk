@@ -1,6 +1,7 @@
 define([
   'trunk',
   'Dialog'
+  
 ], function(Trunk, Dialog) {
 
   return Trunk.View.extend({

@@ -27,9 +27,7 @@ var ajax = require('./ajax')
  */
 function Model(attributes) {
 
-  if (!attributes) return
-
-  _.mergeAttributes.call(this, attributes)
+  if (attributes) _.mergeAttributes.call(this, attributes)
 
   /**
    * 模型默认数据，所有新增的数据都在此基础上进行扩展，如果data是数组则忽略defaults
@@ -60,7 +58,7 @@ $.extend(Model.prototype, events, ajax, {
    * @param {Object|Array} res 服务器返回的json
    */
   _onFetch: function(res) {
-    this.reset(this.parse === Model.prototype.parse ? res || this.parse(res))
+    this.reset(this.parse === Model.prototype.parse ? res : this.parse(res))
   },
 
   /**

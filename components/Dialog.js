@@ -1,13 +1,9 @@
 define([
   'jquery',
-  'trunk'
+  'Trunk'
 ], function($, Trunk) {
 
-  var Model = Trunk.Model.extend()
-
-  return Trunk.View.extend({
-
-    Model: Model,
+  var View = Trunk.extend({
 
     stat: {
       // Save the number of open
@@ -48,20 +44,19 @@ define([
     init: function() {
 
       this.render()
-
-      (this.wapper || $('body')).append(this.el)
+      ;(this.wapper || $('body')).append(this.el)
 
       this.listen(this.model, 'change:title', function(title) {
         this.$('.dialog-title').text(title)
       })
 
-      this.$('.dialog-body').append(this.child.el)
-
-      // this.child.delegateEvents()
-
-      this.child.dialog = this
-
-      this.listen(this.child, 'render:after', this.open)
+      if (this.child) {
+        this.$('.dialog-body').append(this.child.el)
+        this.child.dialog = this
+        this.listen(this.child, 'render:after', this.open)
+      }
     }
   })
-});
+
+  return View
+})

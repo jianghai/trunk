@@ -5,6 +5,8 @@ define([
 
   var View = Trunk.extend({
 
+    tag: 'div',
+
     className: 'pagination-container',
 
     template: '#template-pagination',

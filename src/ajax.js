@@ -65,7 +65,7 @@ exports.fetch = function() {
      */
     url: this.url,
     data: this.param
-  }).done(function() {
+  }).done(function(res) {
     self.trigger('sync', res)
     self._onFetch(res)
   })
