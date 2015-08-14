@@ -5,11 +5,8 @@ var util = require('util')
 var jade = require('jade')
 var format = require('dataformat')
 
-var highlight = require('../../highlight/highlight.js');
-var filters = require('jade').filters;
-filters.highlight = function(source, option) {
-  return highlight(source, option.lang);
-}
+var highlight = require('../models/highlight/highlight.js');
+
 
 // router.use(function(req, res, next) {
 

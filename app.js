@@ -4,8 +4,14 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var highlight = require('./models/highlight/highlight.js');
 
 var app = express();
+
+var filters = require('jade').filters;
+filters.highlight = function(source, option) {
+  return highlight(source, option.lang);
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
