@@ -21,8 +21,8 @@ div(id=component)
               <td><#- store.auditTime || '--' #></td>
               <td><#- 'auditResult' in store ? store.auditResult && '通过' || '不通过' : '未处理' #></td>
               <td>
-                <a href="" data-index="<#- i #>" class="show">查看</a> |
-                <a href="" data-index="<#- i #>" class="remove">取消</a>
+                <a href="javascript:" data-index="<#- i #>" class="show">查看</a> |
+                <a href="javascript:" data-index="<#- i #>" class="remove">取消</a>
               </td>
             </tr><# }); #>
           <# } else { #>

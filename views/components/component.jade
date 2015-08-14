@@ -3,9 +3,10 @@
   div
     button.tab-nav.active JavaScript
     button.tab-nav HTML
-    button.tab-nav JSON
+    if code.json
+      button.tab-nav JSON
   .tab-content
     pre.tab-item.active!= code.js
     pre.tab-item!= code.html
-    pre.tab-item!= code.json
-script!= source.js
+    if code.json
+      pre.tab-item!= code.json

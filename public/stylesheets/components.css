@@ -4,16 +4,19 @@ header + main.center {
 .content {
   padding: 0;
 }
-table th,
-table td {
+table.components th,
+table.components td {
   border-bottom: 0;
 }
-table tbody td {
+table.components tbody td {
   border-top: 1px solid #dfdfdf;
 }
-table th,
-table td {
+table.components th,
+table.components td {
   padding: 10px;
+}
+table.components button.demo {
+  margin-left: 10px;
 }
 .stage .dialog-container {
   background-color: #fff;
@@ -28,10 +31,47 @@ table td {
   top: 10px;
   cursor: pointer;
   color: #898989;
+  /*transition: transform .2s;*/
 }
 .stage .dialog-close:hover {
   color: #222;
+  /*transform: rotate(90deg);*/
 }
 .stage .demo {
   margin-right: 20px;
+}
+
+.loading-container {
+  display: inline-block;
+}
+/*.loading-container.show {
+  display: inline-block;
+}*/
+.loading-container > i {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: #A6ADAD;
+  border-radius: 50%;
+  line-height: 0;
+  -webkit-transform: scale(0);
+  transform-origin: center center;
+  -webkit-animation: bouncedelay 1.3s infinite linear .1s;
+}
+.loading-container > i:nth-child(2) {
+  -webkit-animation-delay: .4s;
+  margin-left: 3px;
+}
+.loading-container > i:nth-child(3) {
+  -webkit-animation-delay: .7s;
+  margin-left: 3px;
+}
+@-webkit-keyframes bouncedelay {
+  0%,100%,80% {
+    -webkit-transform: scale(0)
+  }
+  40% {
+    -webkit-transform: scale(1)
+  }
 }

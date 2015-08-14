@@ -4,25 +4,29 @@ block head
   link(rel='stylesheet', href='/stylesheets/components.css')
 block main
   .content.flex-1
-    table(width='100%')
+    table.components(width='100%')
       thead
         tr
           th(align='left') Component
           th(align='left') Size
-          th(align='left', colspan='2') Last modified
+          th(align='left') Last modified
+          th(align='right', width='220')
       each component in components
         tr
           td= component.file
           td= component.size
           td= component.mtime
           td(align='right')
-            button.btn.green.demo(data-component=component.foldername, disabled=component.disabled && 'disabled') Demo
+            button.btn.green.demo(data-component=component.filename, disabled=component.disabled && 'disabled') Demo
             a(href='https://raw.githubusercontent.com/jianghai/trunk/master/components/' + component.file, download).btn Download
 block foot
+  script#template-loading(type='text')
+    include ../include/loading.jade
   script#template-stage(type='text')
     .dialog-container
       i.iconfont.icon-close.dialog-close
       .dialog-content.flex
+        include ../include/loading.jade
   script(src='/lib/require.min.js')
   script(src='/require.config.js')
   script(src='/javascript/components.js')

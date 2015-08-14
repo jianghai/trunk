@@ -21,8 +21,8 @@
 .icon-process:before { content: "\e6ce"; }
 .icon-print:before { content: "\e6c9"; }
 .icon-box:before { content: "\e6cb"; }
-.icon-qq:before { content: "\f01c7"; }
 .icon-github:before { content: "\f01ca"; }
 .icon-genzongmubiaoguanli:before { content: "\f0110"; }
 .icon-bangzhu:before { content: "\f0143"; }
 .icon-youjian:before { content: "\f0138"; }
+.icon-zuishangbu:before { content: "\f0189"; }

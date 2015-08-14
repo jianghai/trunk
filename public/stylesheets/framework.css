@@ -395,22 +395,21 @@ html.dialog-open {
   transition-delay: 0s;
 }
 .dialog .dialog-container {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
   overflow: hidden;
   transform: translateY(-100%);
-  /*opacity: 0;*/
-  transition: visibility 0s .2s, transform .2s;
+  transition: visibility 0s .3s, transform .3s;
 }
 .dialog.open .dialog-container {
   overflow-x: hidden;
   overflow-y: scroll;
   transform: translateY(0%);
-  /*opacity: 1;*/
   transition-delay: 0s;
+  transition-duration: .3s;
 }
 /*.dialog .dialog-content {
   width: 800px;

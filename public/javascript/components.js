@@ -4,19 +4,36 @@ require([
   'Dialog'
 ], function($, Trunk, Dialog) {
 
+  var loading = $('#template-loading').html()
+  // Trunk.prototype.init = function() {
+  //   this.listen(this.model, 'request', function() {
+  //     this.el
+  //   })
+  // }
+
   var app = new Trunk({
     el: 'table',
     events: {
       'click .demo': 'onDemo'
     },
     onDemo: function(e) {
+      var target = $(e.target)
+      if (target[0].loading) return
+
       var self = this
-      var component = $(e.target).attr('data-component')
+      var component = target.attr('data-component')
+      var _loading = $(loading)
+      target.before(_loading)
+      target[0].loading = true
+
       $.ajax({
-        url: component.charAt(0).toLowerCase() + component.slice(1) + '.html'
+        url: component + '.html'
       }).done(function(res) {
+        target[0].loading = false
+        _loading.remove()
         self.stage.$('.dialog-content').html(res)
         self.stage.open()
+        $.getScript('/javascript/components/' + component + '.js')
       })
     },
     init: function() {
@@ -26,12 +43,6 @@ require([
       })
     }
   })
-
-  // Trunk.prototype.init = function() {
-  //   this.on('render:after', function() {
-  //     this.el.parent().addClass('in')
-  //   })
-  // }
 
 
   $('body').on('click', '.tab-nav', function(e) {

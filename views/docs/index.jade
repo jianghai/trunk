@@ -47,30 +47,3 @@ block main
         each prop in module.props
           h2(id=moduleId + '-' + prop.name)= prop.fullName || prop.name
           +doc(prop)
-  a#toTop(href='#') 返回顶部
-block foot
-  script.
-    (function() {
-      var wrapper = document.getElementById('wrapper')
-      var wrapperClass = wrapper.className
-      var apiList = document.getElementById('apiList')
-      var lastActive
-      apiList.addEventListener('click', function(e) {
-        e.target.className = 'active'
-        lastActive && lastActive.removeAttribute('class')
-        lastActive = e.target
-      })
-      window.addEventListener('scroll', function(e) {
-        var scrollTop = document.body.scrollTop
-        if (scrollTop > 75) {
-          wrapper.className = wrapperClass + ' fixed'
-        } else {
-          wrapper.className = wrapperClass
-        }
-      })
-    })()
-
-
-
-
-

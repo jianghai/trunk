@@ -229,7 +229,8 @@ header a:hover {
 }
 
 #nav {
-  text-align: center;
+  /*text-align: center;*/
+  margin-left: 40px;
 }
 #nav li {
   display: inline-block;
@@ -237,7 +238,7 @@ header a:hover {
 #nav a {
   padding: 0 20px;
   color: #135177;
-  font-size: 13px;
+  /*font-size: 14px;*/
   font-weight: 600;
   transition: .3s;
 }
@@ -287,21 +288,40 @@ header + main.center {
 }
 
 #toTop {
-  display: none;
-}
-#wrapper.fixed .sidebar {
+  visibility: hidden;
   position: fixed;
-  top: 0;
-  height: 100%;
+  right: 20px;
+  bottom: 20px;
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 50%;
+  color: #555;
+  font-size: 25px;
+  cursor: pointer;
+  transition: visibility 0s .2s, .2s;
+  opacity: 0;
+  transform: translateY(100px);
+}
+body.fixed #toTop {
+  opacity: 1;
+  transform: translateY(0px);
+  visibility: visible;
+  transition-delay: 0s;
+}
+#toTop:hover {
+  color: #333;
+}
+body.fixed .sidebar {
+  position: fixed;
+  top: 15px;
+  bottom: 100px;
   overflow: auto;
   overflow-wrap: normal;
 }
-#wrapper.fixed .sidebar + .content {
+body.fixed .sidebar + .content {
   margin-left: 180px;
 }
-#wrapper.fixed #toTop {
-  display: block;
-}
+
 
 .content {
   background-color: #fff;

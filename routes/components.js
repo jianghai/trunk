@@ -42,11 +42,9 @@ router.get('/', function(req, res, next) {
     var status = fs.statSync(dir + file)
     status.file = file
     file = file.split('.')
-    status.filename = file[0]
-    status.foldername = file[0].charAt(0).toLowerCase() + file[0].slice(1)
+    status.filename = file[0].charAt(0).toLowerCase() + file[0].slice(1)
     status.fileFormat = file[1]
-    if (!fs.existsSync(__dirname + '/../public/components/' + status.foldername)) {
-      console.log(status.foldername)
+    if (!fs.existsSync(__dirname + '/../views/components/components/' + status.filename + '.jade')) {
       status.disabled = true
     }
     components.push(status)
@@ -68,30 +66,62 @@ var fileTypeMap = {
 }
 
 router.get('/:component.html', function(req, res, next) {
+  var root = __dirname + '/../'
   var component = req.params.component
-  var dir = __dirname + '/../public/components/' + component + '/'
   var source = {}
   var code = {}
-  fs.readdirSync(dir).forEach(function(file) {
-    var split = file.split('.')
-    var name = split[0]
-    var type = split[1]
-    source[name] = fs.readFileSync(dir + file, 'utf-8')
-    if (type === 'jade') {
-      source[name] = jade.compile(source[name], {
-        filename: dir + file,
-        pretty: true
-      })({
-        component: component
-      })
-      type = 'html'
-    }
-    code[name] = highlight(source[name], fileTypeMap[type] || type)
-  })
+  var files = {
+    jade: root + 'views/components/components/' + component + '.jade',
+    js: root + 'public/javascript/components/' + component + '.js',
+    json: root + 'public/json/components/' + component + '.json'
+  }
+
+  try {
+    source.html = jade.compile(fs.readFileSync(files.jade, 'utf-8'), {
+      basedir: root + 'views',
+      filename: files.jade,
+      pretty: true
+    })({
+      component: component
+    })
+    code.html = highlight(source.html, 'markup')
+    code.js = highlight(fs.readFileSync(files.js, 'utf-8'), 'js')
+    code.json = highlight(fs.readFileSync(files.json, 'utf-8'), 'js')
+  } catch (e) {}
+
   res.render('components/component', {
+    component: component,
     source: source,
     code: code
   });
 });
+
+// router.get('/:component.html', function(req, res, next) {
+//   var component = req.params.component
+//   var dir = __dirname + '/../public/components/' + component + '/'
+//   var source = {}
+//   var code = {}
+//   fs.readdirSync(dir).forEach(function(file) {
+//     var split = file.split('.')
+//     var name = split[0]
+//     var type = split[1]
+//     source[name] = fs.readFileSync(dir + file, 'utf-8')
+//     if (type === 'jade') {
+//       source[name] = jade.compile(source[name], {
+//         basedir: __dirname + '/../views',
+//         filename: dir + file,
+//         pretty: true
+//       })({
+//         component: component
+//       })
+//       type = 'html'
+//     }
+//     code[name] = highlight(source[name], fileTypeMap[type] || type)
+//   })
+//   res.render('components/component', {
+//     source: source,
+//     code: code
+//   });
+// });
 
 module.exports = router;

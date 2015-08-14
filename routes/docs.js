@@ -49,8 +49,6 @@ router.get('/', function(req, res, next) {
 
   var doc = generate()
 
-  console.log(doc)
-
   doc.forEach(function(module) {
     parse(module)
     module.props && module.props.forEach(parse)
