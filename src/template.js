@@ -55,7 +55,7 @@ template.leftTag = '<#'
 
 /**
  * 模版中右分隔符，默认'#>'，可自定义
- * @name leftTag
+ * @name rightTag
  * @type {String}
  */
 template.rightTag = '#>'

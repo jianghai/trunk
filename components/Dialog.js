@@ -36,6 +36,7 @@ define([
     },
 
     open: function() {
+      this.el.off('transitionend')
       this.stat.opens++
       $('html').addClass('dialog-open')
       this.el.css('z-index', this.stat.opens).addClass('open')
