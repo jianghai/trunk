@@ -29,10 +29,10 @@ require([
       $.ajax({
         url: window.baseDir + 'components/' + component + '.html'
       }).done(function(res) {
-        target[0].loading = false
-        _loading.remove()
         self.stage.$('.dialog-content').html(res)
         $.getScript(window.public + 'javascript/components/' + component + '.js', function() {
+          target[0].loading = false
+          _loading.remove()
           self.stage.open()
         })
       })
