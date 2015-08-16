@@ -1,3 +1,6 @@
 [submodule "models/highlight"]
 	path = models/highlight
 	url = https://github.com/jianghai/highlight.git
+[submodule "public/trunk"]
+	path = public/trunk
+	url = https://github.com/jianghai/trunk.git
