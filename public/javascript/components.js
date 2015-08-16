@@ -32,8 +32,9 @@ require([
         target[0].loading = false
         _loading.remove()
         self.stage.$('.dialog-content').html(res)
-        self.stage.open()
-        $.getScript(window.public + 'javascript/components/' + component + '.js')
+        $.getScript(window.public + 'javascript/components/' + component + '.js', function() {
+          self.stage.open()
+        })
       })
     },
     init: function() {
