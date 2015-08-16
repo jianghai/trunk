@@ -1,0 +1,3 @@
+[submodule "models/highlight"]
+	path = models/highlight
+	url = https://github.com/jianghai/highlight.git
