@@ -4,7 +4,7 @@ require([
   
   var list = new DataList({
     model: {
-      url: '/json/components/dataList.json'
+      url: window.public + 'json/components/dataList.json'
     }
   })
   list.model.fetch()

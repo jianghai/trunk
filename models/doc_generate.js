@@ -101,7 +101,7 @@ function parseModule(str, module) {
   return module
 }
 
-function generate(file) {
+function generate() {
   var modules = []
   var dir = 'public/trunk/src/'
   var files = fs.readdirSync(dir)
@@ -117,4 +117,45 @@ function generate(file) {
   return modules
 }
 
-module.exports = generate
+
+// 本项目逻辑
+var highlight = require('./highlight/highlight.js');
+
+function parse(host) {
+  var isConstructor = host.hasOwnProperty('constructor')
+  if (isConstructor) {
+    host.category = 'class'
+  } else if (host.type) {
+    host.category = 'property'
+  } else if (!('module' in host)) {
+    host.category = 'method'
+  }
+  host.desc && host.desc.forEach(function(desc) {
+    if (typeof desc === 'object') {
+      desc.code = highlight(desc.code, desc.lang)
+    }
+  })
+  if (host.namespace) {
+    host.name = host.namespace + '.' + host.name
+  }
+  if (host.param) {
+    var params = host.param.map(function(item) {
+      return item.name.join(' | ')
+      // return !item.optional ? item.name : '[' + item.name + ']'
+    }).join(', ')
+    host.fullName = host.name + '( ' + params + ' )'
+  } else {
+    if (isConstructor || (!'module' in host && !host.type)) {
+      host.fullName = host.name + '( )'
+    }
+  }
+}
+
+module.exports = function() {
+  var doc = generate()
+  doc.forEach(function(module) {
+    parse(module)
+    module.props && module.props.forEach(parse)
+  })
+  return doc
+}

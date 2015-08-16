@@ -25,6 +25,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+app.use(function(req, res, next) {
+  res.locals.baseDir = '/'
+  res.locals.public = res.locals.baseDir
+  next();
+});
+
 app.use('/', require('./routes/index'));
 app.use('/tutorial', require('./routes/tutorial'));
 app.use('/docs', require('./routes/docs'));

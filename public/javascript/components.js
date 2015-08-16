@@ -27,13 +27,13 @@ require([
       target[0].loading = true
 
       $.ajax({
-        url: component + '.html'
+        url: window.baseDir + 'components/' + component + '.html'
       }).done(function(res) {
         target[0].loading = false
         _loading.remove()
         self.stage.$('.dialog-content').html(res)
         self.stage.open()
-        $.getScript('/javascript/components/' + component + '.js')
+        $.getScript(window.public + 'javascript/components/' + component + '.js')
       })
     },
     init: function() {

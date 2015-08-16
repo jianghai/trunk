@@ -1,7 +1,7 @@
 extends ../layout
 block head
-  link(rel='stylesheet', href='/stylesheets/framework.css')
-  link(rel='stylesheet', href='/stylesheets/components.css')
+  link(rel='stylesheet', href=public+'stylesheets/framework.css')
+  link(rel='stylesheet', href=public+'stylesheets/components.css')
 block main
   .content.flex-1
     table.components(width='100%')
@@ -27,6 +27,8 @@ block foot
       i.iconfont.icon-close.dialog-close
       .dialog-content.flex
         include ../include/loading.jade
-  script(src='/lib/require.min.js')
-  script(src='/require.config.js')
-  script(src='/javascript/components.js')
+  script.
+    window.public = '#{public}'
+  script(src=public+'lib/require.min.js')
+  script(src=public+'require.config.js')
+  script(src=public+'javascript/components.js')

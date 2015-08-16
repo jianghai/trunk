@@ -2,8 +2,8 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='/icon/iconfont.css')
-    link(rel='stylesheet', href='/stylesheets/common.css')
+    link(rel='stylesheet', href=public+'icon/iconfont.css')
+    link(rel='stylesheet', href=public+'stylesheets/common.css')
     block head
   body
     #wrapper.flex
@@ -11,14 +11,14 @@ html
         .center.flex
           .flex-1.flex
             h2
-              a#logo(href='/') TRUNK.JS
+              a#logo(href=baseDir) TRUNK.JS
             ul#nav.flex-1
               li(class={active: page === 'tutorial'})
-                a(href='../tutorial') Tutorial
+                a(href=baseDir+'tutorial') Tutorial
               li(class={active: page === 'docs'})
-                a(href='../docs') API Reference
+                a(href=baseDir+'docs') API Reference
               li(class={active: page === 'components'})
-                a(href='../components') Components
+                a(href=baseDir+'components') Components
           ul.links
             li
               a(href='https://github.com/jianghai/trunk') GitHub
@@ -35,8 +35,11 @@ html
               i.iconfont.icon-genzongmubiaoguanli
             a(href='mailto:jianghai1007@gmail.com', title='邮箱联系')
               i.iconfont.icon-youjian
-            a(href='/tutorial#faq', title='常见问题')
+            a(href=baseDir+'tutorial#faq', title='常见问题')
               i.iconfont.icon-bangzhu
     i.iconfont.icon-zuishangbu#toTop
+    script(src=public+'javascript/global.js')
+    script.
+      window.baseDir = '#{baseDir}'
     block foot
-    script(src='/javascript/global.js')
+    
