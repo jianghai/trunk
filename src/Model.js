@@ -30,20 +30,6 @@ function Model(attributes) {
   if (attributes) _.mergeAttributes.call(this, attributes)
 
   /**
-   * 模型默认数据，所有新增的数据都在此基础上进行扩展，如果data是数组则忽略defaults
-   * @name defaults
-   * @type {Object}
-   */
-  if (this.defaults && this.data instanceof Object) {
-    /**
-     * 模型数据
-     * @name data
-     * @type {Object|Array}
-     */
-    this.data = $.extend(true, {}, this.defaults, this.data)
-  }
-
-  /**
    * 构造函数执行完毕前的接口，继承时不会覆盖父类的操作，定义Trunk.Model.prototype.init则对所有model有效
    * @name init
    */
@@ -152,12 +138,12 @@ $.extend(Model.prototype, events, ajax, {
   },
 
   /**
-   * 重置数据（扩展this.defaults），触发reset事件并渲染视图
+   * 重置数据，触发reset事件并渲染视图
    * @name reset
    * @param {Object|Array} [data]
    */
   reset: function(data) {
-    this.data = $.extend(true, _.isArray(data) ? [] : {}, this.defaults, data)
+    this.data = data
     this.trigger('reset', data)
     this.collection && this.collection.trigger('change')
     this.view.render()
@@ -169,7 +155,7 @@ $.extend(Model.prototype, events, ajax, {
    */
   remove: function() {
     this.collection && this.collection.remove(this)
-    this.data = this.defaults || (_.isArray(data) ? [] : {})
+    this.data = null
   },
 
   /**

@@ -54,7 +54,7 @@ exports.mergeAttributes = function(attributes) {
   }
 
   for (var k in attributes) {
-    if (attributes[k] && (isPlainObject(attributes[k]) || isArray(attributes[k]))) {
+    if (isPlainObject(attributes[k]) || isArray(attributes[k])) {
       this[k] = $.extend(true, {}, this[k], attributes[k])
     } else {
       this[k] = attributes[k]
