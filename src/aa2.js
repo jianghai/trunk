@@ -37,7 +37,7 @@ function Trunk(options) {
     value: {}
   })
 
-  this.compile(el)
+  this.compile(el, this.data)
 }
 
 
@@ -48,23 +48,34 @@ var p = Trunk.prototype
  * @param  {[type]} node  [description]
  * @return {[type]}       [description]
  */
-p.compile = function(node) {
+p.compile = function(node, scope) {
 
   if (ignoreTags[node.tagName]) return
   // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
   var handle = nodesHandles[node.nodeType]
   if (!handle) return
-  handle.call(this, node)
+  handle.call(this, node, scope)
   _.toArray(node.childNodes).forEach(function(node) {
-    this.compile(node)
+    this.compile(node, scope)
   }, this)
 }
 
-p.compileAttribute = function(attribute) {
+p.compileAttribute = function(attribute, scope) {
   var name = attribute.name
   // Todo: use charCodeAt
   if (name.indexOf(d_prefix) !== 0) return
-  directives[name].call(this, attribute.ownerElement, attribute.value)
+  var exp = attribute.value
+  scope = this.getScope(exp, scope)
+  directives[name].call(this, attribute.ownerElement, exp, scope)
+}
+
+p.getScope = function(exp, scope) {
+  var _namespace
+  var _match = exp.match(/[\w_]+/)[0]
+  while ((_namespace = scope._namespace) && _match !== _namespace) {
+    scope = scope._parent
+  }
+  return scope
 }
 
 
@@ -89,14 +100,14 @@ var ignoreTags = {
 var nodesHandles = {
 
   // ELEMENT_NODE
-  1: function(node) {
+  1: function(node, scope) {
     _.toArray(node.attributes).forEach(function(attribute) {
-      this.compileAttribute(attribute)
+      this.compileAttribute(attribute, scope)
     }, this)
   },
   
   // TEXT_NODE
-  3: function(node) {
+  3: function(node, scope) {
     var value = node.nodeValue
     if (/^\s*$/.test(value)) return
     var match
@@ -112,7 +123,7 @@ var nodesHandles = {
       fragments.push({
         isBind: true,
         value: match[0],
-        model: match[1]
+        exp: match[1]
       })
       lastIndex = textPattern.lastIndex || index + match[0].length
     }
@@ -128,10 +139,11 @@ var nodesHandles = {
       docFrag.appendChild(textNode)
       
       if (fragment.isBind) {
-        var model = fragment.model
-        this.watch(model)
-        textNode.nodeValue = this.get(model) || ''
-        this.addWatch(model, function(value) {
+        var exp = fragment.exp
+        scope = this.getScope(exp, scope)
+        this.watch(exp, scope)
+        textNode.nodeValue = this.get(exp, scope) || ''
+        this.addWatch(exp, scope, function(value) {
           textNode.nodeValue = value
         })
       }
@@ -140,39 +152,36 @@ var nodesHandles = {
   },
   
   // DOCUMENT_NODE
-  9: function(node) {
-    _.toArray(node.attributes).forEach(compileAttribute, this)
-  }
+  // 9: function(node, scope) {
+  //   _.toArray(node.attributes).forEach(compileAttribute, this)
+  // }
 }
 
 var directives = {
 
-  model: function(element, value) {
-    this.watch(value)
+  model: function(element, exp, scope) {
+    this.watch(exp, scope)
     var that = this
-    element.value = this.get(value) || ''
+    element.value = this.get(exp, scope) || ''
     element.addEventListener('input', function() {
-      that.set(value, this.value)
+      that.set(exp, this.value, scope)
     })
   },
 
-  click: function(element, value) {
-    var that = this
-    var scope = this.scope
-    element.addEventListener('click', function() {
-      that[value](scope)
-      //The scope of new Function is global, so pass context through the parameter
-      // new Function('context', 'context.' + value)(context)
-    })
-  },
+  // click: function(element, exp, scope) {
+  //   var that = this
+  //   element.addEventListener('click', function() {
+  //     that[value](scope)
+  //     //The scope of new Function is global, so pass context through the parameter
+  //     // new Function('context', 'context.' + value)(context)
+  //   })
+  // },
 
-  repeat: function(element, value) {
+  repeat: function(element, exp, scope) {
 
-    var _scope = this.scope
+    exp = exp.split(' in ')
 
-    value = value.split(' in ')
-
-    this.watch(value[1])
+    this.watch(exp[1], scope)
 
     // 阻止循环编译
     element.removeAttribute(d_prefix + 'repeat')
@@ -185,23 +194,21 @@ var directives = {
       list && list.forEach(function(item) {
         var _cloneNode = cloneNode.cloneNode(true)
         var _data = {}
-        _data[value[0]] = item
+        _data[exp[0]] = item
 
-        // 设置数据作用域名，为了可以访问父级作用域，提供 parent 接口访问
-        this.scope = _data
-        Object.defineProperties(this.scope, {
+        Object.defineProperties(_data, {
           _namespace: {
-            value: value[0]
+            value: exp[0]
           },
           _parent: {
-            value: _scope
+            value: scope
           },
           _watchers: {
             value: {}
           }
         })
 
-        this.compile(_cloneNode)
+        this.compile(_cloneNode, _data)
         docFrag.appendChild(_cloneNode)
 
         // dataBind(list, index)
@@ -211,12 +218,9 @@ var directives = {
       }, this)
       _.empty(container)
       container.appendChild(docFrag)
-
-      // 编译完成后，返回到父级作用域
-      this.scope = _scope
     }
 
-    render.call(this, this.get(value[1]))
+    render.call(this, this.get(exp[1], scope))
 
     _.empty(element)
 
@@ -269,16 +273,16 @@ Object.keys(directives).forEach(function(key) {
   delete directives[key]
 })
 
-p.getWatcher = function(exp) {
-  var _scope = this.scope
-  var watcher
-  while (!(watcher = _scope._watchers[exp])) {
-    _scope = _scope._parent
-  }
-  return watcher
-}
+// p.getWatcher = function(exp) {
+//   var _scope = this.scope
+//   var watcher
+//   while (!(watcher = _scope._watchers[exp])) {
+//     _scope = _scope._parent
+//   }
+//   return watcher
+// }
 
-p.get = function(exp) {
+p.get = function(exp, scope) {
   // exp = exp.match(/[\w_]+/g)
   // var data = this.scope
   // exp.every(function(prop) {
@@ -287,11 +291,11 @@ p.get = function(exp) {
   // })
   // return data
   // this.watch(exp)
-  var watcher = this.getWatcher(exp)
+  var watcher = scope._watchers[exp]
   return watcher.host[watcher.prop]
 }
 
-p.set = function(exp, value) {
+p.set = function(exp, value, scope) {
   // exp = exp.match(/[\w_]+/g)
   // var prop = exp.pop()
   // var data = this.scope
@@ -301,28 +305,28 @@ p.set = function(exp, value) {
   // })
   // data[prop] = value
   // console.log(this.data)
-  var watcher = this.getWatcher(exp)
+  var watcher = scope._watchers[exp]
   watcher.host[watcher.prop] = value
 }
 
-p.watch = function(exp) {
+p.watch = function(exp, scope) {
 
-  var _scope = this.scope
+  // var _scope = this.scope
 
-  if (_scope._watchers[exp]) return
-  else {
-    var _namespace
-    var _match = exp.match(/[\w_]+/)[0]
-    while ((_namespace = _scope._namespace) && _match !== _namespace) {
-      _scope = _scope._parent
-    }
-  }
+  // if (_scope._watchers[exp]) return
+  // else {
+  //   var _namespace
+  //   var _match = exp.match(/[\w_]+/)[0]
+  //   while ((_namespace = _scope._namespace) && _match !== _namespace) {
+  //     _scope = _scope._parent
+  //   }
+  // }
   
-  var watcher = _scope._watchers[exp] = {}
+  var watcher = scope._watchers[exp] = {}
 
   exp = exp.match(/[\w_]+/g)
   var prop = exp.pop()
-  var data = _scope
+  var data = scope
   exp.forEach(function(prop) {
     if (typeof data[prop] !== 'object' || data[prop] === null) data[prop] = {}
     data = data[prop]
@@ -360,7 +364,7 @@ p.bind = function(host, prop) {
   }
 }
 
-p.addWatch = function(exp, handle) {
-  var watcher = this.getWatcher(exp)
+p.addWatch = function(exp, scope, handle) {
+  var watcher = scope._watchers[exp]
   watcher.host._dataBind[watcher.prop].push(handle)
 }

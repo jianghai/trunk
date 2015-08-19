@@ -3,26 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
-  <script src="src/aa.js"></script>
+  <script src="src/aa2.js"></script>
 </head>
-<body id="app" d-click="onClick">
-  <input type="text" d-model="name">
-  <p>{{name}}</p>
+<body id="app">
   <input type="text" d-model="list[0].name">
-  <p>{{action.x}}</p>
+  <!-- <p>{{aa.bb}}</p> -->
+  <!-- <input type="text" d-model="list[0].name"> -->
+  <!-- <p>{{action.x}}</p> -->
 <!--   <input type="text" d-model="">
   <h1>{{aa}}</h1> -->
   <ul>
-    <li d-repeat="item in list" d-click="onClick">
-      <input type="text" d-model="item.name">
+    <li d-repeat="item in list">
+      <input type="text" d-model="aa.bb">
       <p>{{item.name}}</p>
+      <p>{{aa.bb}}</p>
     </li>
   </ul>
+  <!-- <p>{{aa.bb}}</p> -->
   <script>
   console.time('compile');
   new Trunk({
     el: '#app',
     data: {
+      aa: {
+        bb: 1
+      },
       name: 'jianghai',
       list: [{
         name: 'AA'
@@ -32,7 +37,7 @@
     },
     onClick: function(scope) {
       // console.log(JSON.stringify(this.data));
-      console.log(this);
+      console.log(scope)
       // scope.action = 1;
     }
     // aa: 'dsadsd',
