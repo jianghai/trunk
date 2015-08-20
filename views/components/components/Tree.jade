@@ -1,0 +1,16 @@
+div(id=component)
+  script.template-tree(type='text').
+    <# data && (function recursive(data) { #>
+      <ul class="tree">
+        <# data.forEach(function(child) { #>
+        <li>
+          <# if (child.children) { #>
+          <button class="toggle"></button>
+          <# } #>
+          <#- child.name #>
+          <!-- 递归渲染 -->
+          <# child.children && recursive(child.children) #>
+        </li>
+        <# }) #>
+      </ul>
+    <# })(data) #>

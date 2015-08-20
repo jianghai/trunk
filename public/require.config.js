@@ -11,6 +11,7 @@ require.config({
     'DataTable': 'trunk/components/DataTable',
     'Search': 'trunk/components/Search',
     'Dialog': 'trunk/components/Dialog',
+    'Tree': 'trunk/components/Tree',
   },
   shim: {
     highcharts: {

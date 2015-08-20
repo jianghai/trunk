@@ -364,6 +364,22 @@ a.btn:hover {
   background-color: #fbfbfb;
 }
 
+.tree ul {
+  margin-left: 2em;
+}
+.tree .toggle {
+  margin-right: 5px;
+}
+.tree .toggle:before {
+  content: '-';
+}
+.tree li.close > .toggle:before {
+  content: '+';
+}
+.tree li.close ul {
+  display: none;
+}
+
 html.dialog-open {
   overflow: hidden;
   padding-right: 8px;

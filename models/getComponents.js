@@ -19,7 +19,6 @@ module.exports = function() {
   components.forEach(function(component) {
     component.size = format.size(component.size)
     component.mtime = format.date(component.mtime, 'yyyy-mm-dd hh:ii:ss')
-    component.atime = format.date(component.atime, 'yyyy-mm-dd hh:ii:ss')
   })
   return components
 }
