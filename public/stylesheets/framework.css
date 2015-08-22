@@ -365,14 +365,11 @@ a.btn:hover {
 }
 
 .tree > ul ul {
-  margin-left: 2em;
-}
-.tree li {
-  padding-left: 10px;
+  margin-left: 20px;
 }
 .tree .toggle,
 .tree .file {
-  margin-right: 5px;
+  margin-right: 4px;
   width: 16px;
   height: 14px;
   display: inline-block;
