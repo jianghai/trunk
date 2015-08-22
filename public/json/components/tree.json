@@ -9,6 +9,13 @@
     }, {
       "name": "A.b.ii"
     }]
+  }, {
+    "name": "A.c",
+    "children": [{
+      "name": "A.c.i"
+    }, {
+      "name": "A.c.ii"
+    }]
   }]
 }, {
   "name": "B"

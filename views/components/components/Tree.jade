@@ -1,11 +1,13 @@
-div(id=component)
+div.tree(id=component)
   script.template-tree(type='text').
     <# data && (function recursive(data) { #>
-      <ul class="tree">
+      <ul>
         <# data.forEach(function(child) { #>
         <li>
           <# if (child.children) { #>
           <button class="toggle"></button>
+          <# } else { #>
+          <i class="file"></i>
           <# } #>
           <#- child.name #>
           <!-- 递归渲染 -->
