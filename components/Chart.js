@@ -6,7 +6,7 @@ define([
 
   var View = Trunk.extend({
 
-    el: '#lineColumn',
+    el: '#chart',
 
     defultOption: {
       chart: {},
