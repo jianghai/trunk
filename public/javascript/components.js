@@ -27,7 +27,7 @@ require([
       target[0].loading = true
 
       $.ajax({
-        url: window.baseDir + 'components/' + component + '.html'
+        url: window.baseDir + 'components/' + component
       }).done(function(res) {
         self.stage.$('.dialog-content').html(res)
         $.getScript(window.public + 'javascript/components/' + component + '.js', function() {

@@ -8,8 +8,10 @@ div(id=component)
         td 最后处理人
         td 最后处理时间
         td 处理结果
-        td(width='110') 操作
     tbody
+      tr
+        td.loading(colspan=7)
+          include /include/loading.jade
       script(type='text', class='template-' + component).
         <# if (data.stores && data.stores.length) { #>
           <# data.stores.forEach(function(store, i) { #>
@@ -20,15 +22,10 @@ div(id=component)
               <td><#- store.auditUserName || '--' #></td>
               <td><#- store.auditTime || '--' #></td>
               <td><#- 'auditResult' in store ? store.auditResult && '通过' || '不通过' : '未处理' #></td>
-              <td>
-                <a href="javascript:" data-index="<#- i #>" class="show">查看</a> |
-                <a href="javascript:" data-index="<#- i #>" class="remove">取消</a>
-              </td>
             </tr><# }); #>
           <# } else { #>
             <tr>
               <td colspan="8" class="empty">暂无数据</td>
             </tr>
           <# } #>
-// 依赖分页模版
-include ../pagination/template.jade
+include includes/template-pagination.jade

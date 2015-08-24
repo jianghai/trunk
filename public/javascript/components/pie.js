@@ -4,7 +4,7 @@ require([
 
   var pie = new Pie({
     model: {
-      url: 'pie/json.json'
+      url: window.public + 'json/components/pie.json'
     }
   })
   pie.model.fetch()

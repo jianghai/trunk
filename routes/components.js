@@ -44,7 +44,7 @@ router.get('/', function(req, res, next) {
 //   json: 'js'
 // }
 
-router.get('/:component.html', function(req, res, next) {
+router.get('/:component', function(req, res, next) {
   var component = req.params.component
   var _var = getComponent(component)
   res.render('components/component', {

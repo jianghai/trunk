@@ -219,7 +219,13 @@ a.btn:hover {
 .table tbody td {
   padding: 9px;
 }
-
+.table td.loading {
+  border-bottom: 0;
+  text-align: left;
+}
+.table td.loading:hover {
+  background-color: #fff;
+}
 .table td.empty {
   padding-top: 100px;
   padding-bottom: 100px;

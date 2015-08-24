@@ -4,7 +4,7 @@ require.config({
     'jquery': 'lib/jquery.min',
     'highcharts': 'lib/highcharts',
     'Trunk': 'trunk/Trunk',
-    'LineColumn': 'trunk/components/LineColumn',
+    'Chart': 'trunk/components/Chart',
     'Pie': 'trunk/components/Pie',
     'DataList': 'trunk/components/DataList',
     'Pagination': 'trunk/components/Pagination',
