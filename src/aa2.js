@@ -65,7 +65,8 @@ p.compileAttribute = function(attribute, scope) {
   // Todo: use charCodeAt
   if (name.indexOf(d_prefix) !== 0) return
   var exp = attribute.value
-  scope = this.getScope(exp, scope)
+  if (!exp.trim()) return
+  // scope = this.getScope(exp, scope)
   directives[name].call(this, attribute.ownerElement, exp, scope)
 }
 
@@ -157,112 +158,145 @@ var nodesHandles = {
   // }
 }
 
-var directives = {
-
-  model: function(element, exp, scope) {
-    this.watch(exp, scope)
+var inputHandles = {
+  text: function(element, exp, scope) {
     var that = this
     element.value = this.get(exp, scope) || ''
     element.addEventListener('input', function() {
       that.set(exp, this.value, scope)
     })
   },
+  checkbox: function(element, exp, scope) {
+    var that = this
+    element.checked = this.get(exp, scope) || false
+    element.addEventListener('change', function() {
+      that.set(exp, this.checked, scope)
+    })
+  }
+}
 
-  // click: function(element, exp, scope) {
-  //   var that = this
-  //   element.addEventListener('click', function() {
-  //     that[value](scope)
-  //     //The scope of new Function is global, so pass context through the parameter
-  //     // new Function('context', 'context.' + value)(context)
-  //   })
-  // },
+var modelHandles = {
+  input: function(element) {
+    inputHandles[element.type].apply(this, arguments)
+  },
+  select: function(element, exp, scope) {
+
+  },
+  textarea: function() {
+
+  }
+}
+
+var directives = {
+
+  model: function(element, exp, scope) {
+    scope = this.getScope(exp, scope)
+    this.watch(exp, scope)
+    modelHandles[element.tagName.toLowerCase()].apply(this, arguments)
+  },
+
+  'class': function() {
+
+  },
+
+  click: function(element, method, scope) {
+    var that = this
+    element.addEventListener('click', function() {
+      typeof scope[method] === 'function' ? scope[method]() : that[method](scope)
+    })
+  },
 
   repeat: function(element, exp, scope) {
 
     exp = exp.split(' in ')
 
-    this.watch(exp[1], scope)
+    scope = this.getScope(exp[1], scope)
 
+    this.watch(exp[1], scope)
+    var list = this.get(exp[1], scope)
     // 阻止循环编译
     element.removeAttribute(d_prefix + 'repeat')
 
+    var context = this
     var container = element.parentNode
     var cloneNode = element.cloneNode(true)
     var docFrag = document.createDocumentFragment()
 
-    function render(list) {
-      list && list.forEach(function(item) {
-        var _cloneNode = cloneNode.cloneNode(true)
-        var _data = {}
-        _data[exp[0]] = item
+    function renderOne(item, index, list) {
+      var _cloneNode = cloneNode.cloneNode(true)
+      var _data = {}
+      _data[exp[0]] = item
 
-        Object.defineProperties(_data, {
-          _namespace: {
-            value: exp[0]
-          },
-          _parent: {
-            value: scope
-          },
-          _watchers: {
-            value: {}
+      Object.defineProperties(_data, {
+        _namespace: {
+          value: exp[0]
+        },
+        _parent: {
+          value: scope
+        },
+        _watchers: {
+          value: {}
+        },
+        $remove: {
+          configurable: false,
+          enumerable: false,
+          writable: false,
+          value: function() {
+            list.splice(index, 1)
+            container.removeChild(_cloneNode)
           }
-        })
+        }
+      })
 
-        this.compile(_cloneNode, _data)
-        docFrag.appendChild(_cloneNode)
+      this.compile(_cloneNode, _data)
+      docFrag.appendChild(_cloneNode)
+    }
 
-        // dataBind(list, index)
-        // list._dataBind[index].push(function(value) {
-        //   compile.call(context, _cloneNode, value)
-        // })
+    function render(list) {
+      list && list.forEach(function(item, index) {
+        renderOne.call(this, item, index, list)
       }, this)
       _.empty(container)
       container.appendChild(docFrag)
     }
 
-    render.call(this, this.get(exp[1], scope))
+    render.call(this, list)
 
     _.empty(element)
 
-    // Rerender when list reset 
-    // data._dataBind[value[1]].push(render)
+    // Rerender when list reset
+    this.addWatch(exp[1], scope, render.bind(this))
 
-    // Observe list change
-    // Object.defineProperties(data[value[1]], {
-    //   push: {
-    //     configurable: false,
-    //     enumerable: false,
-    //     writable: false,
-    //     value: function() {
-    //       Array.prototype.push.apply(this, arguments)
-    //       for (var i = 0, len = arguments.length; i < len; i++) {
-    //         var _cloneNode = cloneNode.cloneNode(true)
-    //         compileNode.call(context, _cloneNode, arguments[i])
-    //         docFrag.appendChild(_cloneNode)
-    //       }
-    //       container.appendChild(docFrag)
-    //     }
-    //   },
-    //   splice: {
-    //     configurable: false,
-    //     enumerable: false,
-    //     writable: false,
-    //     value: function(start, deleteCount) {
-    //       Array.prototype.splice.apply(this, arguments)
-    //       debugger
-    //       console.dir(docFrag)
-    //       for (var i = 0; i < deleteCount; i++) {
-
-    //       }
-    //       // for (var i = 0, len = arguments.length; i < len; i++) {
-    //       //   var _cloneNode = cloneNode.cloneNode(true)
-    //       //   compileNode.call(context, _cloneNode, arguments[i])
-    //       //   docFrag.appendChild(_cloneNode)
-    //       // }
-    //       // container.appendChild(docFrag)
-    //     }
-    //   }
-    // })
+    // Observe Array change
+    Object.defineProperties(list, {
+      push: {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: function() {
+          var len = this.length
+          Array.prototype.push.apply(this, arguments)
+          for (var i = 0; i < arguments.length; i++) {
+            renderOne.call(context, arguments[i], len + i, this)
+          }
+          container.appendChild(docFrag)
+        }
+      }
+      // splice: {
+      //   configurable: false,
+      //   enumerable: false,
+      //   writable: false,
+      //   value: function(start, deleteCount) {
+      //     Array.prototype.splice.apply(this, arguments)
+      //     var children = container.children
+      //     var i = 0
+      //     while(i < deleteCount) {
+      //       children.removeChild(children[start])
+      //       i++
+      //     }
+      //   }
+      // }
+    })
 
     // Stop compile childNodes
   }
@@ -273,56 +307,21 @@ Object.keys(directives).forEach(function(key) {
   delete directives[key]
 })
 
-// p.getWatcher = function(exp) {
-//   var _scope = this.scope
-//   var watcher
-//   while (!(watcher = _scope._watchers[exp])) {
-//     _scope = _scope._parent
-//   }
-//   return watcher
-// }
-
 p.get = function(exp, scope) {
-  // exp = exp.match(/[\w_]+/g)
-  // var data = this.scope
-  // exp.every(function(prop) {
-  //   data = data[prop]
-  //   if (!data) return
-  // })
-  // return data
-  // this.watch(exp)
   var watcher = scope._watchers[exp]
   return watcher.host[watcher.prop]
 }
 
 p.set = function(exp, value, scope) {
-  // exp = exp.match(/[\w_]+/g)
-  // var prop = exp.pop()
-  // var data = this.scope
-  // exp.forEach(function(prop) {
-  //   if (typeof data[prop] !== 'object' || data[prop] === null) data[prop] = {}
-  //   data = data[prop]
-  // })
-  // data[prop] = value
-  // console.log(this.data)
   var watcher = scope._watchers[exp]
   watcher.host[watcher.prop] = value
 }
 
 p.watch = function(exp, scope) {
 
-  // var _scope = this.scope
-
-  // if (_scope._watchers[exp]) return
-  // else {
-  //   var _namespace
-  //   var _match = exp.match(/[\w_]+/)[0]
-  //   while ((_namespace = _scope._namespace) && _match !== _namespace) {
-  //     _scope = _scope._parent
-  //   }
-  // }
-  
-  var watcher = scope._watchers[exp] = {}
+  var watcher = scope._watchers[exp]
+  if (watcher) return
+  else watcher = scope._watchers[exp] = {}
 
   exp = exp.match(/[\w_]+/g)
   var prop = exp.pop()

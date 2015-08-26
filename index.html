@@ -6,20 +6,15 @@
   <script src="src/aa2.js"></script>
 </head>
 <body id="app">
-  <input type="text" d-model="list[0].name">
-  <!-- <p>{{aa.bb}}</p> -->
-  <!-- <input type="text" d-model="list[0].name"> -->
-  <!-- <p>{{action.x}}</p> -->
-<!--   <input type="text" d-model="">
-  <h1>{{aa}}</h1> -->
+  <input type="text" d-model="new.name">
+  <button d-click="add">add</button>
+  <button d-class="show:" d-click="clear">clear</button>
   <ul>
     <li d-repeat="item in list">
-      <input type="text" d-model="aa.bb">
-      <p>{{item.name}}</p>
-      <p>{{aa.bb}}</p>
+      <input type="checkbox" d-model="item.checked">{{item.name}}
+      <button d-click="$remove">X</button>
     </li>
   </ul>
-  <!-- <p>{{aa.bb}}</p> -->
   <script>
   console.time('compile');
   new Trunk({
@@ -29,26 +24,11 @@
         bb: 1
       },
       name: 'jianghai',
-      list: [{
-        name: 'AA'
-      }, {
-        name: 'BB'
-      }]
+      list: [{name: 'aa', checked: true}, {name: 'bb'}]
     },
-    onClick: function(scope) {
-      // console.log(JSON.stringify(this.data));
-      console.log(scope)
-      // scope.action = 1;
+    add: function(scope) {
+      scope.list.push({name: scope.new.name})
     }
-    // aa: 'dsadsd',
-    // list: [{name: 'gsdgsgsdg', age: 5}, {name: 'vv', age: 50}],
-    // list: [1,2,3],
-    // aa: function(current) {
-    //   console.log(this);
-    //   this.list[0] = {name: 'gsdgsgsdg', age: 5};
-    //   // this.list.push({name: 'gsdgsgsdg', age: 5}, {name: 'vdsdv', age: 343})
-    //   // this.list.splice(0, 1);
-    // }
   });
   console.timeEnd('compile');
   </script>
