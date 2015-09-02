@@ -13,7 +13,23 @@ define([
 
     events: {
       'click .page': 'onPageChange',
+      'keydown .custom-page': 'onCustomPageKeypress',
+      'paste .custom-page': 'onCustomPagePaste',
       'submit form': 'onSubmit'
+    },
+
+    onCustomPageKeypress: function(e) {
+      var charCode = (e.which) ? e.which : event.keyCode;
+      if (charCode != 43 && charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+      }
+    },
+
+    onCustomPagePaste: function(e) {
+      var data = e.originalEvent.clipboardData.getData('text/plain');
+      if (isNaN(data)) {
+        return false;
+      }
     },
 
     onSubmit: function(e) {
