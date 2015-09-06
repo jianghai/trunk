@@ -30,12 +30,14 @@ define([
 
             this.pagination = new Pagination()
 
-            this.el.after(this.pagination.el)
-
             this.listen(this.pagination.model, 'change:current', function(current) {
               this.model.setParam('start', (current - 1) * limit)
             })
           }
+
+          this.pagination.delegateEvents()
+
+          this.el.after(this.pagination.el)
 
           this.pagination.model.reset({
             current: start / limit + 1,
