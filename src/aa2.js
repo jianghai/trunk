@@ -165,12 +165,18 @@ var inputHandles = {
     element.addEventListener('input', function() {
       that.set(exp, this.value, scope)
     })
+    this.addWatch(exp, scope, function(value) {
+      element.value === value || (element.value = value)
+    })
   },
   checkbox: function(element, exp, scope) {
     var that = this
     element.checked = this.get(exp, scope) || false
     element.addEventListener('change', function() {
       that.set(exp, this.checked, scope)
+    })
+    this.addWatch(exp, scope, function(value) {
+      element.checked === value || (element.checked = value)
     })
   }
 }
@@ -214,6 +220,12 @@ var directives = {
 
     this.watch(exp[1], scope)
     var list = this.get(exp[1], scope)
+
+    // 考虑数据不存在的情况
+    if (!list) {
+      list = []
+      this.set(exp[1], list, scope)
+    }
     // 阻止循环编译
     element.removeAttribute(d_prefix + 'repeat')
 

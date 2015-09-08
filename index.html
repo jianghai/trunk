@@ -3,30 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
-  <script src="src/aa2.js"></script>
+  <script src="Trunk.js"></script>
 </head>
 <body id="app">
-  <input type="text" d-model="new.name">
-  <button d-click="add">add</button>
-  <button d-class="show:" d-click="clear">clear</button>
-  <ul>
+  <input type="text" d-model="name">
+  <input type="text" d-model="test">
+  <button>{{test}}</button>
+  <!-- <button>{{test}}</button> -->
+  <!-- <button d-click="add">add</button> -->
+  <!-- <button d-class="show:" d-click="clear">clear</button> -->
+  <!-- <input type="checkbox" d-model="list[1].checked"> -->
+<!--   <ul>
     <li d-repeat="item in list">
       <input type="checkbox" d-model="item.checked">{{item.name}}
       <button d-click="$remove">X</button>
     </li>
   </ul>
+  <em>{{count}}</em> -->
+
   <script>
   console.time('compile');
-  new Trunk({
+  var app = new Trunk({
     el: '#app',
     data: {
-      aa: {
-        bb: 1
-      },
-      name: 'jianghai',
-      list: [{name: 'aa', checked: true}, {name: 'bb'}]
+      name: 'jiang'
+      // list: []
+    },
+    computed: {
+      test: function() {
+        return this.data.name.length
+      }
     },
     add: function(scope) {
+      scope.new.name = 'aa'
       scope.list.push({name: scope.new.name})
     }
   });
