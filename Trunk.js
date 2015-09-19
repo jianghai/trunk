@@ -46,52 +46,80 @@ var Trunk =
 /***/ function(module, exports, __webpack_require__) {
 
 	var compile = __webpack_require__(1)
-	var observe = __webpack_require__(7)
+	var watch   = __webpack_require__(12)
+	var observe = __webpack_require__(13)
+	var _       = __webpack_require__(2)
+
+
+	var unenumerableMap = Object.create(null)
+	;['el', 'computed'].forEach(function(property) {
+	  unenumerableMap[property] = true
+	})
 
 	function Trunk(options) {
 
 	  for (var key in options) {
 	    this[key] = options[key]
 
-	    // if (typeof this[key] === 'function') {
-	    //   Object.defineProperty(this, key, {
-	    //     enumerable: false
-	    //   })
-	    // }
+	    if (typeof this[key] === 'function' || unenumerableMap[key]) {
+	      Object.defineProperty(this, key, {
+	        enumerable: false
+	      })
+	    }
 	  }
 
 	  this.data || (this.data = {})
 
-	  // Object.defineProperty(this, 'el', {
-	  //   enumerable: false
-	  // })
-	  
-	  observe(this.data)
+	  _.merge(this, this.data)
+	  delete this.data
+
 
 	  if (this.computed) {
-	    observe(this.computed)
 	    Object.keys(this.computed).forEach(function(k) {
-	      var fn = this.computed[k]
-	      var that = this
-	      observe._computerSetter = function() {
-	        that.computed[k] = fn.call(that)
-	      }
-	      fn.value = fn.call(this)
-	      observe._computerSetter = null
+	      var item = this.computed[k]
+	      var context = this
+	      var _value
+	      Object.defineProperty(this, k, {
+	        configurable: true,
+	        enumerable: true,
+	        get: function() {
+	          if (!_value) {
+	            if (this._computer) {
+	              this._computs || Object.defineProperty(this, '_computs', {
+	                value: {}
+	              })
+	              this._computs[k] || (this._computs[k] = [])
+	              if (this._computs[k].indexOf(this._computer) === -1) {
+	                this._computs[k].push(this._computer)
+	              }
+	            }
+	            this._computer = {
+	              key: k,
+	              handle: item
+	            }
+	            _value = item.call(this)
+	            this._computer = null
+	          }
+	          return _value
+	        }
+	      })
 	    }, this)
+	    delete this.computed
 	  }
 
-	  Object.defineProperty(this.data, '_watchers', {
+	  this.observe(this)
+
+	  Object.defineProperty(this, '_watchers', {
 	    value: {}
 	  })
 
-	  this.compileNode(document.querySelector(this.el) || document.body, this.data)
+	  this.compileNode(document.querySelector(this.el) || document.body, this)
 	}
 
 	var p = Trunk.prototype
+	p.observe = observe
 	_.merge(p, compile)
-	// _.merge(p, compile)
-	// _.merge(p, compile)
+	_.merge(p, watch)
 
 	module.exports = Trunk
 
@@ -100,9 +128,9 @@ var Trunk =
 /***/ function(module, exports, __webpack_require__) {
 
 	var _          = __webpack_require__(2)
-	var directives = __webpack_require__(3)
-	var config     = __webpack_require__(5)
-	var watch     = __webpack_require__(6)
+	var directives = __webpack_require__(5)
+	var config     = __webpack_require__(6)
+	var watch      = __webpack_require__(12)
 
 
 	var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -150,9 +178,9 @@ var Trunk =
 
 	      if (fragment.isBind) {
 	        var exp = fragment.exp
-	        watch.call(this, exp, scope)
-	        textNode.nodeValue = watch.get.call(this, exp, scope) || ''
-	        watch.addDeps.call(this, exp, function(value) {
+	        this.watch(exp, scope)
+	        textNode.nodeValue = this.get(exp, scope)
+	        this.addDeps(exp, function(value) {
 	          textNode.nodeValue = value
 	        }, scope)
 	      }
@@ -166,22 +194,26 @@ var Trunk =
 	  // }
 	}
 
-	// Much more
-	var ignoreTags = {
-	  SCRIPT: true,
-	  LINK: true,
-	  STYLE: true
-	}
+	var ignoreTags = Object.create(null)
+	;['script', 'link', 'style'].forEach(function(tagName) {
+	  ignoreTags[tagName.toUpperCase()] = true
+	})
+
+	var ignoreWatchs = Object.create(null)
+	;['click'].forEach(function(directive) {
+	  ignoreWatchs[config.d_prefix + directive] = true
+	})
 
 	exports.compileAttribute = function(attribute, scope) {
 	  var name = attribute.name
-	  // Todo: use charCodeAt
-	  if (name.indexOf(config.d_prefix) !== 0) return
-	  var exp = attribute.value
-	  if (!exp.trim()) return
+	  var exp
+
+	  if (!directives[name]) return
+
+	  exp = attribute.value
 
 	  // Initialize getter & setter
-	  watch.call(this, exp, scope)
+	  ignoreWatchs[name] || this.watch(exp, scope)
 	  directives[name].call(this, attribute.ownerElement, exp, scope)
 	}
 
@@ -200,69 +232,199 @@ var Trunk =
 
 /***/ },
 /* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var lang = __webpack_require__(3)
+
+	lang.merge(exports, lang)
+	lang.merge(exports, __webpack_require__(4))
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	exports.toArray = function(arrayLike) {
+	  return Array.prototype.slice.call(arrayLike, 0)
+	}
+
+	exports.merge = function(host, extend) {
+	  for (var k in extend) {
+	    extend.hasOwnProperty(k) && (host[k] = extend[k])
+	  }
+	}
+
+	exports.isArray = function(array) {
+	  return Object.prototype.toString.call(array) === '[object Array]'
+	}
+
+	exports.isObject = function(obj) {
+	  return typeof obj === 'object' && obj !== null
+	}
+
+	exports.bind = function(fn, context) {
+	  return function() {
+	    return fn.apply(context, arguments)
+	  }
+	}
+
+	exports.initialize = function(obj, key, value) {
+	  obj[key] || Object.defineProperty(obj, key, {
+	    value: value
+	  })
+	}
+
+	exports.mapParse = function(map, callback, context) {
+	  map.split(',').forEach(function(item) {
+	    item = item.trim().split(':')
+	    callback.call(this, item[0], item[1].trim())
+	  }, context)
+	}
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	exports.index = function(parent, child) {
+	  return Array.prototype.indexOf.call(parent.children, child)
+	}
+
+	exports.toggleClass = function(element, className, condition) {
+	  element.classList.toggle(className, condition)
+	}
+
+	exports.empty = function(element) {
+	  while (element.firstChild) {
+	    element.removeChild(element.firstChild)
+	  }
+	}
+
+	exports.on = function(element, type, method, scope, context) {
+	  element.addEventListener(type, function() {
+	    typeof scope[method] === 'function' ? scope[method]() : context[method](scope)
+	  })
+	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var config = __webpack_require__(6)
+
+	var directives = Object.create(null)
+
+	;[
+	  'click',
+	  'change',
+	  'class',
+	  'model',
+	  'repeat',
+	  'on'
+	].forEach(function(directive) {
+	  directives[config.d_prefix + directive] = __webpack_require__(7)("./" + directive)
+	})
+
+	module.exports = directives
+
+/***/ },
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = {
 
-	  toArray: function(arrayLike) {
-	    return Array.prototype.slice.call(arrayLike, 0)
-	  },
+	  d_prefix: 'd-',
 
-	  empty: function(element) {
-	    while (element.firstChild) {
-	      element.removeChild(element.firstChild)
-	    }
-	  },
+	  openRE: '{{',
 
-	  merge: function(host, extend) {
-	    for (var k in extend) {
-	      extend.hasOwnProperty(k) && (host[k] = extend[k])
-	    }
-	  }
+	  closeRE: '}}'
 	}
 
 /***/ },
-/* 3 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var config     = __webpack_require__(5)
+	var map = {
+		"./change": 15,
+		"./change.js": 15,
+		"./class": 8,
+		"./class.js": 8,
+		"./click": 9,
+		"./click.js": 9,
+		"./index": 5,
+		"./index.js": 5,
+		"./model": 10,
+		"./model.js": 10,
+		"./on": 18,
+		"./on.js": 18,
+		"./repeat": 11,
+		"./repeat.js": 11
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 7;
 
-	var directives = {
-	  model: __webpack_require__(4)
-	}
-	Object.keys(directives).forEach(function(key) {
-	  directives[config.d_prefix + key] = directives[key]
-	  delete directives[key]
-	})
-	module.exports = directives
 
 /***/ },
-/* 4 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var watch = __webpack_require__(6)
+	var _ = __webpack_require__(2)
 
+	module.exports = function(element, map, scope) {
+	  _.mapParse(map, function(name, condition) {
+	    this.watch(condition, scope)
+	    _.toggleClass(element, name, this.get(condition, scope))
+	    this.addDeps(condition, function(value) {
+	      _.toggleClass(element, name, value)
+	    }, scope)
+	  }, this)
+	}
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	module.exports = function(element, method, scope) {
+	  _.on(element, 'click', method, scope, this)
+	}
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	
 	var inputHandles = {
 
 	  text: function(element, exp, scope) {
-	    element.value = watch.get.call(this, exp, scope) || ''
+	    var self = this
+	    element.value = this.get(exp, scope)
 	    element.addEventListener('input', function() {
-	      watch.set(exp, this.value, scope)
+	      self.set(exp, this.value, scope)
 	    })
-	    watch.addDeps.call(this, exp, function(value) {
+	    this.addDeps(exp, function(value) {
 	      element.value === value || (element.value = value)
 	    }, scope)
 	  },
 
 	  checkbox: function(element, exp, scope) {
-	    var that = this
-	    element.checked = this.get(exp, scope) || false
+	    var self = this
+	    element.checked = this.get(exp, scope)
 	    element.addEventListener('change', function() {
-	      that.set(exp, this.checked, scope)
+	      self.set(exp, this.checked, scope)
 	    })
-	    this.addWatch(exp, scope, function(value) {
+	    this.addDeps(exp, function(value) {
 	      element.checked === value || (element.checked = value)
-	    })
+	    }, scope)
 	  }
 	}
 
@@ -282,38 +444,117 @@ var Trunk =
 	}
 
 	module.exports = function(element, exp, scope) {
-	  // scope = this.getScope(exp, scope)
-	  // this.watch(exp, scope)
 	  modelHandles[element.tagName.toLowerCase()].apply(this, arguments)
 	}
 
 /***/ },
-/* 5 */
-/***/ function(module, exports) {
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = {
+	var config = __webpack_require__(6)
+	var _      = __webpack_require__(2)
 
-	  d_prefix: 'd-',
+	module.exports = function(element, exp, scope) {
 
-	  openRE: '{{',
+	  // exp = exp.split(' in ')
 
-	  closeRE: '}}'
+	  // scope = this.getScope(exp[1], scope)
+
+	  var list = this.get(exp, scope)
+
+	  if (!list) {
+	    list = []
+	    this.set(exp, list, scope)
+	  }
+	  
+	  // Prevent cycle compile
+	  element.removeAttribute(config.d_prefix + 'repeat')
+
+	  var context = this
+	  var container = element.parentNode
+	  var cloneNode = element.cloneNode(true)
+	  var docFrag = document.createDocumentFragment()
+
+	  function renderOne(item, list) {
+	    var _cloneNode = cloneNode.cloneNode(true)
+	    // var _data = {}
+	    // _data[exp[0]] = item
+	    var _data = item
+
+	    Object.defineProperties(_data, {
+	      // _namespace: {
+	      //   value: exp[0]
+	      // },
+	      // _parent: {
+	      //   value: scope
+	      // },
+	      _watchers: {
+	        value: {}
+	      },
+	      $remove: {
+	        configurable: false,
+	        enumerable: false,
+	        writable: false,
+	        value: function() {
+	          list.splice(_.index(container, _cloneNode), 1)
+	        }
+	      }
+	    })
+
+	    this.compileNode(_cloneNode, _data)
+	    docFrag.appendChild(_cloneNode)
+	  }
+
+	  function render(list) {
+	    list && list.forEach(function(item) {
+	      renderOne.call(this, item, list)
+	    }, this)
+	    _.empty(container)
+	    container.appendChild(docFrag)
+	  }
+
+	  render.call(this, list)
+
+	  // Rerender when list reset
+	  this.addDeps(exp, _.bind(render, this), scope)
+
+	  ;['push', 'splice'].forEach(function(method) {
+	    _.initialize(list, '_on' + method, [])
+	  })
+
+	  list._onpush.push(function() {
+	    var args = arguments
+	    for (var i = 0; i < args.length; i++) {
+	      renderOne.call(context, args[i], this)
+	    }
+	    container.appendChild(docFrag)
+	  })
+
+	  list._onsplice.push(function(start, deleteCount) {
+	    var children = container.children
+	    var i = 0
+	    while(i < deleteCount) {
+	      container.removeChild(children[start])
+	      i++
+	    }
+	  })
+
+	  // Stop compile childNodes
+	  _.empty(element)
 	}
 
 /***/ },
-/* 6 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var observe = __webpack_require__(7)
+	var _ = __webpack_require__(2)
 
 	function isWatching(exp, scope) {
 	  return !!scope._watchers[exp]
 	}
 
-	function watch(exp, scope) {
+	exports.watch = function(exp, scope) {
 
-	  if (this.computed[exp]) return
-	   
 	  if (isWatching(exp, scope)) return
 
 	  var match = exp.match(/[\w_]+/g)
@@ -322,91 +563,187 @@ var Trunk =
 	  match.forEach(function(prop) {
 	    if (typeof _host[prop] !== 'object' || _host[prop] === null) {
 	      _host[prop] = {}
-	      observe(_host, prop)
+	      this.observe(_host, prop)
 	      // _host._deps.push(function(value) {
 	      //   _host[prop] = value[prop]
 	      // })
 	    }
 	    _host = _host[prop]
-	  })
-	  _host[prop] || (_host[prop] = undefined)
-	  observe(_host, prop)
+	  }, this)
+	  if (!(prop in _host)) {
+	    _host[prop] = undefined
+	  }
+	  this.observe(_host, prop)
 	  scope._watchers[exp] = {
 	    host: _host,
 	    prop: prop
 	  }
 	}
 
-	watch.get = function(exp, scope) {
-	  var computer = this.computed[exp]
-	  if (computer) return computer.value
-
+	exports.get = function(exp, scope) {
 	  var target = scope._watchers[exp]
-	  return target.host[target.prop]
+	  var value = target.host[target.prop]
+	  value === undefined && (value = '')
+	  return value
 	}
 
-	watch.set = function(exp, value, scope) {
+	exports.set = function(exp, value, scope) {
 	  var target = scope._watchers[exp]
 	  target.host[target.prop] = value
 	}
 
-	watch.addDeps = function(exp, fn, scope) {
-	  var computer = this.computed[exp]
-	  if (computer) {
-	    this.computed._deps[exp].push(fn)
+	// exports.getScope = function(exp, scope) {
+	//   var _namespace
+	//   var _match = exp.match(/[\w_]+/)[0]
+	//   while ((_namespace = scope._namespace) && _match !== _namespace) {
+	//     scope = scope._parent
+	//   }
+	//   return scope
+	// }
+
+	exports.addDeps = function(exp, fn, scope) {
+	  var target = scope._watchers[exp]
+
+	  _.initialize(target.host, '_deps', {})
+	  var _deps = target.host._deps
+	  _deps[target.prop] || (_deps[target.prop] = [])
+
+	  _deps[target.prop].push(fn)
+	}
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	var arrayMap = Object.create(null)
+
+	arrayMap.push = function(hasComputs, host, key, args) {
+	  for (var i = 0; i < args.length; i++) {
+	    this.observe(args[i])
+	  }
+	  if (hasComputs) {
+	    host._computs[key].forEach(function(item) {
+	      this._computer = item
+	      item._value = item.handle.call(this)
+	      this._computer = null
+	    }, this)
+	  }
+	}
+
+	function bindArray(host, key) {
+
+	  ['push', 'splice'].forEach(function(method) {
+
+	    var context = this
+
+	    Object.defineProperty(host[key], method, {
+	      configurable: true,
+	      enumerable: false,
+	      writable: false,
+	      value: function() {
+
+	        var args = arguments
+	        Array.prototype[method].apply(this, args)
+
+	        var _on = '_on' + method
+	        this[_on] && this[_on].forEach(function(fn) {
+	          fn.apply(this, args)
+	        }, this)
+
+	        var hasComputs = !!(host._computs && host._computs[key])
+
+	        arrayMap[method] && arrayMap[method].call(context, hasComputs, host, key, arguments)
+
+	        if (hasComputs) {
+	          host._computs[key].forEach(function(item) {
+	            context[item.key] = item._value
+	            delete item._value
+	          })
+	        }
+	      }
+	    })
+	  }, this)
+	}
+
+	function observe(obj, k) {
+
+	  if (k === undefined) {
+	    Object.keys(obj).forEach(function(k) {
+	      this.observe(obj, k)
+	    }, this)
 	    return
 	  }
 
-	  var target = scope._watchers[exp]
-	  target.host._deps[target.prop].push(fn)
-	}
-
-	module.exports = watch
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	function bind(obj, k) {
+	  var context = this
 	  var _value = obj[k]
+
 	  Object.defineProperty(obj, k, {
+
 	    get: function() {
-	      if (!this._deps) {
-	        Object.defineProperty(this, '_deps', {
+
+	      if (context._computer) {
+	        this._computs || Object.defineProperty(this, '_computs', {
 	          value: {}
 	        })
-	      }
-	      if (!this._deps[k]) {
-	        this._deps[k] = []
-	      }
-	      if (observe._computerSetter) {
-	        this._deps[k].push(observe._computerSetter)
+	        this._computs[k] || (this._computs[k] = [])
+
+	        if (this._computs[k].indexOf(context._computer) === -1) {
+	          this._computs[k].push(context._computer)
+	        }
 	      }
 	      return _value
 	    },
+
 	    set: function(value) {
+
 	      _value = value
-	      if (this._deps[k].length) {
+
+	      if (this._deps && this._deps[k]) {
 	        this._deps[k].forEach(function(fn) {
 	          fn(value)
 	        })
 	      }
+	      if (this._computs && this._computs[k]) {
+	        this._computs[k].forEach(function(item) {
+	          context[item.key] = item.handle.call(context)
+	        })
+	      }
 	    }
 	  })
-	}
 
-	function observe(obj, k) {
-	  
-	  if (typeof obj !== 'object' || obj === null) return
+	  _.isArray(_value) && bindArray.call(this, obj, k)
 
-	  k ? bind(obj, k) : Object.keys(obj).forEach(function(k) {
-	    
-	    bind(obj, k)
-	    observe(obj[k])
-	  })
+	  _.isObject(obj[k]) && this.observe(obj[k])
 	}
 
 	module.exports = observe
+
+/***/ },
+/* 14 */,
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	module.exports = function(element, method, scope) {
+	  _.on(element, 'change', method, scope, this)
+	}
+
+/***/ },
+/* 16 */,
+/* 17 */,
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	module.exports = function(element, map, scope) {
+	  _.mapParse(map, function(type, method) {
+	    _.on(element, type, method, scope, this)
+	  }, this)
+	}
 
 /***/ }
 /******/ ]);

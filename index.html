@@ -5,41 +5,49 @@
   <title>Document</title>
   <script src="Trunk.js"></script>
 </head>
-<body id="app">
-  <input type="text" d-model="name">
-  <input type="text" d-model="test">
-  <button>{{test}}</button>
-  <!-- <button>{{test}}</button> -->
-  <!-- <button d-click="add">add</button> -->
-  <!-- <button d-class="show:" d-click="clear">clear</button> -->
-  <!-- <input type="checkbox" d-model="list[1].checked"> -->
-<!--   <ul>
-    <li d-repeat="item in list">
-      <input type="checkbox" d-model="item.checked">{{item.name}}
+<body id="app" class="aa bb">
+
+  <input type="text" d-model="new.name" placeholder="待办事项">
+  <button d-click="add">添加</button>
+  <button d-class="test: remain">添加</button>
+  <ul>
+    <li d-repeat="list">
+      <input type="checkbox" d-model="checked">{{name}}
       <button d-click="$remove">X</button>
     </li>
   </ul>
-  <em>{{count}}</em> -->
+  共 <strong>{{count}}</strong> 条，
+  已完成 <strong>{{remain}}</strong> 条
 
   <script>
-  console.time('compile');
+  console.time('compile')
   var app = new Trunk({
     el: '#app',
     data: {
-      name: 'jiang'
-      // list: []
+      list: [{
+        name: 'aa',
+        checked: true
+      }, {
+        name: 'bb'
+      }]
     },
     computed: {
-      test: function() {
-        return this.data.name.length
+      count: function() {
+        return this.list.length + this.remain
+      },
+      remain: function() {
+        return this.list.filter(function(item) {
+          return item.checked
+        }).length
       }
     },
-    add: function(scope) {
-      scope.new.name = 'aa'
-      scope.list.push({name: scope.new.name})
+    add: function() {
+      this.list.push({name: this.new.name, checked: true})
     }
-  });
-  console.timeEnd('compile');
+  })
+  console.timeEnd('compile')
+  console.dir(app)
   </script>
+
 </body>
 </html>

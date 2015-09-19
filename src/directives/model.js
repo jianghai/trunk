@@ -1,26 +1,26 @@
-var watch = require('../watch')
 
 var inputHandles = {
 
   text: function(element, exp, scope) {
-    element.value = watch.get.call(this, exp, scope) || ''
+    var self = this
+    element.value = this.get(exp, scope)
     element.addEventListener('input', function() {
-      watch.set(exp, this.value, scope)
+      self.set(exp, this.value, scope)
     })
-    watch.addDeps.call(this, exp, function(value) {
+    this.addDeps(exp, function(value) {
       element.value === value || (element.value = value)
     }, scope)
   },
 
   checkbox: function(element, exp, scope) {
-    var that = this
-    element.checked = this.get(exp, scope) || false
+    var self = this
+    element.checked = this.get(exp, scope)
     element.addEventListener('change', function() {
-      that.set(exp, this.checked, scope)
+      self.set(exp, this.checked, scope)
     })
-    this.addWatch(exp, scope, function(value) {
+    this.addDeps(exp, function(value) {
       element.checked === value || (element.checked = value)
-    })
+    }, scope)
   }
 }
 
@@ -40,7 +40,5 @@ var modelHandles = {
 }
 
 module.exports = function(element, exp, scope) {
-  // scope = this.getScope(exp, scope)
-  // this.watch(exp, scope)
   modelHandles[element.tagName.toLowerCase()].apply(this, arguments)
 }

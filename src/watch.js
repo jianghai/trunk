@@ -1,13 +1,11 @@
-var observe = require('./observe')
+var _ = require('./util')
 
 function isWatching(exp, scope) {
   return !!scope._watchers[exp]
 }
 
-function watch(exp, scope) {
+exports.watch = function(exp, scope) {
 
-  if (this.computed[exp]) return
-   
   if (isWatching(exp, scope)) return
 
   var match = exp.match(/[\w_]+/g)
@@ -16,43 +14,50 @@ function watch(exp, scope) {
   match.forEach(function(prop) {
     if (typeof _host[prop] !== 'object' || _host[prop] === null) {
       _host[prop] = {}
-      observe(_host, prop)
+      this.observe(_host, prop)
       // _host._deps.push(function(value) {
       //   _host[prop] = value[prop]
       // })
     }
     _host = _host[prop]
-  })
-  _host[prop] || (_host[prop] = undefined)
-  observe(_host, prop)
+  }, this)
+  if (!(prop in _host)) {
+    _host[prop] = undefined
+  }
+  this.observe(_host, prop)
   scope._watchers[exp] = {
     host: _host,
     prop: prop
   }
 }
 
-watch.get = function(exp, scope) {
-  var computer = this.computed[exp]
-  if (computer) return computer.value
-
+exports.get = function(exp, scope) {
   var target = scope._watchers[exp]
-  return target.host[target.prop]
+  var value = target.host[target.prop]
+  value === undefined && (value = '')
+  return value
 }
 
-watch.set = function(exp, value, scope) {
+exports.set = function(exp, value, scope) {
   var target = scope._watchers[exp]
   target.host[target.prop] = value
 }
 
-watch.addDeps = function(exp, fn, scope) {
-  var computer = this.computed[exp]
-  if (computer) {
-    this.computed._deps[exp].push(fn)
-    return
-  }
+// exports.getScope = function(exp, scope) {
+//   var _namespace
+//   var _match = exp.match(/[\w_]+/)[0]
+//   while ((_namespace = scope._namespace) && _match !== _namespace) {
+//     scope = scope._parent
+//   }
+//   return scope
+// }
 
+exports.addDeps = function(exp, fn, scope) {
   var target = scope._watchers[exp]
-  target.host._deps[target.prop].push(fn)
-}
 
-module.exports = watch
+  _.initialize(target.host, '_deps', {})
+  var _deps = target.host._deps
+  _deps[target.prop] || (_deps[target.prop] = [])
+
+  _deps[target.prop].push(fn)
+}

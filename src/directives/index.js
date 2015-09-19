@@ -1,10 +1,16 @@
-var config     = require('../config')
+var config = require('../config')
 
-var directives = {
-  model: require('./model')
-}
-Object.keys(directives).forEach(function(key) {
-  directives[config.d_prefix + key] = directives[key]
-  delete directives[key]
+var directives = Object.create(null)
+
+;[
+  'click',
+  'change',
+  'class',
+  'model',
+  'repeat',
+  'on'
+].forEach(function(directive) {
+  directives[config.d_prefix + directive] = require('./' + directive)
 })
+
 module.exports = directives

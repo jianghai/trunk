@@ -1,7 +1,7 @@
 var _          = require('./util')
 var directives = require('./directives')
 var config     = require('./config')
-var watch     = require('./watch')
+var watch      = require('./watch')
 
 
 var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -49,9 +49,9 @@ var nodeTypeHandles = {
 
       if (fragment.isBind) {
         var exp = fragment.exp
-        watch.call(this, exp, scope)
-        textNode.nodeValue = watch.get.call(this, exp, scope) || ''
-        watch.addDeps.call(this, exp, function(value) {
+        this.watch(exp, scope)
+        textNode.nodeValue = this.get(exp, scope)
+        this.addDeps(exp, function(value) {
           textNode.nodeValue = value
         }, scope)
       }
@@ -65,22 +65,26 @@ var nodeTypeHandles = {
   // }
 }
 
-// Much more
-var ignoreTags = {
-  SCRIPT: true,
-  LINK: true,
-  STYLE: true
-}
+var ignoreTags = Object.create(null)
+;['script', 'link', 'style'].forEach(function(tagName) {
+  ignoreTags[tagName.toUpperCase()] = true
+})
+
+var ignoreWatchs = Object.create(null)
+;['click'].forEach(function(directive) {
+  ignoreWatchs[config.d_prefix + directive] = true
+})
 
 exports.compileAttribute = function(attribute, scope) {
   var name = attribute.name
-  // Todo: use charCodeAt
-  if (name.indexOf(config.d_prefix) !== 0) return
-  var exp = attribute.value
-  if (!exp.trim()) return
+  var exp
+
+  if (!directives[name]) return
+
+  exp = attribute.value
 
   // Initialize getter & setter
-  watch.call(this, exp, scope)
+  ignoreWatchs[name] || this.watch(exp, scope)
   directives[name].call(this, attribute.ownerElement, exp, scope)
 }
 
