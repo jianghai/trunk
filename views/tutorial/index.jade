@@ -28,11 +28,14 @@ block main
           model2.trigger('save')
     section#usage
       h1 How to use
-      p Trunk.js依赖 <a href="https://jquery.com/">jQuery</a>，如果没有使用任何模块加载器
+      p Trunk.js依赖 <a href="http://code.jquery.com/jquery-1.11.3.min.js">jQuery</a>
+      h2 方式1：原始模式
       pre
         :highlight(lang='markup')
-          <script src="dir/jquery.js"></script>
-          <script src="dir/Trunk.js"></script>
+          <script src="lib/jquery.js"></script>
+          <script src="lib/Trunk.js"></script>
+          <script src="js/page.js"></script>
+      p page.js
       pre
         :highlight(lang='js')
           $(function() {
@@ -41,29 +44,31 @@ block main
             })
             // Do...
           })
-      p 如果使用的是AMD规范，如requirejs
+      h2 方式2：AMD规范，如 <a href="http://requirejs.org/docs/release/2.1.20/minified/require.js">requirejs</a>
+      pre
+        :highlight(lang='markup')
+          <script src="lib/require.min.js"></script>
+          <script src="js/require.config.js"></script>
+          <script src="js/page.js"></script>
+      p require.config.js
       pre
         :highlight(lang='js')
           require.config({
             paths: {
-              'jquery': 'dir/jquery',
-              'Trunk': 'dir/Trunk'
+              'jquery': 'lib/jquery',
+              'Trunk': 'lib/Trunk'
             }
           })
+      p page.js
+      pre
+        :highlight(lang='js')
           require(['Trunk'], function(Trunk) {
             var app = new Trunk({
               el: 'body'
             })
             // Do...
           })
-      p 如果是CommonJS规范，如webpack
-      pre
-        :highlight(lang='js')
-          var Trunk = require('dir/Trunk')
-          var app = new Trunk({
-            el: 'body'
-          })
-          // Do...
+      h2 方式3：CommonJS规范，如 webpack (待完善)
     section#download
       h1 Download
       p

@@ -104,18 +104,22 @@ code {
 }
 pre {
   padding: .8rem 1rem;
-  background-color: #f8f5ec;
+  background-color: #f8f8f8;
   border-radius: 4px;
   word-break: break-word;
 }
 pre .tag {
-  color: #62a35c;
+  color: #881280;
 }
 pre .attr {
-  color: #795da3;
+  color: #994500;
 }
 pre .kwd {
-  color: #795da3;
+  color: #333333;
+  font-weight: bold;
+}
+pre .in {
+  color: #0086b3;
 }
 pre .kc {
   color: #0086b3;
@@ -125,9 +129,10 @@ pre .num {
 }
 pre .com {
   color: #9b9b9b;
+  font-style: italic;
 }
 pre .str {
-  color: #df5000;
+  color: #d14;
 }
 
 .iconfont {
@@ -368,7 +373,7 @@ body.fixed .sidebar + .content {
 }
 
 .tab.code .tab-nav {
-  background-color: #f1ede4;
+  background-color: #EAEAEA;
   border-bottom: 0;
   color: #c2c0bc;
   font-weight: bold;
@@ -386,7 +391,7 @@ body.fixed .sidebar + .content {
 
 footer {
   margin-top: 1.5rem;
-  background-color: #C5C5C5;
+  background-color: #e8e8e8;
   color: #838383;
   padding: 20px;
 }
