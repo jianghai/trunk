@@ -1,16 +1,19 @@
 var compile = require('./compile')
 var watch   = require('./watch')
 var observe = require('./observe')
+var component = require('./component')
 var _       = require('./util')
 
 
 var unenumerableMap = Object.create(null)
-;['el', 'computed'].forEach(function(property) {
+;['el', 'computed', 'template'].forEach(function(property) {
   unenumerableMap[property] = true
 })
 
 function Trunk(options) {
 
+  typeof options.el === 'string' && (options.el = document.querySelector(this.el))
+  
   for (var key in options) {
     this[key] = options[key]
 
@@ -32,11 +35,13 @@ function Trunk(options) {
       var item = this.computed[k]
       var context = this
       var _value
+      var _hasGet = false
       Object.defineProperty(this, k, {
         configurable: true,
         enumerable: true,
         get: function() {
-          if (!_value) {
+          if (!_hasGet) {
+            // 记录Computed自身的依赖
             if (this._computer) {
               this._computs || Object.defineProperty(this, '_computs', {
                 value: {}
@@ -46,11 +51,13 @@ function Trunk(options) {
                 this._computs[k].push(this._computer)
               }
             }
+            // 初始化绑定依赖
             this._computer = {
               key: k,
               handle: item
             }
             _value = item.call(this)
+            _hasGet = true
             this._computer = null
           }
           return _value
@@ -66,10 +73,12 @@ function Trunk(options) {
     value: {}
   })
 
-  this.compileNode(document.querySelector(this.el) || document.body, this)
+  this.compileNode(this.el || document.body, this)
 }
 
+Trunk.component = component
 var p = Trunk.prototype
+p.components = {}
 p.observe = observe
 _.merge(p, compile)
 _.merge(p, watch)

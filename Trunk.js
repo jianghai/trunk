@@ -46,18 +46,21 @@ var Trunk =
 /***/ function(module, exports, __webpack_require__) {
 
 	var compile = __webpack_require__(1)
-	var watch   = __webpack_require__(12)
-	var observe = __webpack_require__(13)
+	var watch   = __webpack_require__(14)
+	var observe = __webpack_require__(15)
+	var component = __webpack_require__(17)
 	var _       = __webpack_require__(2)
 
 
 	var unenumerableMap = Object.create(null)
-	;['el', 'computed'].forEach(function(property) {
+	;['el', 'computed', 'template'].forEach(function(property) {
 	  unenumerableMap[property] = true
 	})
 
 	function Trunk(options) {
 
+	  typeof options.el === 'string' && (options.el = document.querySelector(this.el))
+	  
 	  for (var key in options) {
 	    this[key] = options[key]
 
@@ -79,11 +82,13 @@ var Trunk =
 	      var item = this.computed[k]
 	      var context = this
 	      var _value
+	      var _hasGet = false
 	      Object.defineProperty(this, k, {
 	        configurable: true,
 	        enumerable: true,
 	        get: function() {
-	          if (!_value) {
+	          if (!_hasGet) {
+	            // 记录Computed自身的依赖
 	            if (this._computer) {
 	              this._computs || Object.defineProperty(this, '_computs', {
 	                value: {}
@@ -93,11 +98,13 @@ var Trunk =
 	                this._computs[k].push(this._computer)
 	              }
 	            }
+	            // 初始化绑定依赖
 	            this._computer = {
 	              key: k,
 	              handle: item
 	            }
 	            _value = item.call(this)
+	            _hasGet = true
 	            this._computer = null
 	          }
 	          return _value
@@ -113,10 +120,12 @@ var Trunk =
 	    value: {}
 	  })
 
-	  this.compileNode(document.querySelector(this.el) || document.body, this)
+	  this.compileNode(this.el || document.body, this)
 	}
 
+	Trunk.component = component
 	var p = Trunk.prototype
+	p.components = {}
 	p.observe = observe
 	_.merge(p, compile)
 	_.merge(p, watch)
@@ -130,7 +139,7 @@ var Trunk =
 	var _          = __webpack_require__(2)
 	var directives = __webpack_require__(5)
 	var config     = __webpack_require__(6)
-	var watch      = __webpack_require__(12)
+	var watch      = __webpack_require__(14)
 
 
 	var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -195,7 +204,7 @@ var Trunk =
 	}
 
 	var ignoreTags = Object.create(null)
-	;['script', 'link', 'style'].forEach(function(tagName) {
+	;['script', 'link', 'style', 'template'].forEach(function(tagName) {
 	  ignoreTags[tagName.toUpperCase()] = true
 	})
 
@@ -219,11 +228,20 @@ var Trunk =
 
 	exports.compileNode = function(node, scope) {
 
-	  // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
-	  if (ignoreTags[node.tagName]) return
-
 	  var handle = nodeTypeHandles[node.nodeType]
 	  if (!handle) return
+
+	  if (node.tagName) {
+	    // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
+	    if (ignoreTags[node.tagName]) return
+
+	    var component = this.components[node.tagName.toLowerCase()]
+	    if (component) {
+	      node.parentNode.replaceChild(component.el.cloneNode(true), node)
+	      return
+	    }
+	  }
+
 	  handle.call(this, node, scope)
 	  _.toArray(node.childNodes).forEach(function(node) {
 	    this.compileNode(node, scope)
@@ -267,10 +285,18 @@ var Trunk =
 	  }
 	}
 
-	exports.initialize = function(obj, key, value) {
-	  obj[key] || Object.defineProperty(obj, key, {
-	    value: value
-	  })
+	exports.initialize = function(host, exp, value) {
+	  var match = exp.split('.')
+	  var lastProp = match.pop()
+	  var i = 0
+	  while (i < match.length) {
+	    var _prop = match[i++]
+	    if (!this.isObject(host[_prop])) {
+	      host[_prop] = {}
+	    }
+	    host = host[_prop]
+	  }
+	  host[lastProp] = value
 	}
 
 	exports.mapParse = function(map, callback, context) {
@@ -343,20 +369,20 @@ var Trunk =
 /***/ function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./change": 15,
-		"./change.js": 15,
-		"./class": 8,
-		"./class.js": 8,
-		"./click": 9,
-		"./click.js": 9,
+		"./change": 8,
+		"./change.js": 8,
+		"./class": 9,
+		"./class.js": 9,
+		"./click": 10,
+		"./click.js": 10,
 		"./index": 5,
 		"./index.js": 5,
-		"./model": 10,
-		"./model.js": 10,
-		"./on": 18,
-		"./on.js": 18,
-		"./repeat": 11,
-		"./repeat.js": 11
+		"./model": 11,
+		"./model.js": 11,
+		"./on": 12,
+		"./on.js": 12,
+		"./repeat": 13,
+		"./repeat.js": 13
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -378,6 +404,16 @@ var Trunk =
 
 	var _ = __webpack_require__(2)
 
+	module.exports = function(element, method, scope) {
+	  _.on(element, 'change', method, scope, this)
+	}
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
 	module.exports = function(element, map, scope) {
 	  _.mapParse(map, function(name, condition) {
 	    this.watch(condition, scope)
@@ -389,7 +425,7 @@ var Trunk =
 	}
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(2)
@@ -399,7 +435,7 @@ var Trunk =
 	}
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	
@@ -448,25 +484,28 @@ var Trunk =
 	}
 
 /***/ },
-/* 11 */
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	module.exports = function(element, map, scope) {
+	  _.mapParse(map, function(type, method) {
+	    _.on(element, type, method, scope, this)
+	  }, this)
+	}
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var config = __webpack_require__(6)
-	var _      = __webpack_require__(2)
+	var _ = __webpack_require__(2)
 
 	module.exports = function(element, exp, scope) {
 
-	  // exp = exp.split(' in ')
-
-	  // scope = this.getScope(exp[1], scope)
-
 	  var list = this.get(exp, scope)
 
-	  if (!list) {
-	    list = []
-	    this.set(exp, list, scope)
-	  }
-	  
 	  // Prevent cycle compile
 	  element.removeAttribute(config.d_prefix + 'repeat')
 
@@ -474,20 +513,16 @@ var Trunk =
 	  var container = element.parentNode
 	  var cloneNode = element.cloneNode(true)
 	  var docFrag = document.createDocumentFragment()
+	  var childNodes = [element]
+
+	  // Stop compile childNodes
+	  _.empty(element)
 
 	  function renderOne(item, list) {
 	    var _cloneNode = cloneNode.cloneNode(true)
-	    // var _data = {}
-	    // _data[exp[0]] = item
 	    var _data = item
 
-	    Object.defineProperties(_data, {
-	      // _namespace: {
-	      //   value: exp[0]
-	      // },
-	      // _parent: {
-	      //   value: scope
-	      // },
+	    _data._watchers || Object.defineProperties(_data, {
 	      _watchers: {
 	        value: {}
 	      },
@@ -496,21 +531,48 @@ var Trunk =
 	        enumerable: false,
 	        writable: false,
 	        value: function() {
-	          list.splice(_.index(container, _cloneNode), 1)
+	          list.splice(childNodes.indexOf(_cloneNode), 1)
 	        }
 	      }
 	    })
 
 	    this.compileNode(_cloneNode, _data)
 	    docFrag.appendChild(_cloneNode)
+	    childNodes.push(_cloneNode)
 	  }
 
 	  function render(list) {
+
+	    childNodes.forEach(function(childNode) {
+	      container.removeChild(childNode)
+	    })
+
+	    childNodes.length = []
+
 	    list && list.forEach(function(item) {
 	      renderOne.call(this, item, list)
 	    }, this)
-	    _.empty(container)
+
 	    container.appendChild(docFrag)
+
+	    if (list.on) {
+	      list.on.push.push(function() {
+	        var args = arguments
+	        for (var i = 0; i < args.length; i++) {
+	          renderOne.call(context, args[i], this)
+	        }
+	        container.appendChild(docFrag)
+	      })
+
+	      list.on.splice.push(function(start, deleteCount) {
+	        var i = 0
+	        while (i < deleteCount) {
+	          container.removeChild(childNodes[start + i])
+	          i++
+	        }
+	        childNodes.splice(start, deleteCount)
+	      })
+	    }
 	  }
 
 	  render.call(this, list)
@@ -518,78 +580,40 @@ var Trunk =
 	  // Rerender when list reset
 	  this.addDeps(exp, _.bind(render, this), scope)
 
-	  ;['push', 'splice'].forEach(function(method) {
-	    _.initialize(list, '_on' + method, [])
-	  })
-
-	  list._onpush.push(function() {
-	    var args = arguments
-	    for (var i = 0; i < args.length; i++) {
-	      renderOne.call(context, args[i], this)
-	    }
-	    container.appendChild(docFrag)
-	  })
-
-	  list._onsplice.push(function(start, deleteCount) {
-	    var children = container.children
-	    var i = 0
-	    while(i < deleteCount) {
-	      container.removeChild(children[start])
-	      i++
-	    }
-	  })
-
-	  // Stop compile childNodes
-	  _.empty(element)
+	  // var watcher = scope._watchers[exp]
+	  // ;['push', 'splice'].forEach(function(method) {
+	  //   _.initialize(watcher, '_on' + method, [])
+	  // })
 	}
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(2)
 
-	function isWatching(exp, scope) {
-	  return !!scope._watchers[exp]
-	}
-
 	exports.watch = function(exp, scope) {
 
-	  if (isWatching(exp, scope)) return
+	  if (scope._watchers[exp]) return
 
-	  var match = exp.match(/[\w_]+/g)
-	  var prop = match.pop()
-	  var _host = scope
-	  match.forEach(function(prop) {
-	    if (typeof _host[prop] !== 'object' || _host[prop] === null) {
-	      _host[prop] = {}
-	      this.observe(_host, prop)
-	      // _host._deps.push(function(value) {
-	      //   _host[prop] = value[prop]
-	      // })
-	    }
-	    _host = _host[prop]
-	  }, this)
-	  if (!(prop in _host)) {
-	    _host[prop] = undefined
-	  }
-	  this.observe(_host, prop)
 	  scope._watchers[exp] = {
-	    host: _host,
-	    prop: prop
+	    getter: new Function('scope', 'return scope.' + exp),
+	    setter: new Function('value', 'scope', 'scope.' + exp + ' = value')
 	  }
 	}
 
 	exports.get = function(exp, scope) {
-	  var target = scope._watchers[exp]
-	  var value = target.host[target.prop]
-	  value === undefined && (value = '')
+	  var value
+	  try {
+	    value = scope._watchers[exp].getter(scope)
+	  } catch (e) {
+	    value = ''
+	  }
 	  return value
 	}
 
 	exports.set = function(exp, value, scope) {
-	  var target = scope._watchers[exp]
-	  target.host[target.prop] = value
+	  scope._watchers[exp].setter(value, scope)
 	}
 
 	// exports.getScope = function(exp, scope) {
@@ -601,44 +625,182 @@ var Trunk =
 	//   return scope
 	// }
 
-	exports.addDeps = function(exp, fn, scope) {
-	  var target = scope._watchers[exp]
+	exports.addDeps = function(exp, handle, scope) {
 
-	  _.initialize(target.host, '_deps', {})
-	  var _deps = target.host._deps
-	  _deps[target.prop] || (_deps[target.prop] = [])
+	  var getter = scope._watchers[exp].getter
+	  var host = scope
+	  var match = exp.match(/[\w_]+/g)
+	  var i = 0
+	  var len = match.length
+	  var deps
+	  var key
 
-	  _deps[target.prop].push(fn)
+	  host._deps || Object.defineProperty(host, '_deps', {
+	    configurable: true,
+	    value: {}
+	  })
+	  deps = host._deps
+
+	  while (i < len) {
+
+	    key = match[i]
+
+	    if (host) {
+	      if (i > 0 && _.isObject(host)) {
+	        Object.defineProperty(host, '_deps', {
+	          configurable: true,
+	          value: deps
+	        })
+	      }
+	      host = host[key]
+	    }
+
+	    deps[key] || (deps[key] = {})
+	    deps = deps[key]
+	    deps.handles || (deps.handles = [])
+	    deps.handles.push({
+	      scope: scope,
+	      getter: getter,
+	      handle: handle
+	    })
+
+	    if (i + 1 < len) {
+	      deps.sub || (deps.sub = {})
+	      deps = deps.sub
+	    }
+
+	    i++
+	  }
 	}
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(2)
+	var _            = __webpack_require__(2)
+	var ObserveArray = __webpack_require__(16)
 
-	var arrayMap = Object.create(null)
+	function _observe(obj, k) {
 
-	arrayMap.push = function(hasComputs, host, key, args) {
-	  for (var i = 0; i < args.length; i++) {
-	    this.observe(args[i])
+	  var context = this
+	  var _value = obj[k]
+
+	  function getter() {
+	    if (context._computer) {
+	      this._computs || Object.defineProperty(this, '_computs', {
+	        value: {}
+	      })
+	      this._computs[k] || (this._computs[k] = [])
+
+	      if (this._computs[k].indexOf(context._computer) === -1) {
+	        this._computs[k].push(context._computer)
+	      }
+	    }
+	    return _value
 	  }
-	  if (hasComputs) {
-	    host._computs[key].forEach(function(item) {
-	      this._computer = item
-	      item._value = item.handle.call(this)
-	      this._computer = null
-	    }, this)
+
+	  function setter(value) {
+	    _value = value
+	    
+	    if (_.isObject(value)) {
+	      if (_.isArray(value)) {
+	        new ObserveArray(this, k, context)
+	        for (var i = 0, len = value.length; i < len; i++) {
+	          _.isObject(value[i]) && context.observe(value[i])
+	        }
+	      } else {
+	        context.observe(value)
+	      }
+	      try {
+	        var sub = this._deps[k].sub
+	        if (sub) {
+	          Object.defineProperty(value, '_deps', {
+	            value: sub
+	          })
+	        }
+	      } catch (e) {}
+	    }
+
+	    if (this._deps && this._deps[k]) {
+	      this._deps[k].handles.forEach(function(item) {
+	        var value
+	        try {
+	          value = item.getter(item.scope)
+	        } catch (e) {
+	          value = ''
+	        }
+	        item.handle(value)
+	      }, this)
+	    }
+	    
+	    if (this._computs && this._computs[k]) {
+	      this._computs[k].forEach(function(item) {
+	        var value
+	        try {
+	          value = item.handle.call(context)
+	        } catch (e) {
+	          value = ''
+	        }
+	        context[item.key] = value
+	      })
+	    }
+	  }
+	  Object.defineProperty(obj, k, {
+	    get: getter,
+	    set: setter
+	  })
+	}
+
+	/**
+	 * Define getter/setter for all enumerable properties to record computed handles and invokes 
+	 * depends & computed handles, redefine when the value of setter is object.
+	 * 
+	 * @param {object} obj The Object of define getter/setter
+	 */
+	function observe(obj) {
+
+	  for (var k in obj) {
+	    if (obj.hasOwnProperty(k)) {
+	      _observe.call(this, obj, k)
+	      var _value = obj[k]
+	      if (_.isArray(_value)) {
+	        new ObserveArray(obj, k, this)
+	        for (var i = 0, len = _value.length; i < len; i++) {
+	          _.isObject(_value[i]) && this.observe(_value[i])
+	        }
+	      } else if (_.isObject(_value)) {
+	        this.observe(_value)
+	      }
+	    }
 	  }
 	}
 
-	function bindArray(host, key) {
+	module.exports = observe
 
-	  ['push', 'splice'].forEach(function(method) {
+/***/ },
+/* 16 */
+/***/ function(module, exports) {
 
-	    var context = this
+	
+	function ObserveArray(host, key, context) {
+	  this.host = host
+	  this.key = key
+	  this.list = host[key]
+	  this.context = context
 
-	    Object.defineProperty(host[key], method, {
+	  Object.defineProperty(this.list, 'on', {
+	    value: {}
+	  })
+
+	  ;['push', 'splice'].forEach(function(method) {
+
+	    var self = this
+
+	    Object.defineProperty(this.list.on, method, {
+	      value: []
+	    })
+
+	    Object.defineProperty(this.list, method, {
 	      configurable: true,
 	      enumerable: false,
 	      writable: false,
@@ -647,103 +809,56 @@ var Trunk =
 	        var args = arguments
 	        Array.prototype[method].apply(this, args)
 
-	        var _on = '_on' + method
-	        this[_on] && this[_on].forEach(function(fn) {
+	        this.on[method].forEach(function(fn) {
 	          fn.apply(this, args)
 	        }, this)
 
-	        var hasComputs = !!(host._computs && host._computs[key])
+	        self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
 
-	        arrayMap[method] && arrayMap[method].call(context, hasComputs, host, key, arguments)
-
-	        if (hasComputs) {
-	          host._computs[key].forEach(function(item) {
-	            context[item.key] = item._value
-	            delete item._value
-	          })
-	        }
+	        self[method] && self[method].apply(self, args)
 	      }
 	    })
 	  }, this)
 	}
 
-	function observe(obj, k) {
-
-	  if (k === undefined) {
-	    Object.keys(obj).forEach(function(k) {
-	      this.observe(obj, k)
-	    }, this)
-	    return
+	ObserveArray.prototype.push = function() {
+	  var args = arguments
+	  for (var i = 0; i < args.length; i++) {
+	    this.context.observe(args[i])
 	  }
-
-	  var context = this
-	  var _value = obj[k]
-
-	  Object.defineProperty(obj, k, {
-
-	    get: function() {
-
-	      if (context._computer) {
-	        this._computs || Object.defineProperty(this, '_computs', {
-	          value: {}
-	        })
-	        this._computs[k] || (this._computs[k] = [])
-
-	        if (this._computs[k].indexOf(context._computer) === -1) {
-	          this._computs[k].push(context._computer)
-	        }
-	      }
-	      return _value
-	    },
-
-	    set: function(value) {
-
-	      _value = value
-
-	      if (this._deps && this._deps[k]) {
-	        this._deps[k].forEach(function(fn) {
-	          fn(value)
-	        })
-	      }
-	      if (this._computs && this._computs[k]) {
-	        this._computs[k].forEach(function(item) {
-	          context[item.key] = item.handle.call(context)
-	        })
-	      }
-	    }
-	  })
-
-	  _.isArray(_value) && bindArray.call(this, obj, k)
-
-	  _.isObject(obj[k]) && this.observe(obj[k])
+	  if (this.hasComputs) {
+	    this.host._computs[this.key].forEach(function(item) {
+	      this._computer = item
+	      var _value = item.handle.call(this)
+	      this._computer = null
+	      this[item.key] = _value
+	    }, this.context)
+	  }
 	}
 
-	module.exports = observe
+	ObserveArray.prototype.splice = function() {
+	  if (this.hasComputs) {
+	    this.host._computs[this.key].forEach(function(item) {
+	      this[item.key] = item.handle.call(this)
+	    }, this.context)
+	  }
+	}
+
+	module.exports = ObserveArray
 
 /***/ },
-/* 14 */,
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
+/* 17 */
+/***/ function(module, exports) {
 
-	var _ = __webpack_require__(2)
+	
+	function component(name, options) {
 
-	module.exports = function(element, method, scope) {
-	  _.on(element, 'change', method, scope, this)
+	  options.el = document.querySelector(options.template).content.firstElementChild
+
+	  this.prototype.components[name] = new this(options)
 	}
 
-/***/ },
-/* 16 */,
-/* 17 */,
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(2)
-
-	module.exports = function(element, map, scope) {
-	  _.mapParse(map, function(type, method) {
-	    _.on(element, type, method, scope, this)
-	  }, this)
-	}
+	module.exports = component
 
 /***/ }
 /******/ ]);

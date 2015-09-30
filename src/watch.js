@@ -1,46 +1,27 @@
 var _ = require('./util')
 
-function isWatching(exp, scope) {
-  return !!scope._watchers[exp]
-}
-
 exports.watch = function(exp, scope) {
 
-  if (isWatching(exp, scope)) return
+  if (scope._watchers[exp]) return
 
-  var match = exp.match(/[\w_]+/g)
-  var prop = match.pop()
-  var _host = scope
-  match.forEach(function(prop) {
-    if (typeof _host[prop] !== 'object' || _host[prop] === null) {
-      _host[prop] = {}
-      this.observe(_host, prop)
-      // _host._deps.push(function(value) {
-      //   _host[prop] = value[prop]
-      // })
-    }
-    _host = _host[prop]
-  }, this)
-  if (!(prop in _host)) {
-    _host[prop] = undefined
-  }
-  this.observe(_host, prop)
   scope._watchers[exp] = {
-    host: _host,
-    prop: prop
+    getter: new Function('scope', 'return scope.' + exp),
+    setter: new Function('value', 'scope', 'scope.' + exp + ' = value')
   }
 }
 
 exports.get = function(exp, scope) {
-  var target = scope._watchers[exp]
-  var value = target.host[target.prop]
-  value === undefined && (value = '')
+  var value
+  try {
+    value = scope._watchers[exp].getter(scope)
+  } catch (e) {
+    value = ''
+  }
   return value
 }
 
 exports.set = function(exp, value, scope) {
-  var target = scope._watchers[exp]
-  target.host[target.prop] = value
+  scope._watchers[exp].setter(value, scope)
 }
 
 // exports.getScope = function(exp, scope) {
@@ -52,12 +33,50 @@ exports.set = function(exp, value, scope) {
 //   return scope
 // }
 
-exports.addDeps = function(exp, fn, scope) {
-  var target = scope._watchers[exp]
+exports.addDeps = function(exp, handle, scope) {
 
-  _.initialize(target.host, '_deps', {})
-  var _deps = target.host._deps
-  _deps[target.prop] || (_deps[target.prop] = [])
+  var getter = scope._watchers[exp].getter
+  var host = scope
+  var match = exp.match(/[\w_]+/g)
+  var i = 0
+  var len = match.length
+  var deps
+  var key
 
-  _deps[target.prop].push(fn)
+  host._deps || Object.defineProperty(host, '_deps', {
+    configurable: true,
+    value: {}
+  })
+  deps = host._deps
+
+  while (i < len) {
+
+    key = match[i]
+
+    if (host) {
+      if (i > 0 && _.isObject(host)) {
+        Object.defineProperty(host, '_deps', {
+          configurable: true,
+          value: deps
+        })
+      }
+      host = host[key]
+    }
+
+    deps[key] || (deps[key] = {})
+    deps = deps[key]
+    deps.handles || (deps.handles = [])
+    deps.handles.push({
+      scope: scope,
+      getter: getter,
+      handle: handle
+    })
+
+    if (i + 1 < len) {
+      deps.sub || (deps.sub = {})
+      deps = deps.sub
+    }
+
+    i++
+  }
 }

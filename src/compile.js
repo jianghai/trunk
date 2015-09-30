@@ -66,7 +66,7 @@ var nodeTypeHandles = {
 }
 
 var ignoreTags = Object.create(null)
-;['script', 'link', 'style'].forEach(function(tagName) {
+;['script', 'link', 'style', 'template'].forEach(function(tagName) {
   ignoreTags[tagName.toUpperCase()] = true
 })
 
@@ -90,11 +90,20 @@ exports.compileAttribute = function(attribute, scope) {
 
 exports.compileNode = function(node, scope) {
 
-  // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
-  if (ignoreTags[node.tagName]) return
-
   var handle = nodeTypeHandles[node.nodeType]
   if (!handle) return
+
+  if (node.tagName) {
+    // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
+    if (ignoreTags[node.tagName]) return
+
+    var component = this.components[node.tagName.toLowerCase()]
+    if (component) {
+      node.parentNode.replaceChild(component.el.cloneNode(true), node)
+      return
+    }
+  }
+
   handle.call(this, node, scope)
   _.toArray(node.childNodes).forEach(function(node) {
     this.compileNode(node, scope)

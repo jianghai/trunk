@@ -22,10 +22,18 @@ exports.bind = function(fn, context) {
   }
 }
 
-exports.initialize = function(obj, key, value) {
-  obj[key] || Object.defineProperty(obj, key, {
-    value: value
-  })
+exports.initialize = function(host, exp, value) {
+  var match = exp.split('.')
+  var lastProp = match.pop()
+  var i = 0
+  while (i < match.length) {
+    var _prop = match[i++]
+    if (!this.isObject(host[_prop])) {
+      host[_prop] = {}
+    }
+    host = host[_prop]
+  }
+  host[lastProp] = value
 }
 
 exports.mapParse = function(map, callback, context) {

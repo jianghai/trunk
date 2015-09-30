@@ -1,104 +1,99 @@
-var _ = require('../util')
+var _            = require('../util')
+var ObserveArray = require('./ObserveArray')
 
-var arrayMap = Object.create(null)
-
-arrayMap.push = function(hasComputs, host, key, args) {
-  for (var i = 0; i < args.length; i++) {
-    this.observe(args[i])
-  }
-  if (hasComputs) {
-    host._computs[key].forEach(function(item) {
-      this._computer = item
-      item._value = item.handle.call(this)
-      this._computer = null
-    }, this)
-  }
-}
-
-function bindArray(host, key) {
-
-  ['push', 'splice'].forEach(function(method) {
-
-    var context = this
-
-    Object.defineProperty(host[key], method, {
-      configurable: true,
-      enumerable: false,
-      writable: false,
-      value: function() {
-
-        var args = arguments
-        Array.prototype[method].apply(this, args)
-
-        var _on = '_on' + method
-        this[_on] && this[_on].forEach(function(fn) {
-          fn.apply(this, args)
-        }, this)
-
-        var hasComputs = !!(host._computs && host._computs[key])
-
-        arrayMap[method] && arrayMap[method].call(context, hasComputs, host, key, arguments)
-
-        if (hasComputs) {
-          host._computs[key].forEach(function(item) {
-            context[item.key] = item._value
-            delete item._value
-          })
-        }
-      }
-    })
-  }, this)
-}
-
-function observe(obj, k) {
-
-  if (k === undefined) {
-    Object.keys(obj).forEach(function(k) {
-      this.observe(obj, k)
-    }, this)
-    return
-  }
+function _observe(obj, k) {
 
   var context = this
   var _value = obj[k]
 
-  Object.defineProperty(obj, k, {
+  function getter() {
+    if (context._computer) {
+      this._computs || Object.defineProperty(this, '_computs', {
+        value: {}
+      })
+      this._computs[k] || (this._computs[k] = [])
 
-    get: function() {
-
-      if (context._computer) {
-        this._computs || Object.defineProperty(this, '_computs', {
-          value: {}
-        })
-        this._computs[k] || (this._computs[k] = [])
-
-        if (this._computs[k].indexOf(context._computer) === -1) {
-          this._computs[k].push(context._computer)
-        }
-      }
-      return _value
-    },
-
-    set: function(value) {
-
-      _value = value
-
-      if (this._deps && this._deps[k]) {
-        this._deps[k].forEach(function(fn) {
-          fn(value)
-        })
-      }
-      if (this._computs && this._computs[k]) {
-        this._computs[k].forEach(function(item) {
-          context[item.key] = item.handle.call(context)
-        })
+      if (this._computs[k].indexOf(context._computer) === -1) {
+        this._computs[k].push(context._computer)
       }
     }
+    return _value
+  }
+
+  function setter(value) {
+    _value = value
+    
+    if (_.isObject(value)) {
+      if (_.isArray(value)) {
+        new ObserveArray(this, k, context)
+        for (var i = 0, len = value.length; i < len; i++) {
+          _.isObject(value[i]) && context.observe(value[i])
+        }
+      } else {
+        context.observe(value)
+      }
+      try {
+        var sub = this._deps[k].sub
+        if (sub) {
+          Object.defineProperty(value, '_deps', {
+            value: sub
+          })
+        }
+      } catch (e) {}
+    }
+
+    if (this._deps && this._deps[k]) {
+      this._deps[k].handles.forEach(function(item) {
+        var value
+        try {
+          value = item.getter(item.scope)
+        } catch (e) {
+          value = ''
+        }
+        item.handle(value)
+      }, this)
+    }
+    
+    if (this._computs && this._computs[k]) {
+      this._computs[k].forEach(function(item) {
+        var value
+        try {
+          value = item.handle.call(context)
+        } catch (e) {
+          value = ''
+        }
+        context[item.key] = value
+      })
+    }
+  }
+  Object.defineProperty(obj, k, {
+    get: getter,
+    set: setter
   })
+}
 
-  _.isArray(_value) && bindArray.call(this, obj, k)
+/**
+ * Define getter/setter for all enumerable properties to record computed handles and invokes 
+ * depends & computed handles, redefine when the value of setter is object.
+ * 
+ * @param {object} obj The Object of define getter/setter
+ */
+function observe(obj) {
 
-  _.isObject(obj[k]) && this.observe(obj[k])
+  for (var k in obj) {
+    if (obj.hasOwnProperty(k)) {
+      _observe.call(this, obj, k)
+      var _value = obj[k]
+      if (_.isArray(_value)) {
+        new ObserveArray(obj, k, this)
+        for (var i = 0, len = _value.length; i < len; i++) {
+          _.isObject(_value[i]) && this.observe(_value[i])
+        }
+      } else if (_.isObject(_value)) {
+        this.observe(_value)
+      }
+    }
+  }
 }
 
 module.exports = observe
