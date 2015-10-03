@@ -1,6 +1,17 @@
 var _            = require('../util')
 var ObserveArray = require('./ObserveArray')
 
+function bindDeps(value, deps) {
+  Object.defineProperty(value, '_deps', {
+    value: deps
+  })
+  for (var k in deps) {
+    if (deps[k].sub && _.isObject(value[k])) {
+      bindDeps(value[k], deps[k].sub)
+    }
+  }
+}
+
 function _observe(obj, k) {
 
   var context = this
@@ -8,13 +19,10 @@ function _observe(obj, k) {
 
   function getter() {
     if (context._computer) {
-      this._computs || Object.defineProperty(this, '_computs', {
-        value: {}
-      })
-      this._computs[k] || (this._computs[k] = [])
-
-      if (this._computs[k].indexOf(context._computer) === -1) {
-        this._computs[k].push(context._computer)
+      _.initialize(this, [], '_computs', k)
+      var _computs = this._computs[k]
+      if (_computs.indexOf(context._computer) === -1) {
+        _computs.push(context._computer)
       }
     }
     return _value
@@ -32,14 +40,9 @@ function _observe(obj, k) {
       } else {
         context.observe(value)
       }
-      try {
-        var sub = this._deps[k].sub
-        if (sub) {
-          Object.defineProperty(value, '_deps', {
-            value: sub
-          })
-        }
-      } catch (e) {}
+
+      var sub = this._deps && this._deps[k] && this._deps[k].sub
+      sub && bindDeps(value, sub)
     }
 
     if (this._deps && this._deps[k]) {
@@ -50,7 +53,7 @@ function _observe(obj, k) {
         } catch (e) {
           value = ''
         }
-        item.handle(value)
+        item.cb(value)
       }, this)
     }
     

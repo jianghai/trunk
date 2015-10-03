@@ -33,48 +33,48 @@ exports.set = function(exp, value, scope) {
 //   return scope
 // }
 
-exports.addDeps = function(exp, handle, scope) {
+exports.addDeps = function(exp, cb, scope) {
 
   var getter = scope._watchers[exp].getter
   var host = scope
   var match = exp.match(/[\w_]+/g)
-  var i = 0
-  var len = match.length
-  var deps
-  var key
+  var handle = {
+    scope: scope,
+    getter: getter,
+    cb: cb
+  }
 
   host._deps || Object.defineProperty(host, '_deps', {
-    configurable: true,
     value: {}
   })
-  deps = host._deps
+
+  var deps = host._deps
+  var i = 0
+  var len = match.length
 
   while (i < len) {
 
-    key = match[i]
-
-    if (host) {
-      if (i > 0 && _.isObject(host)) {
-        Object.defineProperty(host, '_deps', {
-          configurable: true,
-          value: deps
-        })
-      }
-      host = host[key]
-    }
+    var key    = match[i]
+    var isLast = i + 1 === len
 
     deps[key] || (deps[key] = {})
     deps = deps[key]
     deps.handles || (deps.handles = [])
-    deps.handles.push({
-      scope: scope,
-      getter: getter,
-      handle: handle
-    })
+    deps.handles.push(handle)
 
-    if (i + 1 < len) {
+    if (!isLast) {
       deps.sub || (deps.sub = {})
       deps = deps.sub
+    }
+
+    // 如果子对象存在，绑定依赖，已经有依赖的扩展依赖
+    if (host) {
+      if (i > 0 && _.isObject(host)) {
+        var handles = _.initialize(host, [], '_deps', key, 'handles')
+        handles.push(handle)
+        isLast || (host._deps[key].sub = deps)
+      }
+      host = host[key]
     }
 
     i++

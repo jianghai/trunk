@@ -7,20 +7,21 @@
 </head>
 <body id="app" class="aa bb">
 
-  <input type="text" d-model="new" placeholder="待办事项">
+  <!-- <input type="text" d-model="new" placeholder="待办事项"> -->
   <button d-click="add">添加</button>
   <ul>
     <li d-repeat="list">
+      <input type="text" d-model="name">
       <input type="checkbox" d-model="checked">{{name}}
       <button d-click="remove">X</button>
     </li>
   </ul>
   <button d-click="test">set</button>
   {{list[0].name}}
-  共 <strong>{{count}}</strong> 条，
-  已完成 <strong>{{remain}}</strong> 条
+<!--   共 <strong>{{count}}</strong> 条，
+  已完成 <strong>{{remain}}</strong> 条 -->
   
-  <test d-model="list"></test>
+<!--   <test d-model="list"></test>
   <test d-model="list"></test>
 
   <template>
@@ -28,20 +29,20 @@
       <h1>{{list[0].name}}</h1>
       <button d-click="click">click</button>
     </div>
-  </template>
+  </template> -->
 
   <script>
   console.time('compile')
 
-  Trunk.component('test', {
-    template: 'template',
-    data: {
-      list: null
-    },
-    click: function() {
-      this.list = [{name: 'component'}]
-    }
-  })
+  // Trunk.component('test', {
+  //   template: 'template',
+  //   data: {
+  //     list: null
+  //   },
+  //   click: function() {
+  //     this.list = [{name: 'component'}]
+  //   }
+  // })
 
   var app = new Trunk({
     el: '#app',
@@ -56,7 +57,8 @@
     test: function() {
       // this.list = null
       this.list = [{name: '1'}]
-      // this.list[0].name = 'dasdsad'
+      // this.list[0].name = 2
+      this.list[0].name = 'dasdsad'
     },
     remove: function(scope) {
       // console.log(scope.name)

@@ -12,7 +12,7 @@ var unenumerableMap = Object.create(null)
 
 function Trunk(options) {
 
-  typeof options.el === 'string' && (options.el = document.querySelector(this.el))
+  typeof options.el === 'string' && (options.el = document.querySelector(options.el))
   
   for (var key in options) {
     this[key] = options[key]

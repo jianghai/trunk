@@ -59,7 +59,7 @@ var Trunk =
 
 	function Trunk(options) {
 
-	  typeof options.el === 'string' && (options.el = document.querySelector(this.el))
+	  typeof options.el === 'string' && (options.el = document.querySelector(options.el))
 	  
 	  for (var key in options) {
 	    this[key] = options[key]
@@ -285,18 +285,19 @@ var Trunk =
 	  }
 	}
 
-	exports.initialize = function(host, exp, value) {
-	  var match = exp.split('.')
-	  var lastProp = match.pop()
-	  var i = 0
-	  while (i < match.length) {
-	    var _prop = match[i++]
-	    if (!this.isObject(host[_prop])) {
-	      host[_prop] = {}
-	    }
-	    host = host[_prop]
+	exports.initialize = function(host, value) {
+	  var args = arguments
+	  var len = args.length - 1
+	  var lastProp = args[len]
+	  for (var i = 2; i < len; i++) {
+	    var prop = args[i]
+	    host[prop] || Object.defineProperty(host, prop, {
+	      value: {}
+	    })
+	    host = host[prop]
 	  }
-	  host[lastProp] = value
+	  lastProp in host || (host[lastProp] = value)
+	  return host[lastProp]
 	}
 
 	exports.mapParse = function(map, callback, context) {
@@ -579,11 +580,6 @@ var Trunk =
 
 	  // Rerender when list reset
 	  this.addDeps(exp, _.bind(render, this), scope)
-
-	  // var watcher = scope._watchers[exp]
-	  // ;['push', 'splice'].forEach(function(method) {
-	  //   _.initialize(watcher, '_on' + method, [])
-	  // })
 	}
 
 /***/ },
@@ -625,48 +621,48 @@ var Trunk =
 	//   return scope
 	// }
 
-	exports.addDeps = function(exp, handle, scope) {
+	exports.addDeps = function(exp, cb, scope) {
 
 	  var getter = scope._watchers[exp].getter
 	  var host = scope
 	  var match = exp.match(/[\w_]+/g)
-	  var i = 0
-	  var len = match.length
-	  var deps
-	  var key
+	  var handle = {
+	    scope: scope,
+	    getter: getter,
+	    cb: cb
+	  }
 
 	  host._deps || Object.defineProperty(host, '_deps', {
-	    configurable: true,
 	    value: {}
 	  })
-	  deps = host._deps
+
+	  var deps = host._deps
+	  var i = 0
+	  var len = match.length
 
 	  while (i < len) {
 
-	    key = match[i]
-
-	    if (host) {
-	      if (i > 0 && _.isObject(host)) {
-	        Object.defineProperty(host, '_deps', {
-	          configurable: true,
-	          value: deps
-	        })
-	      }
-	      host = host[key]
-	    }
+	    var key    = match[i]
+	    var isLast = i + 1 === len
 
 	    deps[key] || (deps[key] = {})
 	    deps = deps[key]
 	    deps.handles || (deps.handles = [])
-	    deps.handles.push({
-	      scope: scope,
-	      getter: getter,
-	      handle: handle
-	    })
+	    deps.handles.push(handle)
 
-	    if (i + 1 < len) {
+	    if (!isLast) {
 	      deps.sub || (deps.sub = {})
 	      deps = deps.sub
+	    }
+
+	    // 如果子对象存在，绑定依赖，已经有依赖的扩展依赖
+	    if (host) {
+	      if (i > 0 && _.isObject(host)) {
+	        var handles = _.initialize(host, [], '_deps', key, 'handles')
+	        handles.push(handle)
+	        isLast || (host._deps[key].sub = deps)
+	      }
+	      host = host[key]
 	    }
 
 	    i++
@@ -680,6 +676,17 @@ var Trunk =
 	var _            = __webpack_require__(2)
 	var ObserveArray = __webpack_require__(16)
 
+	function bindDeps(value, deps) {
+	  Object.defineProperty(value, '_deps', {
+	    value: deps
+	  })
+	  for (var k in deps) {
+	    if (deps[k].sub && _.isObject(value[k])) {
+	      bindDeps(value[k], deps[k].sub)
+	    }
+	  }
+	}
+
 	function _observe(obj, k) {
 
 	  var context = this
@@ -687,13 +694,10 @@ var Trunk =
 
 	  function getter() {
 	    if (context._computer) {
-	      this._computs || Object.defineProperty(this, '_computs', {
-	        value: {}
-	      })
-	      this._computs[k] || (this._computs[k] = [])
-
-	      if (this._computs[k].indexOf(context._computer) === -1) {
-	        this._computs[k].push(context._computer)
+	      _.initialize(this, [], '_computs', k)
+	      var _computs = this._computs[k]
+	      if (_computs.indexOf(context._computer) === -1) {
+	        _computs.push(context._computer)
 	      }
 	    }
 	    return _value
@@ -711,14 +715,9 @@ var Trunk =
 	      } else {
 	        context.observe(value)
 	      }
-	      try {
-	        var sub = this._deps[k].sub
-	        if (sub) {
-	          Object.defineProperty(value, '_deps', {
-	            value: sub
-	          })
-	        }
-	      } catch (e) {}
+
+	      var sub = this._deps && this._deps[k] && this._deps[k].sub
+	      sub && bindDeps(value, sub)
 	    }
 
 	    if (this._deps && this._deps[k]) {
@@ -729,7 +728,7 @@ var Trunk =
 	        } catch (e) {
 	          value = ''
 	        }
-	        item.handle(value)
+	        item.cb(value)
 	      }, this)
 	    }
 	    

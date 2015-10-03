@@ -78,9 +78,4 @@ module.exports = function(element, exp, scope) {
 
   // Rerender when list reset
   this.addDeps(exp, _.bind(render, this), scope)
-
-  // var watcher = scope._watchers[exp]
-  // ;['push', 'splice'].forEach(function(method) {
-  //   _.initialize(watcher, '_on' + method, [])
-  // })
 }
