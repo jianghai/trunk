@@ -37,7 +37,7 @@ module.exports = function(element, exp, scope) {
 
     this.compileNode(_cloneNode, _data)
     docFrag.appendChild(_cloneNode)
-    childNodes.push(_cloneNode)
+    return _cloneNode
   }
 
   function render(list) {
@@ -49,28 +49,42 @@ module.exports = function(element, exp, scope) {
     childNodes.length = []
 
     list && list.forEach(function(item) {
-      renderOne.call(this, item, list)
+      childNodes.push(renderOne.call(this, item, list))
     }, this)
 
     container.appendChild(docFrag)
 
-    if (list.on) {
-      list.on.push.push(function() {
+    var handles = {
+      
+      push: function() {
         var args = arguments
-        for (var i = 0; i < args.length; i++) {
-          renderOne.call(context, args[i], this)
+        for (var i = 0, len = args.length; i < len; i++) {
+          childNodes.push(renderOne.call(context, args[i], this))
         }
         container.appendChild(docFrag)
-      })
-
-      list.on.splice.push(function(start, deleteCount) {
+      },
+      
+      splice: function(start, deleteCount) {
         var i = 0
         while (i < deleteCount) {
           container.removeChild(childNodes[start + i])
           i++
         }
         childNodes.splice(start, deleteCount)
-      })
+
+        var args = arguments
+        if (args.length > 2) {
+          for (var i = 2, len = args.length; i < len; i++) {
+            childNodes.splice(start, 0, renderOne.call(context, args[i], this))
+          }
+          container.insertBefore(docFrag, childNodes[start + len - 2])
+        }
+      }
+    }
+
+    for (var k in handles) {
+      _.initialize(list, [], 'on' + k)
+      list['on' + k].push(handles[k])
     }
   }
 

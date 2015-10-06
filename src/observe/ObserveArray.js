@@ -2,22 +2,15 @@
 function ObserveArray(host, key, context) {
   this.host = host
   this.key = key
-  this.list = host[key]
   this.context = context
 
-  Object.defineProperty(this.list, 'on', {
-    value: {}
-  })
+  var list = host[key]
 
-  ;['push', 'splice'].forEach(function(method) {
+  ;['push', 'splice', 'sort'].forEach(function(method) {
 
     var self = this
 
-    Object.defineProperty(this.list.on, method, {
-      value: []
-    })
-
-    Object.defineProperty(this.list, method, {
+    Object.defineProperty(list, method, {
       configurable: true,
       enumerable: false,
       writable: false,
@@ -26,7 +19,7 @@ function ObserveArray(host, key, context) {
         var args = arguments
         Array.prototype[method].apply(this, args)
 
-        this.on[method].forEach(function(fn) {
+        this['on' + method] && this['on' + method].forEach(function(fn) {
           fn.apply(this, args)
         }, this)
 
@@ -54,11 +47,20 @@ ObserveArray.prototype.push = function() {
 }
 
 ObserveArray.prototype.splice = function() {
-  if (this.hasComputs) {
-    this.host._computs[this.key].forEach(function(item) {
-      this[item.key] = item.handle.call(this)
-    }, this.context)
+  var args = arguments
+  if (args.length > 2) {
+    this.push.apply(this, Array.prototype.slice.call(args, 2))
+  } else {
+    if (this.hasComputs) {
+      this.host._computs[this.key].forEach(function(item) {
+        this[item.key] = item.handle.call(this)
+      }, this.context)
+    }
   }
+}
+
+ObserveArray.prototype.sort = function() {
+  this.host[this.key] = this.host[this.key]
 }
 
 module.exports = ObserveArray

@@ -289,14 +289,17 @@ var Trunk =
 	  var args = arguments
 	  var len = args.length - 1
 	  var lastProp = args[len]
-	  for (var i = 2; i < len; i++) {
-	    var prop = args[i]
-	    host[prop] || Object.defineProperty(host, prop, {
+	  var i = 2
+	  while (i < len) {
+	    var prop = args[i++]
+	    host.hasOwnProperty(prop) || Object.defineProperty(host, prop, {
 	      value: {}
 	    })
 	    host = host[prop]
 	  }
-	  lastProp in host || (host[lastProp] = value)
+	  host.hasOwnProperty(lastProp) || Object.defineProperty(host, lastProp, {
+	    value: value
+	  })
 	  return host[lastProp]
 	}
 
@@ -539,7 +542,7 @@ var Trunk =
 
 	    this.compileNode(_cloneNode, _data)
 	    docFrag.appendChild(_cloneNode)
-	    childNodes.push(_cloneNode)
+	    return _cloneNode
 	  }
 
 	  function render(list) {
@@ -551,28 +554,42 @@ var Trunk =
 	    childNodes.length = []
 
 	    list && list.forEach(function(item) {
-	      renderOne.call(this, item, list)
+	      childNodes.push(renderOne.call(this, item, list))
 	    }, this)
 
 	    container.appendChild(docFrag)
 
-	    if (list.on) {
-	      list.on.push.push(function() {
+	    var handles = {
+	      
+	      push: function() {
 	        var args = arguments
-	        for (var i = 0; i < args.length; i++) {
-	          renderOne.call(context, args[i], this)
+	        for (var i = 0, len = args.length; i < len; i++) {
+	          childNodes.push(renderOne.call(context, args[i], this))
 	        }
 	        container.appendChild(docFrag)
-	      })
-
-	      list.on.splice.push(function(start, deleteCount) {
+	      },
+	      
+	      splice: function(start, deleteCount) {
 	        var i = 0
 	        while (i < deleteCount) {
 	          container.removeChild(childNodes[start + i])
 	          i++
 	        }
 	        childNodes.splice(start, deleteCount)
-	      })
+
+	        var args = arguments
+	        if (args.length > 2) {
+	          for (var i = 2, len = args.length; i < len; i++) {
+	            childNodes.splice(start, 0, renderOne.call(context, args[i], this))
+	          }
+	          container.insertBefore(docFrag, childNodes[start + len - 2])
+	        }
+	      }
+	    }
+
+	    for (var k in handles) {
+	      _.initialize(list, [], 'on' + k)
+	      list['on' + k].push(handles[k])
 	    }
 	  }
 
@@ -676,15 +693,27 @@ var Trunk =
 	var _            = __webpack_require__(2)
 	var ObserveArray = __webpack_require__(16)
 
-	function bindDeps(value, deps) {
+	function _bindDeps(value, deps) {
 	  Object.defineProperty(value, '_deps', {
 	    value: deps
 	  })
 	  for (var k in deps) {
 	    if (deps[k].sub && _.isObject(value[k])) {
-	      bindDeps(value[k], deps[k].sub)
+	      _bindDeps(value[k], deps[k].sub)
 	    }
 	  }
+	}
+
+	function _observeArray(host, key, context) {
+	  var array = host[key]
+	  var isArray = _.isArray(array)
+	  if (isArray) {
+	    new ObserveArray(host, key, context)
+	    for (var i = 0, len = array.length; i < len; i++) {
+	      _.isObject(array[i]) && context.observe(array[i])
+	    }
+	  }
+	  return isArray
 	}
 
 	function _observe(obj, k) {
@@ -706,18 +735,13 @@ var Trunk =
 	  function setter(value) {
 	    _value = value
 	    
+
 	    if (_.isObject(value)) {
-	      if (_.isArray(value)) {
-	        new ObserveArray(this, k, context)
-	        for (var i = 0, len = value.length; i < len; i++) {
-	          _.isObject(value[i]) && context.observe(value[i])
-	        }
-	      } else {
-	        context.observe(value)
-	      }
+	      
+	      _observeArray(this, k, context) || context.observe(value)
 
 	      var sub = this._deps && this._deps[k] && this._deps[k].sub
-	      sub && bindDeps(value, sub)
+	      sub && _bindDeps(value, sub)
 	    }
 
 	    if (this._deps && this._deps[k]) {
@@ -762,13 +786,8 @@ var Trunk =
 	    if (obj.hasOwnProperty(k)) {
 	      _observe.call(this, obj, k)
 	      var _value = obj[k]
-	      if (_.isArray(_value)) {
-	        new ObserveArray(obj, k, this)
-	        for (var i = 0, len = _value.length; i < len; i++) {
-	          _.isObject(_value[i]) && this.observe(_value[i])
-	        }
-	      } else if (_.isObject(_value)) {
-	        this.observe(_value)
+	      if (!_observeArray(obj, k, this)) {
+	        _.isObject(_value) && this.observe(_value)
 	      }
 	    }
 	  }
@@ -784,22 +803,15 @@ var Trunk =
 	function ObserveArray(host, key, context) {
 	  this.host = host
 	  this.key = key
-	  this.list = host[key]
 	  this.context = context
 
-	  Object.defineProperty(this.list, 'on', {
-	    value: {}
-	  })
+	  var list = host[key]
 
-	  ;['push', 'splice'].forEach(function(method) {
+	  ;['push', 'splice', 'sort'].forEach(function(method) {
 
 	    var self = this
 
-	    Object.defineProperty(this.list.on, method, {
-	      value: []
-	    })
-
-	    Object.defineProperty(this.list, method, {
+	    Object.defineProperty(list, method, {
 	      configurable: true,
 	      enumerable: false,
 	      writable: false,
@@ -808,7 +820,7 @@ var Trunk =
 	        var args = arguments
 	        Array.prototype[method].apply(this, args)
 
-	        this.on[method].forEach(function(fn) {
+	        this['on' + method] && this['on' + method].forEach(function(fn) {
 	          fn.apply(this, args)
 	        }, this)
 
@@ -836,11 +848,20 @@ var Trunk =
 	}
 
 	ObserveArray.prototype.splice = function() {
-	  if (this.hasComputs) {
-	    this.host._computs[this.key].forEach(function(item) {
-	      this[item.key] = item.handle.call(this)
-	    }, this.context)
+	  var args = arguments
+	  if (args.length > 2) {
+	    this.push.apply(this, Array.prototype.slice.call(args, 2))
+	  } else {
+	    if (this.hasComputs) {
+	      this.host._computs[this.key].forEach(function(item) {
+	        this[item.key] = item.handle.call(this)
+	      }, this.context)
+	    }
 	  }
+	}
+
+	ObserveArray.prototype.sort = function() {
+	  this.host[this.key] = this.host[this.key]
 	}
 
 	module.exports = ObserveArray

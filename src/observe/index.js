@@ -1,15 +1,27 @@
 var _            = require('../util')
 var ObserveArray = require('./ObserveArray')
 
-function bindDeps(value, deps) {
+function _bindDeps(value, deps) {
   Object.defineProperty(value, '_deps', {
     value: deps
   })
   for (var k in deps) {
     if (deps[k].sub && _.isObject(value[k])) {
-      bindDeps(value[k], deps[k].sub)
+      _bindDeps(value[k], deps[k].sub)
     }
   }
+}
+
+function _observeArray(host, key, context) {
+  var array = host[key]
+  var isArray = _.isArray(array)
+  if (isArray) {
+    new ObserveArray(host, key, context)
+    for (var i = 0, len = array.length; i < len; i++) {
+      _.isObject(array[i]) && context.observe(array[i])
+    }
+  }
+  return isArray
 }
 
 function _observe(obj, k) {
@@ -31,18 +43,13 @@ function _observe(obj, k) {
   function setter(value) {
     _value = value
     
+
     if (_.isObject(value)) {
-      if (_.isArray(value)) {
-        new ObserveArray(this, k, context)
-        for (var i = 0, len = value.length; i < len; i++) {
-          _.isObject(value[i]) && context.observe(value[i])
-        }
-      } else {
-        context.observe(value)
-      }
+      
+      _observeArray(this, k, context) || context.observe(value)
 
       var sub = this._deps && this._deps[k] && this._deps[k].sub
-      sub && bindDeps(value, sub)
+      sub && _bindDeps(value, sub)
     }
 
     if (this._deps && this._deps[k]) {
@@ -87,13 +94,8 @@ function observe(obj) {
     if (obj.hasOwnProperty(k)) {
       _observe.call(this, obj, k)
       var _value = obj[k]
-      if (_.isArray(_value)) {
-        new ObserveArray(obj, k, this)
-        for (var i = 0, len = _value.length; i < len; i++) {
-          _.isObject(_value[i]) && this.observe(_value[i])
-        }
-      } else if (_.isObject(_value)) {
-        this.observe(_value)
+      if (!_observeArray(obj, k, this)) {
+        _.isObject(_value) && this.observe(_value)
       }
     }
   }
