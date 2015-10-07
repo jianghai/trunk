@@ -1,5 +1,5 @@
-var _            = require('../util')
-var ObserveArray = require('./ObserveArray')
+var _ = require('./util')
+var ObserveArray = require('./class/ObserveArray')
 
 function _bindDeps(value, deps) {
   Object.defineProperty(value, '_deps', {
@@ -42,10 +42,10 @@ function _observe(obj, k) {
 
   function setter(value) {
     _value = value
-    
+
 
     if (_.isObject(value)) {
-      
+
       _observeArray(this, k, context) || context.observe(value)
 
       var sub = this._deps && this._deps[k] && this._deps[k].sub
@@ -63,7 +63,7 @@ function _observe(obj, k) {
         item.cb(value)
       }, this)
     }
-    
+
     if (this._computs && this._computs[k]) {
       this._computs[k].forEach(function(item) {
         var value

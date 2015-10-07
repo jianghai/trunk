@@ -46,9 +46,9 @@ var Trunk =
 /***/ function(module, exports, __webpack_require__) {
 
 	var compile = __webpack_require__(1)
-	var watch   = __webpack_require__(14)
-	var observe = __webpack_require__(15)
-	var component = __webpack_require__(17)
+	var watch   = __webpack_require__(15)
+	var observe = __webpack_require__(16)
+	var component = __webpack_require__(18)
 	var _       = __webpack_require__(2)
 
 
@@ -139,7 +139,7 @@ var Trunk =
 	var _          = __webpack_require__(2)
 	var directives = __webpack_require__(5)
 	var config     = __webpack_require__(6)
-	var watch      = __webpack_require__(14)
+	var watch      = __webpack_require__(15)
 
 
 	var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -503,104 +503,120 @@ var Trunk =
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var config = __webpack_require__(6)
-	var _ = __webpack_require__(2)
+	var Repeat = __webpack_require__(14)
 
 	module.exports = function(element, exp, scope) {
-
-	  var list = this.get(exp, scope)
-
-	  // Prevent cycle compile
-	  element.removeAttribute(config.d_prefix + 'repeat')
-
-	  var context = this
-	  var container = element.parentNode
-	  var cloneNode = element.cloneNode(true)
-	  var docFrag = document.createDocumentFragment()
-	  var childNodes = [element]
-
-	  // Stop compile childNodes
-	  _.empty(element)
-
-	  function renderOne(item, list) {
-	    var _cloneNode = cloneNode.cloneNode(true)
-	    var _data = item
-
-	    _data._watchers || Object.defineProperties(_data, {
-	      _watchers: {
-	        value: {}
-	      },
-	      $remove: {
-	        configurable: false,
-	        enumerable: false,
-	        writable: false,
-	        value: function() {
-	          list.splice(childNodes.indexOf(_cloneNode), 1)
-	        }
-	      }
-	    })
-
-	    this.compileNode(_cloneNode, _data)
-	    docFrag.appendChild(_cloneNode)
-	    return _cloneNode
-	  }
-
-	  function render(list) {
-
-	    childNodes.forEach(function(childNode) {
-	      container.removeChild(childNode)
-	    })
-
-	    childNodes.length = []
-
-	    list && list.forEach(function(item) {
-	      childNodes.push(renderOne.call(this, item, list))
-	    }, this)
-
-	    container.appendChild(docFrag)
-
-	    var handles = {
-	      
-	      push: function() {
-	        var args = arguments
-	        for (var i = 0, len = args.length; i < len; i++) {
-	          childNodes.push(renderOne.call(context, args[i], this))
-	        }
-	        container.appendChild(docFrag)
-	      },
-	      
-	      splice: function(start, deleteCount) {
-	        var i = 0
-	        while (i < deleteCount) {
-	          container.removeChild(childNodes[start + i])
-	          i++
-	        }
-	        childNodes.splice(start, deleteCount)
-
-	        var args = arguments
-	        if (args.length > 2) {
-	          for (var i = 2, len = args.length; i < len; i++) {
-	            childNodes.splice(start, 0, renderOne.call(context, args[i], this))
-	          }
-	          container.insertBefore(docFrag, childNodes[start + len - 2])
-	        }
-	      }
-	    }
-
-	    for (var k in handles) {
-	      _.initialize(list, [], 'on' + k)
-	      list['on' + k].push(handles[k])
-	    }
-	  }
-
-	  render.call(this, list)
-
-	  // Rerender when list reset
-	  this.addDeps(exp, _.bind(render, this), scope)
+	  new Repeat(element, exp, scope, this)
 	}
 
 /***/ },
 /* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var config = __webpack_require__(6)
+	var _ = __webpack_require__(2)
+
+	function Repeat(element, exp, scope, context) {
+
+	  this.list = context.get(exp, scope)
+
+	  // Prevent cycle compile
+	  element.removeAttribute(config.d_prefix + 'repeat')
+
+	  this.context = context
+	  this.container = element.parentNode
+	  this.cloneNode = element.cloneNode(true)
+	  this.docFrag = document.createDocumentFragment()
+	  this.childNodes = [element]
+
+	  // Stop compile childNodes
+	  _.empty(element)
+
+	  this.render()
+
+	  // Rerender when list reset
+	  this.context.addDeps(exp, _.bind(this.rerender, this), scope)
+	}
+
+	Repeat.prototype.handles = {
+	  
+	  push: function() {
+	    var args = arguments
+	    for (var i = 0, len = args.length; i < len; i++) {
+	      this.childNodes.push(this.renderOne(args[i]))
+	    }
+	    this.container.appendChild(this.docFrag)
+	  },
+
+	  splice: function(start, deleteCount) {
+	    var i = 0
+	    while (i < deleteCount) {
+	      this.container.removeChild(this.childNodes[start + i])
+	      i++
+	    }
+	    this.childNodes.splice(start, deleteCount)
+
+	    var args = arguments
+	    if (args.length > 2) {
+	      for (var i = 2, len = args.length; i < len; i++) {
+	        this.childNodes.splice(start, 0, this.renderOne(args[i]))
+	      }
+	      this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
+	    }
+	  }
+	}
+
+	Repeat.prototype.render = function() {
+	  this.childNodes.forEach(function(childNode) {
+	    this.container.removeChild(childNode)
+	  }, this)
+
+	  this.childNodes.length = []
+
+	  this.list && this.list.forEach(function(item) {
+	    this.childNodes.push(this.renderOne(item))
+	  }, this)
+
+	  this.container.appendChild(this.docFrag)
+	  for (var k in this.handles) {
+	    _.initialize(this.list, [], 'on' + k)
+	    this.list['on' + k].push(_.bind(this.handles[k], this))
+	  }
+	}
+
+	Repeat.prototype.renderOne = function(item) {
+	  var _cloneNode = this.cloneNode.cloneNode(true)
+	  var _data = item
+
+	  var self = this
+	  _data._watchers || Object.defineProperties(_data, {
+	    _watchers: {
+	      value: {}
+	    },
+	    $remove: {
+	      configurable: false,
+	      enumerable: false,
+	      writable: false,
+	      value: function() {
+	        self.list.splice(self.childNodes.indexOf(_cloneNode), 1)
+	      }
+	    }
+	  })
+
+	  this.context.compileNode(_cloneNode, _data)
+	  this.docFrag.appendChild(_cloneNode)
+	  return _cloneNode
+	}
+
+	Repeat.prototype.rerender = function(list) {
+	  this.list = list
+	  this.render()
+	}
+
+	module.exports = Repeat
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(2)
@@ -687,11 +703,11 @@ var Trunk =
 	}
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _            = __webpack_require__(2)
-	var ObserveArray = __webpack_require__(16)
+	var _ = __webpack_require__(2)
+	var ObserveArray = __webpack_require__(17)
 
 	function _bindDeps(value, deps) {
 	  Object.defineProperty(value, '_deps', {
@@ -734,10 +750,10 @@ var Trunk =
 
 	  function setter(value) {
 	    _value = value
-	    
+
 
 	    if (_.isObject(value)) {
-	      
+
 	      _observeArray(this, k, context) || context.observe(value)
 
 	      var sub = this._deps && this._deps[k] && this._deps[k].sub
@@ -755,7 +771,7 @@ var Trunk =
 	        item.cb(value)
 	      }, this)
 	    }
-	    
+
 	    if (this._computs && this._computs[k]) {
 	      this._computs[k].forEach(function(item) {
 	        var value
@@ -796,40 +812,41 @@ var Trunk =
 	module.exports = observe
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
-	
 	function ObserveArray(host, key, context) {
 	  this.host = host
 	  this.key = key
 	  this.context = context
+	  this.list = this.host[this.key]
+	  this.init()
+	}
 
-	  var list = host[key]
+	ObserveArray.prototype.init = function() {
+	  ['push', 'splice', 'sort'].forEach(this.bind, this)
+	}
 
-	  ;['push', 'splice', 'sort'].forEach(function(method) {
+	ObserveArray.prototype.bind = function(method) {
+	  var self = this
+	  Object.defineProperty(this.list, method, {
+	    configurable: true,
+	    enumerable: false,
+	    writable: false,
+	    value: function() {
 
-	    var self = this
+	      var args = arguments
+	      Array.prototype[method].apply(this, args)
 
-	    Object.defineProperty(list, method, {
-	      configurable: true,
-	      enumerable: false,
-	      writable: false,
-	      value: function() {
+	      this['on' + method] && this['on' + method].forEach(function(fn) {
+	        fn.apply(null, args)
+	      })
 
-	        var args = arguments
-	        Array.prototype[method].apply(this, args)
+	      self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
 
-	        this['on' + method] && this['on' + method].forEach(function(fn) {
-	          fn.apply(this, args)
-	        }, this)
-
-	        self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
-
-	        self[method] && self[method].apply(self, args)
-	      }
-	    })
-	  }, this)
+	      self[method] && self[method].apply(self, args)
+	    }
+	  })
 	}
 
 	ObserveArray.prototype.push = function() {
@@ -867,7 +884,7 @@ var Trunk =
 	module.exports = ObserveArray
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	

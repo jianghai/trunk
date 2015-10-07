@@ -55,10 +55,15 @@
       }]
     },
     test: function() {
-      // this.list = null
-      this.list = [{name: '1'}]
+      // this.list.sort(function(a, b) {
+      //   return a.name > b.name
+      // })
+      this.list.splice(1, 0, {
+        name: 'cc'
+      })
+      // this.list = [{name: '1'}]
       // this.list[0].name = 2
-      this.list[0].name = 'dasdsad'
+      // this.list[0].name = 'dasdsad'
     },
     remove: function(scope) {
       // console.log(scope.name)

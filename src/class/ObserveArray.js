@@ -1,34 +1,35 @@
-
 function ObserveArray(host, key, context) {
   this.host = host
   this.key = key
   this.context = context
+  this.list = this.host[this.key]
+  this.init()
+}
 
-  var list = host[key]
+ObserveArray.prototype.init = function() {
+  ['push', 'splice', 'sort'].forEach(this.bind, this)
+}
 
-  ;['push', 'splice', 'sort'].forEach(function(method) {
+ObserveArray.prototype.bind = function(method) {
+  var self = this
+  Object.defineProperty(this.list, method, {
+    configurable: true,
+    enumerable: false,
+    writable: false,
+    value: function() {
 
-    var self = this
+      var args = arguments
+      Array.prototype[method].apply(this, args)
 
-    Object.defineProperty(list, method, {
-      configurable: true,
-      enumerable: false,
-      writable: false,
-      value: function() {
+      this['on' + method] && this['on' + method].forEach(function(fn) {
+        fn.apply(null, args)
+      })
 
-        var args = arguments
-        Array.prototype[method].apply(this, args)
+      self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
 
-        this['on' + method] && this['on' + method].forEach(function(fn) {
-          fn.apply(this, args)
-        }, this)
-
-        self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
-
-        self[method] && self[method].apply(self, args)
-      }
-    })
-  }, this)
+      self[method] && self[method].apply(self, args)
+    }
+  })
 }
 
 ObserveArray.prototype.push = function() {
