@@ -40,5 +40,6 @@ var modelHandles = {
 }
 
 module.exports = function(element, exp, scope) {
-  modelHandles[element.tagName.toLowerCase()].apply(this, arguments)
+  var tag = element.tagName.toLowerCase()
+  modelHandles[tag] && modelHandles[tag].apply(this, arguments)
 }

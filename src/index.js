@@ -6,7 +6,7 @@ var _       = require('./util')
 
 
 var unenumerableMap = Object.create(null)
-;['el', 'computed', 'template'].forEach(function(property) {
+;['el', 'computed', 'template', '_el'].forEach(function(property) {
   unenumerableMap[property] = true
 })
 
@@ -52,13 +52,13 @@ function Trunk(options) {
               }
             }
             // 初始化绑定依赖
-            this._computer = {
+            _.defineValue(this, '_computer', {
               key: k,
               handle: item
-            }
+            })
             _value = item.call(this)
             _hasGet = true
-            this._computer = null
+            _.defineValue(this, '_computer', null)
           }
           return _value
         }
@@ -69,9 +69,8 @@ function Trunk(options) {
 
   this.observe(this)
 
-  Object.defineProperty(this, '_watchers', {
-    value: {}
-  })
+  _.defineValue(this, '_watchers', {})
+  _.defineValue(this, '_components', {})
 
   this.compileNode(this.el || document.body, this)
 }

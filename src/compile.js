@@ -1,7 +1,7 @@
-var _          = require('./util')
+var _ = require('./util')
 var directives = require('./directives')
-var config     = require('./config')
-var watch      = require('./watch')
+var config = require('./config')
+var watch = require('./watch')
 
 
 var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -65,13 +65,13 @@ var nodeTypeHandles = {
   // }
 }
 
-var ignoreTags = Object.create(null)
-;['script', 'link', 'style', 'template'].forEach(function(tagName) {
+var ignoreTags = Object.create(null);
+['script', 'link', 'style', 'template'].forEach(function(tagName) {
   ignoreTags[tagName.toUpperCase()] = true
 })
 
-var ignoreWatchs = Object.create(null)
-;['click'].forEach(function(directive) {
+var ignoreWatchs = Object.create(null);
+['click'].forEach(function(directive) {
   ignoreWatchs[config.d_prefix + directive] = true
 })
 
@@ -88,6 +88,20 @@ exports.compileAttribute = function(attribute, scope) {
   directives[name].call(this, attribute.ownerElement, exp, scope)
 }
 
+exports.compileComponent = function(node, tag, options) {
+  var dataKey = node.getAttribute('d-data')
+  if (dataKey) {
+    options.data || (options.data = {})
+    options.data[dataKey] = this[dataKey]
+
+    // options._deps = {}
+    // options._deps[dataKey] = _.initialize(this, {}, '_deps', dataKey)
+  }
+  options.el = options._el.cloneNode(true)
+  node.parentNode.replaceChild(options.el, node)
+  this._components[tag] = new Trunk(options)
+}
+
 exports.compileNode = function(node, scope) {
 
   var handle = nodeTypeHandles[node.nodeType]
@@ -97,10 +111,10 @@ exports.compileNode = function(node, scope) {
     // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
     if (ignoreTags[node.tagName]) return
 
-    var component = this.components[node.tagName.toLowerCase()]
-    if (component) {
-      node.parentNode.replaceChild(component.el.cloneNode(true), node)
-      return
+    var tag = node.tagName.toLowerCase()
+    var options = this.components[tag]
+    if (options) {
+      return this.compileComponent(node, tag, options)
     }
   }
 

@@ -40,6 +40,14 @@ exports.initialize = function(host, value) {
   return host[lastProp]
 }
 
+exports.defineValue = function(host, key, value) {
+  Object.defineProperty(host, key, {
+    configurable: true,
+    enumerable: false,
+    value: value
+  })
+}
+
 exports.mapParse = function(map, callback, context) {
   map.split(',').forEach(function(item) {
     item = item.trim().split(':')

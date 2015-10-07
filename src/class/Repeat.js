@@ -24,7 +24,7 @@ function Repeat(element, exp, scope, context) {
 }
 
 Repeat.prototype.handles = {
-  
+
   push: function() {
     var args = arguments
     for (var i = 0, len = args.length; i < len; i++) {
@@ -48,6 +48,18 @@ Repeat.prototype.handles = {
       }
       this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
     }
+  },
+
+  sort: function() {
+    var _childNodes = this.childNodes.concat()
+    this.list.forEach(function(item, i) {
+      if (i !== item.index) {
+        this.childNodes[i] = _childNodes[item.index]
+      }
+      this.docFrag.appendChild(this.childNodes[i])
+    }, this)
+    _childNodes = null
+    this.container.appendChild(this.docFrag)
   }
 }
 
@@ -58,7 +70,8 @@ Repeat.prototype.render = function() {
 
   this.childNodes.length = []
 
-  this.list && this.list.forEach(function(item) {
+  this.list && this.list.forEach(function(item, i) {
+    _.defineValue(item, 'index', i)
     this.childNodes.push(this.renderOne(item))
   }, this)
 
@@ -78,7 +91,7 @@ Repeat.prototype.renderOne = function(item) {
     _watchers: {
       value: {}
     },
-    $remove: {
+    remove: {
       configurable: false,
       enumerable: false,
       writable: false,

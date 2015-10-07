@@ -53,7 +53,7 @@ var Trunk =
 
 
 	var unenumerableMap = Object.create(null)
-	;['el', 'computed', 'template'].forEach(function(property) {
+	;['el', 'computed', 'template', '_el'].forEach(function(property) {
 	  unenumerableMap[property] = true
 	})
 
@@ -99,13 +99,13 @@ var Trunk =
 	              }
 	            }
 	            // 初始化绑定依赖
-	            this._computer = {
+	            _.defineValue(this, '_computer', {
 	              key: k,
 	              handle: item
-	            }
+	            })
 	            _value = item.call(this)
 	            _hasGet = true
-	            this._computer = null
+	            _.defineValue(this, '_computer', null)
 	          }
 	          return _value
 	        }
@@ -116,9 +116,8 @@ var Trunk =
 
 	  this.observe(this)
 
-	  Object.defineProperty(this, '_watchers', {
-	    value: {}
-	  })
+	  _.defineValue(this, '_watchers', {})
+	  _.defineValue(this, '_components', {})
 
 	  this.compileNode(this.el || document.body, this)
 	}
@@ -136,10 +135,10 @@ var Trunk =
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _          = __webpack_require__(2)
+	var _ = __webpack_require__(2)
 	var directives = __webpack_require__(5)
-	var config     = __webpack_require__(6)
-	var watch      = __webpack_require__(15)
+	var config = __webpack_require__(6)
+	var watch = __webpack_require__(15)
 
 
 	var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -203,13 +202,13 @@ var Trunk =
 	  // }
 	}
 
-	var ignoreTags = Object.create(null)
-	;['script', 'link', 'style', 'template'].forEach(function(tagName) {
+	var ignoreTags = Object.create(null);
+	['script', 'link', 'style', 'template'].forEach(function(tagName) {
 	  ignoreTags[tagName.toUpperCase()] = true
 	})
 
-	var ignoreWatchs = Object.create(null)
-	;['click'].forEach(function(directive) {
+	var ignoreWatchs = Object.create(null);
+	['click'].forEach(function(directive) {
 	  ignoreWatchs[config.d_prefix + directive] = true
 	})
 
@@ -226,6 +225,20 @@ var Trunk =
 	  directives[name].call(this, attribute.ownerElement, exp, scope)
 	}
 
+	exports.compileComponent = function(node, tag, options) {
+	  var dataKey = node.getAttribute('d-data')
+	  if (dataKey) {
+	    options.data || (options.data = {})
+	    options.data[dataKey] = this[dataKey]
+
+	    // options._deps = {}
+	    // options._deps[dataKey] = _.initialize(this, {}, '_deps', dataKey)
+	  }
+	  options.el = options._el.cloneNode(true)
+	  node.parentNode.replaceChild(options.el, node)
+	  this._components[tag] = new Trunk(options)
+	}
+
 	exports.compileNode = function(node, scope) {
 
 	  var handle = nodeTypeHandles[node.nodeType]
@@ -235,10 +248,10 @@ var Trunk =
 	    // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
 	    if (ignoreTags[node.tagName]) return
 
-	    var component = this.components[node.tagName.toLowerCase()]
-	    if (component) {
-	      node.parentNode.replaceChild(component.el.cloneNode(true), node)
-	      return
+	    var tag = node.tagName.toLowerCase()
+	    var options = this.components[tag]
+	    if (options) {
+	      return this.compileComponent(node, tag, options)
 	    }
 	  }
 
@@ -301,6 +314,14 @@ var Trunk =
 	    value: value
 	  })
 	  return host[lastProp]
+	}
+
+	exports.defineValue = function(host, key, value) {
+	  Object.defineProperty(host, key, {
+	    configurable: true,
+	    enumerable: false,
+	    value: value
+	  })
 	}
 
 	exports.mapParse = function(map, callback, context) {
@@ -484,7 +505,8 @@ var Trunk =
 	}
 
 	module.exports = function(element, exp, scope) {
-	  modelHandles[element.tagName.toLowerCase()].apply(this, arguments)
+	  var tag = element.tagName.toLowerCase()
+	  modelHandles[tag] && modelHandles[tag].apply(this, arguments)
 	}
 
 /***/ },
@@ -539,7 +561,7 @@ var Trunk =
 	}
 
 	Repeat.prototype.handles = {
-	  
+
 	  push: function() {
 	    var args = arguments
 	    for (var i = 0, len = args.length; i < len; i++) {
@@ -563,6 +585,18 @@ var Trunk =
 	      }
 	      this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
 	    }
+	  },
+
+	  sort: function() {
+	    var _childNodes = this.childNodes.concat()
+	    this.list.forEach(function(item, i) {
+	      if (i !== item.index) {
+	        this.childNodes[i] = _childNodes[item.index]
+	      }
+	      this.docFrag.appendChild(this.childNodes[i])
+	    }, this)
+	    _childNodes = null
+	    this.container.appendChild(this.docFrag)
 	  }
 	}
 
@@ -573,7 +607,8 @@ var Trunk =
 
 	  this.childNodes.length = []
 
-	  this.list && this.list.forEach(function(item) {
+	  this.list && this.list.forEach(function(item, i) {
+	    _.defineValue(item, 'index', i)
 	    this.childNodes.push(this.renderOne(item))
 	  }, this)
 
@@ -593,7 +628,7 @@ var Trunk =
 	    _watchers: {
 	      value: {}
 	    },
-	    $remove: {
+	    remove: {
 	      configurable: false,
 	      enumerable: false,
 	      writable: false,
@@ -856,9 +891,9 @@ var Trunk =
 	  }
 	  if (this.hasComputs) {
 	    this.host._computs[this.key].forEach(function(item) {
-	      this._computer = item
+	      // this._computer = item
 	      var _value = item.handle.call(this)
-	      this._computer = null
+	      // this._computer = null
 	      this[item.key] = _value
 	    }, this.context)
 	  }
@@ -878,7 +913,7 @@ var Trunk =
 	}
 
 	ObserveArray.prototype.sort = function() {
-	  this.host[this.key] = this.host[this.key]
+	  
 	}
 
 	module.exports = ObserveArray
@@ -887,12 +922,11 @@ var Trunk =
 /* 18 */
 /***/ function(module, exports) {
 
-	
 	function component(name, options) {
 
-	  options.el = document.querySelector(options.template).content.firstElementChild
+	  options._el = document.querySelector(options.template).content.firstElementChild
 
-	  this.prototype.components[name] = new this(options)
+	  this.prototype.components[name] = options
 	}
 
 	module.exports = component

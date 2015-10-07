@@ -1,9 +1,8 @@
-
 function component(name, options) {
 
-  options.el = document.querySelector(options.template).content.firstElementChild
+  options._el = document.querySelector(options.template).content.firstElementChild
 
-  this.prototype.components[name] = new this(options)
+  this.prototype.components[name] = options
 }
 
 module.exports = component
