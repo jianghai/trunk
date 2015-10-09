@@ -20,6 +20,13 @@ var template = require('./template')
  */
 function Trunk(attributes) {
 
+  if (attributes) {
+    if (attributes.className && this.className) {
+      attributes.className = this.className + ' ' + attributes.className
+    }
+    _.mergeAttributes.call(this, attributes)
+  }
+
   /**
    * 当前视图的模型属性或模型
    * ```js
@@ -46,13 +53,6 @@ function Trunk(attributes) {
   
   this.model.view = this
   this.model.collection && (this.collection = this.model.collection)
-
-  if (attributes) {
-    if (attributes.className && this.className) {
-      attributes.className = this.className + ' ' + attributes.className
-    }
-    _.mergeAttributes.call(this, attributes)
-  }
   
   if (this.el) {
     /**
