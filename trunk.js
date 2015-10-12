@@ -237,6 +237,8 @@
         }
         this.trigger('change', data);
         this.collection && this.collection.trigger('change');
+      } else {
+        $.extend(this.data, data)
       }
       return true;
     },
@@ -329,13 +331,12 @@
       });
     },
 
-    clear: function(models) {
-      (models || this.list).forEach(function(model) {
-        models && this.list.splice(model.index(), 1);
+    clear: function() {
+      this.list.forEach(function(model) {
         model.view.el.remove();
+        this.trigger('reduce', model)
       }, this);
-      !models && (this.list.length = 0);
-      this.trigger('reduce');
+      this.list.length = 0
       this.trigger('change');
       return this;
     }
@@ -348,9 +349,9 @@
      * has a parameter data and return html string.
      */
     var vjs = function(str) {
-      if (!str) return;
+      if (!str) return
       str = "var out = '" + str.replace(/\s*\n\s*/g, '') + "'";
-      str = str.replace(getReg.statement(), "';$1out+='");
+      str = str.replace(getReg.statement(), "';$1;out+='");
       str = str.replace(getReg.express(), "'+($1)+'");
       str += ";return out;";
       return new Function(vjs.global, str);

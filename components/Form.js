@@ -50,7 +50,7 @@ define([
       if (!target.name) return;
       
       var checked = target.checked;
-      var data = this.model[target.name];
+      var data = this.model.data[target.name];
       if (!data) {
         data = [];
       }
@@ -83,12 +83,14 @@ define([
       var res = {};
       this.$('[name]').each(function(i, el) {
         if (el.type === 'file') {
-          res[el.name] = el.files[0];
+          res[el.name] = el.files[0] || null
         } else if (el.type === 'checkbox') {
           if (!res[el.name]) res[el.name] = [];
-          el.checked && res[el.name].push(el.value);
+          el.checked && res[el.name].push(el.value)
+        } else if (el.type === 'radio') {
+          el.checked && (res[el.name] = el.value)
         } else {
-          res[el.name] = el.value;
+          res[el.name] = el.value
         }
       });
       return res;

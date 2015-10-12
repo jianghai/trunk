@@ -45,10 +45,8 @@ define([
       var form = $(e.target);
       var input = $(form[0].page);
       var page = input.val();
-      if (isNaN(page) || parseInt(page) !== +page) {
-        page = 1;
-      } else if (page > this.model.data.counts) {
-        page = this.model.data.counts;
+      if (isNaN(page) || page > this.model.data.counts || page < 1) {
+        return input.focus()
       }
       this.trigger('change', +page);
     },
