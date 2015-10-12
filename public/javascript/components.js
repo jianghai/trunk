@@ -10,6 +10,10 @@ require([
   //     this.el
   //   })
   // }
+  
+  $.ajaxSetup({
+    cache: true
+  })
 
   var app = new Trunk({
     el: 'table',
