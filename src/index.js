@@ -6,7 +6,7 @@ var _       = require('./util')
 
 
 var unenumerableMap = Object.create(null)
-;['el', 'computed', 'template', '_el'].forEach(function(property) {
+;['el', 'computed', 'template', '_el', 'parent'].forEach(function(property) {
   unenumerableMap[property] = true
 })
 
@@ -70,7 +70,6 @@ function Trunk(options) {
   this.observe(this)
 
   _.defineValue(this, '_watchers', {})
-  _.defineValue(this, '_components', {})
 
   this.compileNode(this.el || document.body, this)
 }

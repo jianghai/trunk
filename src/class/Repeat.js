@@ -3,24 +3,21 @@ var _ = require('../util')
 
 function Repeat(element, exp, scope, context) {
 
+  this.context = context
+  this.container = element.parentNode
+  this.element = element
+  this.docFrag = document.createDocumentFragment()
+  this.childNodes = [this.element]
+
+  // Rerender when list reset
+  this.context.addDeps(exp, _.bind(this.rerender, this), scope)
+
   this.list = context.get(exp, scope)
 
   // Prevent cycle compile
   element.removeAttribute(config.d_prefix + 'repeat')
 
-  this.context = context
-  this.container = element.parentNode
-  this.cloneNode = element.cloneNode(true)
-  this.docFrag = document.createDocumentFragment()
-  this.childNodes = [element]
-
-  // Stop compile childNodes
-  _.empty(element)
-
   this.render()
-
-  // Rerender when list reset
-  this.context.addDeps(exp, _.bind(this.rerender, this), scope)
 }
 
 Repeat.prototype.handles = {
@@ -43,7 +40,7 @@ Repeat.prototype.handles = {
 
     var args = arguments
     if (args.length > 2) {
-      for (var i = 2, len = args.length; i < len; i++) {
+      for (i = 2, len = args.length; i < len; i++) {
         this.childNodes.splice(start, 0, this.renderOne(args[i]))
       }
       this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
@@ -70,20 +67,22 @@ Repeat.prototype.render = function() {
 
   this.childNodes.length = []
 
-  this.list && this.list.forEach(function(item, i) {
-    _.defineValue(item, 'index', i)
-    this.childNodes.push(this.renderOne(item))
-  }, this)
+  if (this.list) {
+    this.list.forEach(function(item, i) {
+      _.defineValue(item, 'index', i)
+      this.childNodes.push(this.renderOne(item))
+    }, this)
 
-  this.container.appendChild(this.docFrag)
-  for (var k in this.handles) {
-    _.initialize(this.list, [], 'on' + k)
-    this.list['on' + k].push(_.bind(this.handles[k], this))
+    this.container.appendChild(this.docFrag)
+    for (var k in this.handles) {
+      _.initialize(this.list, [], 'on' + k)
+      this.list['on' + k].push(_.bind(this.handles[k], this))
+    }
   }
 }
 
 Repeat.prototype.renderOne = function(item) {
-  var _cloneNode = this.cloneNode.cloneNode(true)
+  var _cloneNode = this.element.cloneNode(true)
   var _data = item
 
   var self = this

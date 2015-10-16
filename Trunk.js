@@ -53,7 +53,7 @@ var Trunk =
 
 
 	var unenumerableMap = Object.create(null)
-	;['el', 'computed', 'template', '_el'].forEach(function(property) {
+	;['el', 'computed', 'template', '_el', 'parent'].forEach(function(property) {
 	  unenumerableMap[property] = true
 	})
 
@@ -117,7 +117,6 @@ var Trunk =
 	  this.observe(this)
 
 	  _.defineValue(this, '_watchers', {})
-	  _.defineValue(this, '_components', {})
 
 	  this.compileNode(this.el || document.body, this)
 	}
@@ -138,7 +137,6 @@ var Trunk =
 	var _ = __webpack_require__(2)
 	var directives = __webpack_require__(5)
 	var config = __webpack_require__(6)
-	var watch = __webpack_require__(15)
 
 
 	var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -147,9 +145,12 @@ var Trunk =
 
 	  // ELEMENT_NODE
 	  1: function(node, scope) {
-	    _.toArray(node.attributes).forEach(function(attribute) {
-	      this.compileAttribute(attribute, scope)
-	    }, this)
+	    var attributes = _.toArray(node.attributes)
+	    for (var i = 0, len = attributes.length; i < len; i++) {
+	      if (this.compileAttribute(attributes[i], scope) === false) {
+	        return false
+	      }
+	    }
 	  },
 
 	  // TEXT_NODE
@@ -186,11 +187,10 @@ var Trunk =
 
 	      if (fragment.isBind) {
 	        var exp = fragment.exp
-	        this.watch(exp, scope)
-	        textNode.nodeValue = this.get(exp, scope)
 	        this.addDeps(exp, function(value) {
 	          textNode.nodeValue = value
 	        }, scope)
+	        textNode.nodeValue = this.get(exp, scope)
 	      }
 	    }, this)
 	    node.parentNode.replaceChild(docFrag, node)
@@ -202,63 +202,71 @@ var Trunk =
 	  // }
 	}
 
-	var ignoreTags = Object.create(null);
-	['script', 'link', 'style', 'template'].forEach(function(tagName) {
-	  ignoreTags[tagName.toUpperCase()] = true
-	})
-
-	var ignoreWatchs = Object.create(null);
-	['click'].forEach(function(directive) {
-	  ignoreWatchs[config.d_prefix + directive] = true
-	})
-
 	exports.compileAttribute = function(attribute, scope) {
 	  var name = attribute.name
-	  var exp
-
 	  if (!directives[name]) return
-
-	  exp = attribute.value
-
-	  // Initialize getter & setter
-	  ignoreWatchs[name] || this.watch(exp, scope)
-	  directives[name].call(this, attribute.ownerElement, exp, scope)
+	  return directives[name].call(this, attribute.ownerElement, attribute.value, scope)
 	}
 
-	exports.compileComponent = function(node, tag, options) {
-	  var dataKey = node.getAttribute('d-data')
-	  if (dataKey) {
-	    options.data || (options.data = {})
-	    options.data[dataKey] = this[dataKey]
-
-	    // options._deps = {}
-	    // options._deps[dataKey] = _.initialize(this, {}, '_deps', dataKey)
-	  }
-	  options.el = options._el.cloneNode(true)
-	  node.parentNode.replaceChild(options.el, node)
-	  this._components[tag] = new Trunk(options)
-	}
+	var ignoreTags = Object.create(null);
+	['script', 'link', 'style', 'template'].forEach(function(tagName) {
+	  ignoreTags[tagName] = true
+	})
 
 	exports.compileNode = function(node, scope) {
 
 	  var handle = nodeTypeHandles[node.nodeType]
 	  if (!handle) return
 
-	  if (node.tagName) {
-	    // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
-	    if (ignoreTags[node.tagName]) return
-
-	    var tag = node.tagName.toLowerCase()
-	    var options = this.components[tag]
-	    if (options) {
-	      return this.compileComponent(node, tag, options)
+	  var tagName = node.tagName
+	  if (tagName) {
+	    tagName = tagName.toLowerCase()
+	    if (ignoreTags[tagName]) return
+	  }
+	  
+	  if (handle.call(this, node, scope) !== false) {
+	    if (this.components[tagName]) {
+	      return this.compileComponent(node, tagName, scope)
+	    }
+	    var childNodes = _.toArray(node.childNodes)
+	    for (var i = 0, len = childNodes.length; i< len; i++) {
+	      this.compileNode(childNodes[i], scope)
 	    }
 	  }
+	}
 
-	  handle.call(this, node, scope)
-	  _.toArray(node.childNodes).forEach(function(node) {
-	    this.compileNode(node, scope)
-	  }, this)
+	exports.compileComponent = function(node, tagName, scope) {
+	  var options = this.components[tagName]
+
+	  var dataKey = node.getAttribute(config.d_prefix + 'data')
+	  if (dataKey) {
+	    this.addDeps(dataKey, function(value) {
+	      // Prevent cricle dependency
+	      scope.__circleDep = true
+	      component.__circleDep || (component[dataKey] = value)
+	      delete scope.__circleDep
+	    }, scope)
+	    options.data || (options.data = {})
+	    options.data[dataKey] = scope[dataKey]
+	  }
+
+	  options.parent = scope
+	  options.el = options._el.cloneNode(true)
+	  node.parentNode.replaceChild(options.el, node)
+	  
+	  var component = new Trunk(options)
+
+	  if (dataKey) {
+	    this.addDeps(dataKey, function(value) {
+	      // Prevent cricle dependency
+	      component.__circleDep = true
+	      scope.__circleDep || (scope[dataKey] = value)
+	      delete component.__circleDep
+	    }, component)
+	  }
+	  
+	  _.initialize(this, [], '_components', tagName)
+	  this._components[tagName].push(component)
 	}
 
 /***/ },
@@ -319,6 +327,7 @@ var Trunk =
 	exports.defineValue = function(host, key, value) {
 	  Object.defineProperty(host, key, {
 	    configurable: true,
+	    writable: true,
 	    enumerable: false,
 	    value: value
 	  })
@@ -349,9 +358,15 @@ var Trunk =
 	  }
 	}
 
+	exports.remove = function(element) {
+	  element.parentNode.removeChild(element)
+	}
+
 	exports.on = function(element, type, method, scope, context) {
-	  element.addEventListener(type, function() {
-	    typeof scope[method] === 'function' ? scope[method]() : context[method](scope)
+	  element.addEventListener(type, function(e) {
+	    e.preventDefault()
+	    e.stopPropagation()
+	    typeof scope[method] === 'function' ? scope[method]() : context[method](scope, e)
 	  })
 	}
 
@@ -367,6 +382,7 @@ var Trunk =
 	  'click',
 	  'change',
 	  'class',
+	  'if',
 	  'model',
 	  'repeat',
 	  'on'
@@ -400,6 +416,10 @@ var Trunk =
 		"./class.js": 9,
 		"./click": 10,
 		"./click.js": 10,
+		"./data": 20,
+		"./data.js": 20,
+		"./if": 19,
+		"./if.js": 19,
 		"./index": 5,
 		"./index.js": 5,
 		"./model": 11,
@@ -441,11 +461,10 @@ var Trunk =
 
 	module.exports = function(element, map, scope) {
 	  _.mapParse(map, function(name, condition) {
-	    this.watch(condition, scope)
-	    _.toggleClass(element, name, this.get(condition, scope))
 	    this.addDeps(condition, function(value) {
 	      _.toggleClass(element, name, value)
 	    }, scope)
+	    _.toggleClass(element, name, this.get(condition, scope))
 	  }, this)
 	}
 
@@ -468,24 +487,24 @@ var Trunk =
 
 	  text: function(element, exp, scope) {
 	    var self = this
+	    this.addDeps(exp, function(value) {
+	      element.value === value || (element.value = value)
+	    }, scope)
 	    element.value = this.get(exp, scope)
 	    element.addEventListener('input', function() {
 	      self.set(exp, this.value, scope)
 	    })
-	    this.addDeps(exp, function(value) {
-	      element.value === value || (element.value = value)
-	    }, scope)
 	  },
 
 	  checkbox: function(element, exp, scope) {
 	    var self = this
+	    this.addDeps(exp, function(value) {
+	      element.checked === value || (element.checked = value)
+	    }, scope)
 	    element.checked = this.get(exp, scope)
 	    element.addEventListener('change', function() {
 	      self.set(exp, this.checked, scope)
 	    })
-	    this.addDeps(exp, function(value) {
-	      element.checked === value || (element.checked = value)
-	    }, scope)
 	  }
 	}
 
@@ -529,6 +548,7 @@ var Trunk =
 
 	module.exports = function(element, exp, scope) {
 	  new Repeat(element, exp, scope, this)
+	  return false
 	}
 
 /***/ },
@@ -540,24 +560,21 @@ var Trunk =
 
 	function Repeat(element, exp, scope, context) {
 
+	  this.context = context
+	  this.container = element.parentNode
+	  this.element = element
+	  this.docFrag = document.createDocumentFragment()
+	  this.childNodes = [this.element]
+
+	  // Rerender when list reset
+	  this.context.addDeps(exp, _.bind(this.rerender, this), scope)
+
 	  this.list = context.get(exp, scope)
 
 	  // Prevent cycle compile
 	  element.removeAttribute(config.d_prefix + 'repeat')
 
-	  this.context = context
-	  this.container = element.parentNode
-	  this.cloneNode = element.cloneNode(true)
-	  this.docFrag = document.createDocumentFragment()
-	  this.childNodes = [element]
-
-	  // Stop compile childNodes
-	  _.empty(element)
-
 	  this.render()
-
-	  // Rerender when list reset
-	  this.context.addDeps(exp, _.bind(this.rerender, this), scope)
 	}
 
 	Repeat.prototype.handles = {
@@ -580,7 +597,7 @@ var Trunk =
 
 	    var args = arguments
 	    if (args.length > 2) {
-	      for (var i = 2, len = args.length; i < len; i++) {
+	      for (i = 2, len = args.length; i < len; i++) {
 	        this.childNodes.splice(start, 0, this.renderOne(args[i]))
 	      }
 	      this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
@@ -607,20 +624,22 @@ var Trunk =
 
 	  this.childNodes.length = []
 
-	  this.list && this.list.forEach(function(item, i) {
-	    _.defineValue(item, 'index', i)
-	    this.childNodes.push(this.renderOne(item))
-	  }, this)
+	  if (this.list) {
+	    this.list.forEach(function(item, i) {
+	      _.defineValue(item, 'index', i)
+	      this.childNodes.push(this.renderOne(item))
+	    }, this)
 
-	  this.container.appendChild(this.docFrag)
-	  for (var k in this.handles) {
-	    _.initialize(this.list, [], 'on' + k)
-	    this.list['on' + k].push(_.bind(this.handles[k], this))
+	    this.container.appendChild(this.docFrag)
+	    for (var k in this.handles) {
+	      _.initialize(this.list, [], 'on' + k)
+	      this.list['on' + k].push(_.bind(this.handles[k], this))
+	    }
 	  }
 	}
 
 	Repeat.prototype.renderOne = function(item) {
-	  var _cloneNode = this.cloneNode.cloneNode(true)
+	  var _cloneNode = this.element.cloneNode(true)
 	  var _data = item
 
 	  var self = this
@@ -657,9 +676,6 @@ var Trunk =
 	var _ = __webpack_require__(2)
 
 	exports.watch = function(exp, scope) {
-
-	  if (scope._watchers[exp]) return
-
 	  scope._watchers[exp] = {
 	    getter: new Function('scope', 'return scope.' + exp),
 	    setter: new Function('value', 'scope', 'scope.' + exp + ' = value')
@@ -691,6 +707,8 @@ var Trunk =
 
 	exports.addDeps = function(exp, cb, scope) {
 
+	  scope._watchers[exp] || this.watch(exp, scope)
+
 	  var getter = scope._watchers[exp].getter
 	  var host = scope
 	  var match = exp.match(/[\w_]+/g)
@@ -713,6 +731,7 @@ var Trunk =
 	    var key    = match[i]
 	    var isLast = i + 1 === len
 
+	    // _.initialize(deps, [], key, 'handles')
 	    deps[key] || (deps[key] = {})
 	    deps = deps[key]
 	    deps.handles || (deps.handles = [])
@@ -767,9 +786,8 @@ var Trunk =
 	  return isArray
 	}
 
-	function _observe(obj, k) {
+	function _observe(obj, k, context) {
 
-	  var context = this
 	  var _value = obj[k]
 
 	  function getter() {
@@ -833,9 +851,14 @@ var Trunk =
 	 */
 	function observe(obj) {
 
+	  // if (argument.length === 2) {
+	  //   _observe(obj, argument[1], this)
+	  //   return this.observe(argument[1])
+	  // }
+
 	  for (var k in obj) {
 	    if (obj.hasOwnProperty(k)) {
-	      _observe.call(this, obj, k)
+	      _observe(obj, k, this)
 	      var _value = obj[k]
 	      if (!_observeArray(obj, k, this)) {
 	        _.isObject(_value) && this.observe(_value)
@@ -891,9 +914,9 @@ var Trunk =
 	  }
 	  if (this.hasComputs) {
 	    this.host._computs[this.key].forEach(function(item) {
-	      // this._computer = item
+	      this._computer = item
 	      var _value = item.handle.call(this)
-	      // this._computer = null
+	      this._computer = null
 	      this[item.key] = _value
 	    }, this.context)
 	  }
@@ -930,6 +953,57 @@ var Trunk =
 	}
 
 	module.exports = component
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+	var config = __webpack_require__(6)
+
+	module.exports = function(element, condition, scope) {
+
+	  var self = this
+	  
+	  this.addDeps(condition, function(value) {
+	    if (!!lastValue === !!value) return
+	    if (!value) {
+	      _.remove(element)
+	    } else {
+
+	      if (!initValue) {
+	        self.compileNode(element, scope)
+	      }
+	      parentNode.insertBefore(element, nextNode)
+	    }
+	    lastValue = value
+	  }, scope)
+
+	  // Prevent recompile
+	  element.removeAttribute(config.d_prefix + 'if')
+
+	  var nextNode = element.nextNode
+	  var parentNode = element.parentNode
+	  var lastValue = this.get(condition, scope)
+	  var initValue = lastValue
+
+	  if (!lastValue) {
+	    _.remove(element)
+	  }
+
+	  return !!lastValue
+	}
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(2)
+
+	module.exports = function(element, exp, scope) {
+	  this[exp] = this.parent[exp]
+	  this.observe()
+	}
 
 /***/ }
 /******/ ]);

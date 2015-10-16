@@ -12,8 +12,14 @@ exports.empty = function(element) {
   }
 }
 
+exports.remove = function(element) {
+  element.parentNode.removeChild(element)
+}
+
 exports.on = function(element, type, method, scope, context) {
-  element.addEventListener(type, function() {
-    typeof scope[method] === 'function' ? scope[method]() : context[method](scope)
+  element.addEventListener(type, function(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    typeof scope[method] === 'function' ? scope[method]() : context[method](scope, e)
   })
 }

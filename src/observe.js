@@ -24,9 +24,8 @@ function _observeArray(host, key, context) {
   return isArray
 }
 
-function _observe(obj, k) {
+function _observe(obj, k, context) {
 
-  var context = this
   var _value = obj[k]
 
   function getter() {
@@ -90,9 +89,14 @@ function _observe(obj, k) {
  */
 function observe(obj) {
 
+  // if (argument.length === 2) {
+  //   _observe(obj, argument[1], this)
+  //   return this.observe(argument[1])
+  // }
+
   for (var k in obj) {
     if (obj.hasOwnProperty(k)) {
-      _observe.call(this, obj, k)
+      _observe(obj, k, this)
       var _value = obj[k]
       if (!_observeArray(obj, k, this)) {
         _.isObject(_value) && this.observe(_value)

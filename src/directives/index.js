@@ -6,6 +6,7 @@ var directives = Object.create(null)
   'click',
   'change',
   'class',
+  'if',
   'model',
   'repeat',
   'on'

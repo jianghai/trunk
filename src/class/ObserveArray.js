@@ -39,9 +39,9 @@ ObserveArray.prototype.push = function() {
   }
   if (this.hasComputs) {
     this.host._computs[this.key].forEach(function(item) {
-      // this._computer = item
+      this._computer = item
       var _value = item.handle.call(this)
-      // this._computer = null
+      this._computer = null
       this[item.key] = _value
     }, this.context)
   }

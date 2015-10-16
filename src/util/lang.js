@@ -43,6 +43,7 @@ exports.initialize = function(host, value) {
 exports.defineValue = function(host, key, value) {
   Object.defineProperty(host, key, {
     configurable: true,
+    writable: true,
     enumerable: false,
     value: value
   })

@@ -3,24 +3,24 @@ var inputHandles = {
 
   text: function(element, exp, scope) {
     var self = this
+    this.addDeps(exp, function(value) {
+      element.value === value || (element.value = value)
+    }, scope)
     element.value = this.get(exp, scope)
     element.addEventListener('input', function() {
       self.set(exp, this.value, scope)
     })
-    this.addDeps(exp, function(value) {
-      element.value === value || (element.value = value)
-    }, scope)
   },
 
   checkbox: function(element, exp, scope) {
     var self = this
+    this.addDeps(exp, function(value) {
+      element.checked === value || (element.checked = value)
+    }, scope)
     element.checked = this.get(exp, scope)
     element.addEventListener('change', function() {
       self.set(exp, this.checked, scope)
     })
-    this.addDeps(exp, function(value) {
-      element.checked === value || (element.checked = value)
-    }, scope)
   }
 }
 

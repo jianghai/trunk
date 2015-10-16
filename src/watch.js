@@ -1,9 +1,6 @@
 var _ = require('./util')
 
 exports.watch = function(exp, scope) {
-
-  if (scope._watchers[exp]) return
-
   scope._watchers[exp] = {
     getter: new Function('scope', 'return scope.' + exp),
     setter: new Function('value', 'scope', 'scope.' + exp + ' = value')
@@ -35,6 +32,8 @@ exports.set = function(exp, value, scope) {
 
 exports.addDeps = function(exp, cb, scope) {
 
+  scope._watchers[exp] || this.watch(exp, scope)
+
   var getter = scope._watchers[exp].getter
   var host = scope
   var match = exp.match(/[\w_]+/g)
@@ -57,6 +56,7 @@ exports.addDeps = function(exp, cb, scope) {
     var key    = match[i]
     var isLast = i + 1 === len
 
+    // _.initialize(deps, [], key, 'handles')
     deps[key] || (deps[key] = {})
     deps = deps[key]
     deps.handles || (deps.handles = [])

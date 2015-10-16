@@ -16,26 +16,47 @@
       <button d-click="remove">X</button>
     </li>
   </ul>
+  {{count}} | <strong>{{remain}}</strong>
   <button d-click="test">set</button>
-  {{list[0].name}}
+  <!-- {{children[0].name}} -->
   
-  <test d-data="list"></test>
-  <test d-data="list"></test>
+  <tree d-data="children"></tree>
 
   <template>
-    <div>
-      <h1>{{list[0].name}}</h1>
-      <button d-click="click">click</button>
-    </div>
+    <ul d-if="hasChildren">
+      <li d-repeat="children">
+        {{name}} <button d-click="add">+</button>
+        <tree d-data="children"></tree>
+      </li>
+    </ul>
   </template>
 
   <script>
   console.time('compile')
 
-  Trunk.component('test', {
+  Trunk.component('tree', {
     template: 'template',
-    click: function() {
-      this.list[0].name = 'component'
+    add: function(scope) {
+      // this.children.push({
+      //   name: 'cc'
+      // })
+      // this.children = null
+      // var self = this
+      // setTimeout(function() {
+      //   self.children = [{
+      //     name: 'cc'
+      //   }]
+      // }, 200)
+      scope.children || (scope.children = [])
+      scope.children.push({
+        name: 'aa',
+        children: null
+      })
+    },
+    computed: {
+      hasChildren: function() {
+        return this.children && this.children.length
+      }
     }
   })
 
@@ -44,9 +65,16 @@
     data: {
       new: '',
       list: [{
-        name: 'aa'
+        name: 'aa',
       }, {
-        name: 'bb'
+        name: 'bb',
+      }],
+      children: [{
+        name: 'aa',
+        children: [{
+          name: 'bb',
+          children: null
+        }]
       }]
     },
     test: function() {

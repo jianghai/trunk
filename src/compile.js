@@ -1,7 +1,6 @@
 var _ = require('./util')
 var directives = require('./directives')
 var config = require('./config')
-var watch = require('./watch')
 
 
 var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
@@ -10,9 +9,12 @@ var nodeTypeHandles = {
 
   // ELEMENT_NODE
   1: function(node, scope) {
-    _.toArray(node.attributes).forEach(function(attribute) {
-      this.compileAttribute(attribute, scope)
-    }, this)
+    var attributes = _.toArray(node.attributes)
+    for (var i = 0, len = attributes.length; i < len; i++) {
+      if (this.compileAttribute(attributes[i], scope) === false) {
+        return false
+      }
+    }
   },
 
   // TEXT_NODE
@@ -49,11 +51,10 @@ var nodeTypeHandles = {
 
       if (fragment.isBind) {
         var exp = fragment.exp
-        this.watch(exp, scope)
-        textNode.nodeValue = this.get(exp, scope)
         this.addDeps(exp, function(value) {
           textNode.nodeValue = value
         }, scope)
+        textNode.nodeValue = this.get(exp, scope)
       }
     }, this)
     node.parentNode.replaceChild(docFrag, node)
@@ -65,61 +66,69 @@ var nodeTypeHandles = {
   // }
 }
 
-var ignoreTags = Object.create(null);
-['script', 'link', 'style', 'template'].forEach(function(tagName) {
-  ignoreTags[tagName.toUpperCase()] = true
-})
-
-var ignoreWatchs = Object.create(null);
-['click'].forEach(function(directive) {
-  ignoreWatchs[config.d_prefix + directive] = true
-})
-
 exports.compileAttribute = function(attribute, scope) {
   var name = attribute.name
-  var exp
-
   if (!directives[name]) return
-
-  exp = attribute.value
-
-  // Initialize getter & setter
-  ignoreWatchs[name] || this.watch(exp, scope)
-  directives[name].call(this, attribute.ownerElement, exp, scope)
+  return directives[name].call(this, attribute.ownerElement, attribute.value, scope)
 }
 
-exports.compileComponent = function(node, tag, options) {
-  var dataKey = node.getAttribute('d-data')
-  if (dataKey) {
-    options.data || (options.data = {})
-    options.data[dataKey] = this[dataKey]
-
-    // options._deps = {}
-    // options._deps[dataKey] = _.initialize(this, {}, '_deps', dataKey)
-  }
-  options.el = options._el.cloneNode(true)
-  node.parentNode.replaceChild(options.el, node)
-  this._components[tag] = new Trunk(options)
-}
+var ignoreTags = Object.create(null);
+['script', 'link', 'style', 'template'].forEach(function(tagName) {
+  ignoreTags[tagName] = true
+})
 
 exports.compileNode = function(node, scope) {
 
   var handle = nodeTypeHandles[node.nodeType]
   if (!handle) return
 
-  if (node.tagName) {
-    // So far only support ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE
-    if (ignoreTags[node.tagName]) return
-
-    var tag = node.tagName.toLowerCase()
-    var options = this.components[tag]
-    if (options) {
-      return this.compileComponent(node, tag, options)
+  var tagName = node.tagName
+  if (tagName) {
+    tagName = tagName.toLowerCase()
+    if (ignoreTags[tagName]) return
+  }
+  
+  if (handle.call(this, node, scope) !== false) {
+    if (this.components[tagName]) {
+      return this.compileComponent(node, tagName, scope)
+    }
+    var childNodes = _.toArray(node.childNodes)
+    for (var i = 0, len = childNodes.length; i< len; i++) {
+      this.compileNode(childNodes[i], scope)
     }
   }
+}
 
-  handle.call(this, node, scope)
-  _.toArray(node.childNodes).forEach(function(node) {
-    this.compileNode(node, scope)
-  }, this)
+exports.compileComponent = function(node, tagName, scope) {
+  var options = this.components[tagName]
+
+  var dataKey = node.getAttribute(config.d_prefix + 'data')
+  if (dataKey) {
+    this.addDeps(dataKey, function(value) {
+      // Prevent cricle dependency
+      scope.__circleDep = true
+      component.__circleDep || (component[dataKey] = value)
+      delete scope.__circleDep
+    }, scope)
+    options.data || (options.data = {})
+    options.data[dataKey] = scope[dataKey]
+  }
+
+  options.parent = scope
+  options.el = options._el.cloneNode(true)
+  node.parentNode.replaceChild(options.el, node)
+  
+  var component = new Trunk(options)
+
+  if (dataKey) {
+    this.addDeps(dataKey, function(value) {
+      // Prevent cricle dependency
+      component.__circleDep = true
+      scope.__circleDep || (scope[dataKey] = value)
+      delete component.__circleDep
+    }, component)
+  }
+  
+  _.initialize(this, [], '_components', tagName)
+  this._components[tagName].push(component)
 }
