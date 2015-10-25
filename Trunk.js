@@ -45,13 +45,16 @@ var Trunk =
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var compile = __webpack_require__(1)
-	var watch   = __webpack_require__(15)
-	var observe = __webpack_require__(16)
+	'use strict'
+
+	var compile   = __webpack_require__(1)
+	var watch     = __webpack_require__(15)
+	var observe   = __webpack_require__(16)
 	var component = __webpack_require__(18)
-	var _       = __webpack_require__(2)
+	var _         = __webpack_require__(2)
 
 
+	// Unenumerable options
 	var unenumerableMap = Object.create(null)
 	;['el', 'computed', 'template', '_el', 'parent'].forEach(function(property) {
 	  unenumerableMap[property] = true
@@ -59,24 +62,24 @@ var Trunk =
 
 	function Trunk(options) {
 
-	  typeof options.el === 'string' && (options.el = document.querySelector(options.el))
-	  
-	  for (var key in options) {
-	    this[key] = options[key]
+	  // Getting compile range ready
+	  if (typeof options.el === 'string') {
+	    options.el = document.querySelector(options.el)
+	  } else if (!options.el) {
+	    options.el = document.body
+	  }
 
-	    if (typeof this[key] === 'function' || unenumerableMap[key]) {
-	      Object.defineProperty(this, key, {
+	  for (var prop in options) {
+	    this[prop] = options[prop]
+	    // Ignore properties when observe
+	    if (typeof this[prop] === 'function' || unenumerableMap[prop]) {
+	      Object.defineProperty(this, prop, {
 	        enumerable: false
 	      })
 	    }
 	  }
 
-	  this.data || (this.data = {})
-
-	  _.merge(this, this.data)
-	  delete this.data
-
-
+	  // Computed value
 	  if (this.computed) {
 	    Object.keys(this.computed).forEach(function(k) {
 	      var item = this.computed[k]
@@ -114,11 +117,17 @@ var Trunk =
 	    delete this.computed
 	  }
 
-	  this.observe(this)
+	  // Todo: is data required ?
+	  if (this.data) {
+	    _.merge(this, this.data)
+	    delete this.data
+	    this.observe(this)
+	  }
 
+	  // Initialize _watchers container for watch
 	  _.defineValue(this, '_watchers', {})
 
-	  this.compileNode(this.el || document.body, this)
+	  this.compileNode(this.el, this)
 	}
 
 	Trunk.component = component
@@ -229,7 +238,7 @@ var Trunk =
 	      return this.compileComponent(node, tagName, scope)
 	    }
 	    var childNodes = _.toArray(node.childNodes)
-	    for (var i = 0, len = childNodes.length; i< len; i++) {
+	    for (var i = childNodes.length; i--;) {
 	      this.compileNode(childNodes[i], scope)
 	    }
 	  }
@@ -251,6 +260,7 @@ var Trunk =
 	  }
 
 	  options.parent = scope
+	  options._el || (options._el = node.firstElementChild)
 	  options.el = options._el.cloneNode(true)
 	  node.parentNode.replaceChild(options.el, node)
 	  
@@ -947,7 +957,7 @@ var Trunk =
 
 	function component(name, options) {
 
-	  options._el = document.querySelector(options.template).content.firstElementChild
+	  // options._el = document.querySelector(options.template).content.firstElementChild
 
 	  this.prototype.components[name] = options
 	}

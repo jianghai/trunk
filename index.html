@@ -10,6 +10,7 @@
   <input type="text" d-model="new" placeholder="待办事项">
   <button d-click="add">添加</button>
   <ul>
+    <li>aa</li>
     <li d-repeat="list">
       <input type="text" d-model="name">
       <input type="checkbox" d-model="checked">{{name}}
@@ -19,34 +20,21 @@
   {{count}} | <strong>{{remain}}</strong>
   <button d-click="test">set</button>
   <!-- {{children[0].name}} -->
-  
-  <tree d-data="children"></tree>
 
-  <template>
+  <tree d-data="children">
     <ul d-if="hasChildren">
       <li d-repeat="children">
         {{name}} <button d-click="add">+</button>
-        <tree d-data="children"></tree>
+        <tree d-data="children"/>
       </li>
     </ul>
-  </template>
+  </tree>
 
   <script>
   console.time('compile')
 
   Trunk.component('tree', {
-    template: 'template',
     add: function(scope) {
-      // this.children.push({
-      //   name: 'cc'
-      // })
-      // this.children = null
-      // var self = this
-      // setTimeout(function() {
-      //   self.children = [{
-      //     name: 'cc'
-      //   }]
-      // }, 200)
       scope.children || (scope.children = [])
       scope.children.push({
         name: 'aa',
@@ -66,8 +54,9 @@
       new: '',
       list: [{
         name: 'aa',
+        test: ''
       }, {
-        name: 'bb',
+        name: 'bb'
       }],
       children: [{
         name: 'aa',
@@ -81,15 +70,9 @@
       this.list.sort(function(a, b) {
         return a.name < b.name
       })
-      // this.list.splice(1, 0, {
-      //   name: 'cc'
-      // })
-      // this.list = [{name: '1'}]
-      // this.list[0].name = 2
-      // this.list[0].name = 'dasdsad'
     },
     remove: function(scope) {
-      // console.log(scope.name)
+      console.log(scope.name)
       scope.remove()
     },
     computed: {

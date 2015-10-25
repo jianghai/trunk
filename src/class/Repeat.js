@@ -31,19 +31,21 @@ Repeat.prototype.handles = {
   },
 
   splice: function(start, deleteCount) {
-    var i = 0
-    while (i < deleteCount) {
-      this.container.removeChild(this.childNodes[start + i])
+    var i = start
+    var limit = start + deleteCount
+    while (i < limit) {
+      this.container.removeChild(this.childNodes[i])
       i++
     }
     this.childNodes.splice(start, deleteCount)
 
     var args = arguments
-    if (args.length > 2) {
-      for (i = 2, len = args.length; i < len; i++) {
+    var argsLen = args.length
+    if (argsLen > 2) {
+      for (i = 2; i < argsLen; i++) {
         this.childNodes.splice(start, 0, this.renderOne(args[i]))
       }
-      this.container.insertBefore(this.docFrag, this.childNodes[start + len - 2])
+      this.container.insertBefore(this.docFrag, this.childNodes[start + argsLen - 2])
     }
   },
 
@@ -57,6 +59,22 @@ Repeat.prototype.handles = {
     }, this)
     _childNodes = null
     this.container.appendChild(this.docFrag)
+  },
+
+  pop: function() {
+    this.splice.call(this, this.list.length - 1, 1)
+  },
+
+  shift: function() {
+    this.splice.call(this, 0, 1)
+  },
+
+  unshift: function() {
+    var args = arguments
+    for (var i = 0, len = args.length; i < len; i++) {
+      this.childNodes.unshift(this.renderOne(args[i]))
+    }
+    this.container.insertBefore(this.docFrag, this.childNodes[len])
   }
 }
 

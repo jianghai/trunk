@@ -1,3 +1,8 @@
+'use strict'
+
+/**
+ * Special handling for Array for some CRUD.
+ */
 function ObserveArray(host, key, context) {
   this.host = host
   this.key = key
@@ -7,9 +12,14 @@ function ObserveArray(host, key, context) {
 }
 
 ObserveArray.prototype.init = function() {
-  ['push', 'splice', 'sort'].forEach(this.bind, this)
+  this.bind('push')
+  this.bind('splice')
+  this.bind('sort')
 }
 
+/**
+ * Rewrite native method for handle dependents after excute.
+ */
 ObserveArray.prototype.bind = function(method) {
   var self = this
   Object.defineProperty(this.list, method, {
@@ -21,47 +31,93 @@ ObserveArray.prototype.bind = function(method) {
       var args = arguments
       Array.prototype[method].apply(this, args)
 
-      this['on' + method] && this['on' + method].forEach(function(fn) {
-        fn.apply(null, args)
-      })
+      self.nativeHandles[method] && self.nativeHandles[method].apply(self, args)
+      self.context.traverseComputs(self.host, self.key)
 
-      self.hasComputs = !!(self.host._computs && self.host._computs[self.key])
-
-      self[method] && self[method].apply(self, args)
+      // Trigger method event
+      var eventHandles = this['on' + method]
+      if (eventHandles) {
+        for (var i = eventHandles.length; i--;) {
+          eventHandles[i].apply(null, args)
+        }
+      }
     }
   })
 }
 
-ObserveArray.prototype.push = function() {
-  var args = arguments
-  for (var i = 0; i < args.length; i++) {
-    this.context.observe(args[i])
+/**
+ * When push or splice new elements, invoke dependents、bind dependents self and initialize 
+ * observe.
+ */
+ObserveArray.prototype.insert = function(value, index) {
+  // Bind dependents if there are dependents already
+  var deps = this.context.getDeps(this.list, index)
+  if (deps) {
+    // Invoke dependents once created
+    this.context.traverseDeps(this.list, index)
+    deps.sub && this.context.setDeps(value, deps.sub)
   }
-  if (this.hasComputs) {
-    this.host._computs[this.key].forEach(function(item) {
-      this._computer = item
-      var _value = item.handle.call(this)
-      this._computer = null
-      this[item.key] = _value
-    }, this.context)
-  }
+  // Observe manaually
+  this.context.observe(value)
 }
 
-ObserveArray.prototype.splice = function() {
-  var args = arguments
-  if (args.length > 2) {
-    this.push.apply(this, Array.prototype.slice.call(args, 2))
-  } else {
-    if (this.hasComputs) {
-      this.host._computs[this.key].forEach(function(item) {
-        this[item.key] = item.handle.call(this)
-      }, this.context)
+/**
+ * Different native method, different logic.
+ */
+ObserveArray.prototype.nativeHandles = {
+
+  push: function() {
+    var args = arguments
+    var len = this.list.length
+    for (var i = args.length; i--;) {
+      this.insert(args[i], len - i)
+    }
+  },
+
+  splice: function(start, deleteCount) {
+    if (this.list._deps) {
+      var i = start
+      var limit = start + deleteCount
+      while (i < limit) {
+        var deps = this.context.getDeps(this.list, i)
+        if (deps) {
+          // Invoke dependents once created
+          this.context.traverseDeps(this.list, i)
+        }
+      }
+    }
+    var args = arguments
+    var argsLen = args.length
+    if (argsLen > 2) {
+      for (i = 2; i < argsLen; i++) {
+        this.insert(args[i], start + i)
+      }
+    }
+  },
+
+  sort: function() {
+    var deps = this.list._deps
+    if (deps) {
+      for (var i = Object.key(deps); i--; ) {
+        this.context.traverseDeps(this.list, deps[i])
+      }      
+    }
+  },
+
+  pop: function() {
+    this.nativeHandles.splice.call(this, this.list.length - 1, 1)
+  },
+
+  shift: function() {
+    this.nativeHandles.splice.call(this, 0, 1)
+  },
+
+  unshift: function() {
+    var args = arguments
+    for (var i = args.length; i--;) {
+      this.insert(args[i], i)
     }
   }
-}
-
-ObserveArray.prototype.sort = function() {
-  
 }
 
 module.exports = ObserveArray

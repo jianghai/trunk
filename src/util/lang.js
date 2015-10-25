@@ -29,14 +29,10 @@ exports.initialize = function(host, value) {
   var i = 2
   while (i < len) {
     var prop = args[i++]
-    host.hasOwnProperty(prop) || Object.defineProperty(host, prop, {
-      value: {}
-    })
+    host.hasOwnProperty(prop) || this.defineValue(host, prop, {})
     host = host[prop]
   }
-  host.hasOwnProperty(lastProp) || Object.defineProperty(host, lastProp, {
-    value: value
-  })
+  host.hasOwnProperty(lastProp) || this.defineValue(host, lastProp, value)
   return host[lastProp]
 }
 

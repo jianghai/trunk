@@ -1,106 +1,74 @@
-var _ = require('./util')
+'use strict'
+
+var _            = require('./util')
 var ObserveArray = require('./class/ObserveArray')
 
-function _bindDeps(value, deps) {
-  Object.defineProperty(value, '_deps', {
-    value: deps
-  })
-  for (var k in deps) {
-    if (deps[k].sub && _.isObject(value[k])) {
-      _bindDeps(value[k], deps[k].sub)
-    }
-  }
-}
+var Helper = {
 
-function _observeArray(host, key, context) {
-  var array = host[key]
-  var isArray = _.isArray(array)
-  if (isArray) {
-    new ObserveArray(host, key, context)
-    for (var i = 0, len = array.length; i < len; i++) {
-      _.isObject(array[i]) && context.observe(array[i])
-    }
-  }
-  return isArray
-}
-
-function _observe(obj, k, context) {
-
-  var _value = obj[k]
-
-  function getter() {
-    if (context._computer) {
-      _.initialize(this, [], '_computs', k)
-      var _computs = this._computs[k]
-      if (_computs.indexOf(context._computer) === -1) {
-        _computs.push(context._computer)
+  /**
+   * Special handling for Array for some CRUD.
+   */
+  observeArray: function(host, key, context) {
+    var array = host[key]
+    var isArray = _.isArray(array)
+    if (isArray) {
+      new ObserveArray(host, key, context)
+      for (var i = array.length; i--;) {
+        _.isObject(array[i]) && context.observe(array[i])
       }
     }
-    return _value
+    return isArray
+  },
+
+  /**
+   * If the value of setter is object.
+   */
+  excuteValue: function(host, key, value, context) {
+
+    if (!_.isObject(value)) return
+
+    this.observeArray(host, key, context) || context.observe(value)
+    var sub = host._deps && host._deps[key] && host._deps[key].sub
+    sub && context.setDeps(value, sub)
+  },
+
+  /**
+   * Define getter/setter for specified property.
+   */
+  observe: function(obj, key, context) {
+
+    var self = this
+    var _value = obj[key]
+
+    function getter() {
+      context.addComputs(this, key)
+      return _value
+    }
+
+    function setter(value) {
+      _value = value
+      self.excuteValue(this, key, value, context)
+      context.traverseDeps(this, key)
+      context.traverseComputs(this, key)
+    }
+    Object.defineProperty(obj, key, {
+      get: getter,
+      set: setter
+    })
   }
-
-  function setter(value) {
-    _value = value
-
-
-    if (_.isObject(value)) {
-
-      _observeArray(this, k, context) || context.observe(value)
-
-      var sub = this._deps && this._deps[k] && this._deps[k].sub
-      sub && _bindDeps(value, sub)
-    }
-
-    if (this._deps && this._deps[k]) {
-      this._deps[k].handles.forEach(function(item) {
-        var value
-        try {
-          value = item.getter(item.scope)
-        } catch (e) {
-          value = ''
-        }
-        item.cb(value)
-      }, this)
-    }
-
-    if (this._computs && this._computs[k]) {
-      this._computs[k].forEach(function(item) {
-        var value
-        try {
-          value = item.handle.call(context)
-        } catch (e) {
-          value = ''
-        }
-        context[item.key] = value
-      })
-    }
-  }
-  Object.defineProperty(obj, k, {
-    get: getter,
-    set: setter
-  })
 }
 
 /**
  * Define getter/setter for all enumerable properties to record computed handles and invokes 
- * depends & computed handles, redefine when the value of setter is object.
- * 
- * @param {object} obj The Object of define getter/setter
+ * dependents & computed dependents, redefine when the value of setter is object.
  */
 function observe(obj) {
-
-  // if (argument.length === 2) {
-  //   _observe(obj, argument[1], this)
-  //   return this.observe(argument[1])
-  // }
-
-  for (var k in obj) {
-    if (obj.hasOwnProperty(k)) {
-      _observe(obj, k, this)
-      var _value = obj[k]
-      if (!_observeArray(obj, k, this)) {
-        _.isObject(_value) && this.observe(_value)
-      }
+  for (var keys = Object.keys(obj), i = keys.length; i--;) {
+    var key = keys[i]
+    Helper.observe(obj, key, this)
+    var _value = obj[key]
+    if (!Helper.observeArray(obj, key, this)) {
+      _.isObject(_value) && this.observe(_value)
     }
   }
 }

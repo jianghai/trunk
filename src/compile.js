@@ -93,7 +93,7 @@ exports.compileNode = function(node, scope) {
       return this.compileComponent(node, tagName, scope)
     }
     var childNodes = _.toArray(node.childNodes)
-    for (var i = 0, len = childNodes.length; i< len; i++) {
+    for (var i = childNodes.length; i--;) {
       this.compileNode(childNodes[i], scope)
     }
   }
@@ -105,7 +105,7 @@ exports.compileComponent = function(node, tagName, scope) {
   var dataKey = node.getAttribute(config.d_prefix + 'data')
   if (dataKey) {
     this.addDeps(dataKey, function(value) {
-      // Prevent cricle dependency
+      // Prevent cricle dependents
       scope.__circleDep = true
       component.__circleDep || (component[dataKey] = value)
       delete scope.__circleDep
@@ -115,6 +115,7 @@ exports.compileComponent = function(node, tagName, scope) {
   }
 
   options.parent = scope
+  options._el || (options._el = node.firstElementChild)
   options.el = options._el.cloneNode(true)
   node.parentNode.replaceChild(options.el, node)
   
@@ -122,7 +123,7 @@ exports.compileComponent = function(node, tagName, scope) {
 
   if (dataKey) {
     this.addDeps(dataKey, function(value) {
-      // Prevent cricle dependency
+      // Prevent cricle dependents
       component.__circleDep = true
       scope.__circleDep || (scope[dataKey] = value)
       delete component.__circleDep
