@@ -1,12 +1,30 @@
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule watch
+ */
+
+'use strict'
+
 var _ = require('./util')
 
-exports.watch = function(exp, scope) {
+/**
+ * Set getter/setter of expression for efficiency usage.
+ */
+exports._initializeWatcher = function(exp, scope) {
   scope._watchers[exp] = {
     getter: new Function('scope', 'return scope.' + exp),
     setter: new Function('value', 'scope', 'scope.' + exp + ' = value')
   }
 }
 
+/**
+ * Get the value of expression.
+ */
 exports.get = function(exp, scope) {
   var value
   try {
@@ -17,22 +35,20 @@ exports.get = function(exp, scope) {
   return value
 }
 
+/**
+ * Set the value of expression.
+ */
 exports.set = function(exp, value, scope) {
   scope._watchers[exp].setter(value, scope)
 }
 
-// exports.getScope = function(exp, scope) {
-//   var _namespace
-//   var _match = exp.match(/[\w_]+/)[0]
-//   while ((_namespace = scope._namespace) && _match !== _namespace) {
-//     scope = scope._parent
-//   }
-//   return scope
-// }
+/**
+ * Push dependent to the dependents container. If the expression is multi-stage, push the 
+ * child dependents to the parent's sub property for a permanent lifecycle.
+ */
+exports.addDeps = function(exp, callback, scope) {
 
-exports.addDeps = function(exp, cb, scope) {
-
-  scope._watchers[exp] || this.watch(exp, scope)
+  scope._watchers[exp] || this._initializeWatcher(exp, scope)
 
   var getter = scope._watchers[exp].getter
   var host = scope
@@ -40,23 +56,20 @@ exports.addDeps = function(exp, cb, scope) {
   var handle = {
     scope: scope,
     getter: getter,
-    cb: cb
+    callback: callback
   }
 
-  host._deps || Object.defineProperty(host, '_deps', {
-    value: {}
-  })
-
+  host._deps || _.defineValue(host, '_deps', {})
+  
   var deps = host._deps
   var i = 0
   var len = match.length
 
   while (i < len) {
 
-    var key    = match[i]
+    var key = match[i]
     var isLast = i + 1 === len
 
-    // _.initialize(deps, [], key, 'handles')
     deps[key] || (deps[key] = {})
     deps = deps[key]
     deps.handles || (deps.handles = [])
@@ -67,7 +80,7 @@ exports.addDeps = function(exp, cb, scope) {
       deps = deps.sub
     }
 
-    // 如果子对象存在，绑定依赖，已经有依赖的扩展依赖
+    // Push dependents if child exist
     if (host) {
       if (i > 0 && _.isObject(host)) {
         var handles = _.initialize(host, [], '_deps', key, 'handles')
@@ -79,4 +92,11 @@ exports.addDeps = function(exp, cb, scope) {
 
     i++
   }
+}
+
+/**
+ * Watching a value change manually and do sth.
+ */
+exports.watch = function(exp, callback) {
+  this.addDeps(exp, callback, this)
 }

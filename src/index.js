@@ -1,19 +1,30 @@
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule index
+ */
+
 'use strict'
 
-var compile = require('./compile')
-var watch = require('./watch')
-var observe = require('./observe')
+var compile   = require('./compile')
+var watch     = require('./watch')
+var observe   = require('./observe')
 var component = require('./component')
-var _ = require('./util')
+var _         = require('./util')
 
 
 // Unenumerable options
-var unenumerableMap = Object.create(null);
-['el', 'computed', 'template', '_el', 'parent'].forEach(function(property) {
-  unenumerableMap[property] = true
-})
+var unenumerableMap = Object.create(null)
+var unenumerableProperties = ['el', 'computed', 'template', '_el', 'parent']
+for (var i = unenumerableProperties.length; i--; ) {
+  unenumerableMap[unenumerableProperties[i]] = true
+}
 
-function Trunk(options) {
+function Radar(options) {
 
   // Getting compile range ready
   if (typeof options.el === 'string') {
@@ -55,19 +66,19 @@ function Trunk(options) {
 }
 
 // Register component
-Trunk.component = component
+Radar.component = component
 
 // Save components options
-Trunk.prototype.components = {}
+Radar.prototype.components = {}
 
 
 // Computer uid for better performance of indexOf
-Trunk.prototype.uid = 0
+Radar.prototype.uid = 0
 
 /**
  * Change computed properties to normal data and initialize computs.
  */
-Trunk.prototype.initComputed = function(key) {
+Radar.prototype.initComputed = function(key) {
   var handle = this.computed[key]
   // Cache the value
   var value
@@ -97,7 +108,7 @@ Trunk.prototype.initComputed = function(key) {
 /**
  * Get calculate computed value and record computer for possible usage.
  */
-Trunk.prototype.getComputedValue = function(computer) {
+Radar.prototype.getComputedValue = function(computer) {
   var value
   try {
     _.defineValue(this, '_computer', computer)
@@ -112,7 +123,7 @@ Trunk.prototype.getComputedValue = function(computer) {
 /**
  * Add computed dependents to the object which tirgger getter.
  */
-Trunk.prototype.addComputs = function(host, key) {
+Radar.prototype.addComputs = function(host, key) {
   if (this._computer) {
     _.initialize(host, [], '_computs', key)
     var handles = host._computs[key]
@@ -124,12 +135,12 @@ Trunk.prototype.addComputs = function(host, key) {
 }
 
 /**
- * Involke dependents.
+ * Invoke dependents.
  */
-Trunk.prototype.traverseDeps = function(host, key) {
+Radar.prototype.traverseDeps = function(host, key) {
   if (!host._deps || !host._deps[key]) return
   var deps = host._deps[key]
-  for (var i = 0, len = deps.handles.length; i < len; i++) {
+  for (var i = deps.handles.length; i--; ) {
     var item = deps.handles[i]
     var value
     try {
@@ -137,14 +148,14 @@ Trunk.prototype.traverseDeps = function(host, key) {
     } catch (e) {
       value = ''
     }
-    item.cb(value)
+    item.callback.call(this, value)
   }
 }
 
 /**
- * Involke computed dependents.
+ * Invoke computed dependents.
  */
-Trunk.prototype.traverseComputs = function(host, key) {
+Radar.prototype.traverseComputs = function(host, key) {
   if (!host._computs || !host._computs[key]) return
   var computes = host._computs[key]
   for (var i = computes.length; i--; ) {
@@ -156,7 +167,7 @@ Trunk.prototype.traverseComputs = function(host, key) {
 /**
  * Set deps recursively for a value which is an object.
  */
-Trunk.prototype.setDeps = function(value, deps) {
+Radar.prototype.setDeps = function(value, deps) {
   _.defineValue(value, '_deps', deps)
   for (var keys = Object.keys(deps), i = keys.length; i--;) {
     var key = keys[i]
@@ -166,18 +177,18 @@ Trunk.prototype.setDeps = function(value, deps) {
   }
 }
 
-Trunk.prototype.getDeps = function(host, key) {
+Radar.prototype.getDeps = function(host, key) {
   return host._deps && host._deps[key]
 }
 
-// Trunk.prototype.getSubDeps = function(host, key) {
+// Radar.prototype.getSubDeps = function(host, key) {
 //   return this.getDeps(host, key).sub
 // }
 
-Trunk.prototype.observe = observe
+Radar.prototype.observe = observe
 
-_.merge(Trunk.prototype, compile)
+_.merge(Radar.prototype, compile)
 
-_.merge(Trunk.prototype, watch)
+_.merge(Radar.prototype, watch)
 
-module.exports = Trunk
+module.exports = Radar

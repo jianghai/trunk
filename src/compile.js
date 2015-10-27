@@ -1,10 +1,25 @@
-var _ = require('./util')
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule compile
+ */
+
+'use strict'
+
+var _          = require('./util')
 var directives = require('./directives')
-var config = require('./config')
+var config     = require('./config')
 
-
+// Mustchcae template regular expression
 var textPattern = new RegExp(config.openRE + '(.+?)' + config.closeRE, 'g')
 
+/**
+ * Different node type, different compile logic.
+ */
 var nodeTypeHandles = {
 
   // ELEMENT_NODE
@@ -17,7 +32,7 @@ var nodeTypeHandles = {
     }
   },
 
-  // TEXT_NODE
+  // TEXT_NODE, split string to multiple text nodes which could be update not indifferent.
   3: function(node, scope) {
     var value = node.nodeValue
     if (/^\s*$/.test(value)) return
@@ -44,11 +59,11 @@ var nodeTypeHandles = {
       })
     }
     var docFrag = document.createDocumentFragment()
-    fragments.forEach(function(fragment) {
 
+    for (var i = 0, len = fragments.length; i < len; i++) {
+      var fragment = fragments[i]
       var textNode = document.createTextNode(fragment.value)
       docFrag.appendChild(textNode)
-
       if (fragment.isBind) {
         var exp = fragment.exp
         this.addDeps(exp, function(value) {
@@ -56,27 +71,32 @@ var nodeTypeHandles = {
         }, scope)
         textNode.nodeValue = this.get(exp, scope)
       }
-    }, this)
+    }
     node.parentNode.replaceChild(docFrag, node)
-  },
-
-  // DOCUMENT_NODE
-  // 9: function(node, scope) {
-  //   _.toArray(node.attributes).forEach(compileAttribute, this)
-  // }
+  }
 }
 
+/**
+ * Invoke corresponding directive.
+ */
 exports.compileAttribute = function(attribute, scope) {
   var name = attribute.name
   if (!directives[name]) return
   return directives[name].call(this, attribute.ownerElement, attribute.value, scope)
 }
 
-var ignoreTags = Object.create(null);
-['script', 'link', 'style', 'template'].forEach(function(tagName) {
-  ignoreTags[tagName] = true
-})
+/**
+ * Not all element would be compiled.
+ */
+var ignoreTagsMap = Object.create(null)
+var ignoreTags = ['script', 'link', 'style', 'template']
+for (var i = ignoreTags.length; i--; ) {
+  ignoreTagsMap[ignoreTags[i]] = true
+}
 
+/**
+ * Node walker.
+ */
 exports.compileNode = function(node, scope) {
 
   var handle = nodeTypeHandles[node.nodeType]
@@ -85,20 +105,24 @@ exports.compileNode = function(node, scope) {
   var tagName = node.tagName
   if (tagName) {
     tagName = tagName.toLowerCase()
-    if (ignoreTags[tagName]) return
+    if (ignoreTagsMap[tagName]) return
   }
   
+  // Stop compile childNodes when the result of handle is false
   if (handle.call(this, node, scope) !== false) {
     if (this.components[tagName]) {
       return this.compileComponent(node, tagName, scope)
     }
-    var childNodes = _.toArray(node.childNodes)
+    var childNodes = node.childNodes
     for (var i = childNodes.length; i--;) {
       this.compileNode(childNodes[i], scope)
     }
   }
 }
 
+/**
+ * For custom tag, create data relationship with parent scope.
+ */
 exports.compileComponent = function(node, tagName, scope) {
   var options = this.components[tagName]
 
@@ -119,7 +143,7 @@ exports.compileComponent = function(node, tagName, scope) {
   options.el = options._el.cloneNode(true)
   node.parentNode.replaceChild(options.el, node)
   
-  var component = new Trunk(options)
+  var component = new this.constructor(options)
 
   if (dataKey) {
     this.addDeps(dataKey, function(value) {

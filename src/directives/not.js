@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  * 
- * @providesModule if
+ * @providesModule not
  */
 
 'use strict'
@@ -15,15 +15,15 @@ var config = require('../config')
 var toggle = require('./_toggle')
 
 /**
- * If the value of exp is false, remove the target element, stop compile childNodes. It also
- * keep watching the value of exp to update the DOM.
+ * If the value of exp is true, remove the target element, stop compile childNodes. It also keep 
+ * watching the value of exp to update the DOM.
  */
 module.exports = function(element, exp, scope) {
 
   // Prevent recompile
-  element.removeAttribute(config.d_prefix + 'if')
+  element.removeAttribute(config.d_prefix + 'not')
 
-  var bool = !!this.get(exp, scope)
+  var bool = !this.get(exp, scope)
 
   toggle.call(this, element, exp, scope, bool)
 

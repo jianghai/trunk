@@ -1,5 +1,7 @@
 {
   "asi": true,
   "expr": true,
-  "evil": true
+  "evil": true,
+  "node": true,
+  "browser": true
 }

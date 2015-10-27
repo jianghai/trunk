@@ -14,10 +14,17 @@ module.exports = function(grunt) {
         entry: "./src/index.js",
         output: {
           path: 'build',
-          filename: "build.js",
-          library: '_',
+          filename: "Radar.js",
+          library: 'Radar',
           libraryTarget: 'umd'
         }
+      }
+    },
+
+    uglify: {
+      main: {
+        src: 'build/<%= pkg.name %>.js',
+        dest: 'build/<%= pkg.name %>.min.js'
       }
     },
 
@@ -28,17 +35,15 @@ module.exports = function(grunt) {
           process: function(filepath) {
             var path = filepath.replace(/^.*\/|\.js$/g, '')
             return grunt.template.process(
-              grunt.file.read('./banner.txt'), {
+              grunt.file.read('./src.txt'), {
                 data: {
                   path: path
                 }
               }
-            );
+            )
           },
           linebreak: true,
-          replace: function(fileContents, newBanner) {
-            return fileContents.replace(/^.*?=\*\//, newBanner)
-          }
+          replace: true
         },
         files: {
           src: ['src/**/*.js']
@@ -47,11 +52,13 @@ module.exports = function(grunt) {
       build: {
         options: {
           position: 'top',
-          banner: '/*! <%= pkg.name %>.js <%= pkg.version %> */\n\'use strict\';',
+          process: function(filepath) {
+            return grunt.template.process(grunt.file.read('./build.txt'))
+          },
           linebreak: true
         },
         files: {
-          src: ['build/util.js']
+          src: ['build/*.js']
         }
       }
     },
@@ -151,5 +158,6 @@ module.exports = function(grunt) {
   // })
 
   // Default task(s).
-  grunt.registerTask('default', ['jshint', 'webpack', 'usebanner:build', 'karma'])
+  grunt.registerTask('test', ['jshint', 'karma'])
+  grunt.registerTask('build', ['webpack', 'uglify', 'usebanner:build'])
 };

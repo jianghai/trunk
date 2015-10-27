@@ -1,10 +1,10 @@
 {
-  "name": "util",
+  "name": "Radar",
   "version": "0.0.1",
-  "main": "util.js",
+  "main": "Radar.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jianghai/util.git"
+    "url": "https://github.com/jianghai/radar.git"
   },
   "keywords": [
     "util",
@@ -13,9 +13,9 @@
   "author": "jianghai",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jianghai/util/issues"
+    "url": "https://github.com/jianghai/radar/issues"
   },
-  "homepage": "https://github.com/jianghai/util",
+  "homepage": "https://github.com/jianghai/radar",
   "devDependencies": {
     "express": "3.4.0",
     "grunt": "^0.4.5",

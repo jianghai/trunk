@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule ObserveArray
+ */
+
 'use strict'
 
 /**
@@ -12,9 +22,9 @@ function ObserveArray(host, key, context) {
 }
 
 ObserveArray.prototype.init = function() {
-  this.bind('push')
-  this.bind('splice')
-  this.bind('sort')
+  for (var keys = Object.keys(this.nativeHandles), i = keys.length; i--; ) {
+    this.bind(keys[i])
+  }
 }
 
 /**
@@ -75,8 +85,9 @@ ObserveArray.prototype.nativeHandles = {
   },
 
   splice: function(start, deleteCount) {
+    var i
     if (this.list._deps) {
-      var i = start
+      i = start
       var limit = start + deleteCount
       while (i < limit) {
         var deps = this.context.getDeps(this.list, i)

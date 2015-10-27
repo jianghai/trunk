@@ -4,3 +4,4 @@
 .DS_Store
 .com.apple.timemachine.supported
 node_modules
+build

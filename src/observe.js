@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule observe
+ */
+
 'use strict'
 
 var _            = require('./util')
@@ -36,24 +46,19 @@ var Helper = {
    * Define getter/setter for specified property.
    */
   observe: function(obj, key, context) {
-
     var self = this
     var _value = obj[key]
-
-    function getter() {
-      context.addComputs(this, key)
-      return _value
-    }
-
-    function setter(value) {
-      _value = value
-      self.excuteValue(this, key, value, context)
-      context.traverseDeps(this, key)
-      context.traverseComputs(this, key)
-    }
     Object.defineProperty(obj, key, {
-      get: getter,
-      set: setter
+      get: function() {
+        context.addComputs(this, key)
+        return _value
+      },
+      set: function(value) {
+        _value = value
+        self.excuteValue(this, key, value, context)
+        context.traverseDeps(this, key)
+        context.traverseComputs(this, key)
+      }
     })
   }
 }
@@ -62,7 +67,7 @@ var Helper = {
  * Define getter/setter for all enumerable properties to record computed handles and invokes 
  * dependents & computed dependents, redefine when the value of setter is object.
  */
-function observe(obj) {
+module.exports = function(obj) {
   for (var keys = Object.keys(obj), i = keys.length; i--;) {
     var key = keys[i]
     Helper.observe(obj, key, this)
@@ -72,5 +77,3 @@ function observe(obj) {
     }
   }
 }
-
-module.exports = observe

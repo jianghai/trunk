@@ -7,25 +7,32 @@
 </head>
 <body id="app" class="aa bb">
 
-  <input type="text" d-model="new" placeholder="待办事项">
-  <button d-click="add">添加</button>
+  <input type="text" r-model="new" placeholder="待办事项">
+  <button r-click="add">添加</button>
   <ul>
     <li>aa</li>
-    <li d-repeat="list">
-      <input type="text" d-model="name">
-      <input type="checkbox" d-model="checked">{{name}}
-      <button d-click="remove">X</button>
+    <li r-repeat="list">
+      <input type="text" r-model="name">
+      <input type="checkbox" r-model="checked">{{name}}
+      <button r-click="remove">X</button>
     </li>
   </ul>
   {{count}} | <strong>{{remain}}</strong>
-  <button d-click="test">set</button>
+  <button r-click="test" r-disabled="aa">set</button>
   <!-- {{children[0].name}} -->
 
-  <tree d-data="children">
-    <ul d-if="hasChildren">
-      <li d-repeat="children">
-        {{name}} <button d-click="add">+</button>
-        <tree d-data="children"/>
+  <div class="panel">
+    <div r-eq="status: waiting"></div>
+    <div r-eq="status: noData"></div>
+    <div r-eq="status: error"></div>
+    <div>list</div>
+  </div>
+
+  <tree r-data="children">
+    <ul r-if="hasChildren">
+      <li r-repeat="children">
+        {{name}} <button r-click="add">+</button>
+        <tree r-data="children"/>
       </li>
     </ul>
   </tree>
@@ -37,8 +44,7 @@
     add: function(scope) {
       scope.children || (scope.children = [])
       scope.children.push({
-        name: 'aa',
-        children: null
+        name: 'aa'
       })
     },
     computed: {
@@ -61,8 +67,7 @@
       children: [{
         name: 'aa',
         children: [{
-          name: 'bb',
-          children: null
+          name: 'bb'
         }]
       }]
     },
@@ -88,6 +93,9 @@
     add: function() {
       this.list.push({name: this.new, checked: true})
       this.new = ''
+    },
+    created: function() {
+      this.fetch('')
     }
   })
   console.timeEnd('compile')

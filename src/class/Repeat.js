@@ -1,18 +1,35 @@
-var config = require('../config')
-var _ = require('../util')
+/**
+ * Copyright (c) 2015 https://github.com/jianghai/radar
+ *
+ * This source code is licensed under MIT license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ * 
+ * @providesModule Repeat
+ */
 
+'use strict'
+
+var config = require('../config')
+var _      = require('../util')
+
+/**
+ * A class processing repeat directive.
+ */
 function Repeat(element, exp, scope, context) {
 
   this.context = context
   this.container = element.parentNode
   this.element = element
   this.docFrag = document.createDocumentFragment()
+
+  // Cache child nodes to record relative position
   this.childNodes = [this.element]
 
   // Rerender when list reset
   this.context.addDeps(exp, _.bind(this.rerender, this), scope)
 
-  this.list = context.get(exp, scope)
+  this.list = this.context.get(exp, scope)
 
   // Prevent cycle compile
   element.removeAttribute(config.d_prefix + 'repeat')
@@ -20,6 +37,9 @@ function Repeat(element, exp, scope, context) {
   this.render()
 }
 
+/**
+ * Hanles when native method of 'this.list' was called.
+ */
 Repeat.prototype.handles = {
 
   push: function() {
@@ -50,23 +70,21 @@ Repeat.prototype.handles = {
   },
 
   sort: function() {
-    var _childNodes = this.childNodes.concat()
-    this.list.forEach(function(item, i) {
-      if (i !== item.index) {
-        this.childNodes[i] = _childNodes[item.index]
-      }
-      this.docFrag.appendChild(this.childNodes[i])
-    }, this)
-    _childNodes = null
+    var res = []
+    for (var i = 0, len = this.list.length; i < len; i++) {
+      res[i] = this.childNodes[this.list[i].index]
+      this.docFrag.appendChild(res[i])
+    }
+    res = null
     this.container.appendChild(this.docFrag)
   },
 
   pop: function() {
-    this.splice.call(this, this.list.length - 1, 1)
+    this.handles.splice.call(this, this.list.length - 1, 1)
   },
 
   shift: function() {
-    this.splice.call(this, 0, 1)
+    this.handles.splice.call(this, 0, 1)
   },
 
   unshift: function() {
@@ -78,33 +96,41 @@ Repeat.prototype.handles = {
   }
 }
 
+/**
+ * Render all the list one by one.
+ */
 Repeat.prototype.render = function() {
-  this.childNodes.forEach(function(childNode) {
-    this.container.removeChild(childNode)
-  }, this)
+  var i
 
+  for (i = this.childNodes.length; i--; ) {
+    this.container.removeChild(this.childNodes[i])
+  }
   this.childNodes.length = []
 
   if (this.list) {
-    this.list.forEach(function(item, i) {
+    i = 0
+    for (var len = this.list.length; i < len; i++) {
+      var item = this.list[i]
+      // Save index for sort.
       _.defineValue(item, 'index', i)
       this.childNodes.push(this.renderOne(item))
-    }, this)
-
+    }
     this.container.appendChild(this.docFrag)
-    for (var k in this.handles) {
-      _.initialize(this.list, [], 'on' + k)
-      this.list['on' + k].push(_.bind(this.handles[k], this))
+    for (var keys = Object.keys(this.handles), i = keys.length; i--; ) {
+      var method = keys[i]
+      _.initialize(this.list, [], 'on' + method)
+      this.list['on' + method].push(_.bind(this.handles[method], this))
     }
   }
 }
 
+/**
+ * Render single data and return the new node for outer usage.
+ */
 Repeat.prototype.renderOne = function(item) {
-  var _cloneNode = this.element.cloneNode(true)
-  var _data = item
-
+  var newNode = this.element.cloneNode(true)
   var self = this
-  _data._watchers || Object.defineProperties(_data, {
+  item._watchers || Object.defineProperties(item, {
     _watchers: {
       value: {}
     },
@@ -113,16 +139,18 @@ Repeat.prototype.renderOne = function(item) {
       enumerable: false,
       writable: false,
       value: function() {
-        self.list.splice(self.childNodes.indexOf(_cloneNode), 1)
+        self.list.splice(self.childNodes.indexOf(newNode), 1)
       }
     }
   })
-
-  this.context.compileNode(_cloneNode, _data)
-  this.docFrag.appendChild(_cloneNode)
-  return _cloneNode
+  this.context.compileNode(newNode, item)
+  this.docFrag.appendChild(newNode)
+  return newNode
 }
 
+/**
+ * Reset status when list was reset.
+ */
 Repeat.prototype.rerender = function(list) {
   this.list = list
   this.render()

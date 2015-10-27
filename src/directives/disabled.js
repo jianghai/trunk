@@ -5,18 +5,17 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  * 
- * @providesModule on
+ * @providesModule disabled
  */
 
 'use strict'
 
-var _ = require('../util')
-
 /**
- * Bind one or multipe events.
+ * Set disabled or not of a node.
  */
-module.exports = function(element, map, scope) {
-  _.mapParse(map, function(type, method) {
-    _.on(element, type, method, scope, this)
-  }, this)
+module.exports = function(element, exp, scope) {
+  this.addDeps(exp, function(value) {
+    element.disabled = !!value
+  }, scope)
+  element.disabled = !!this.get(exp, scope)
 }
