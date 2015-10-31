@@ -143,7 +143,7 @@ Repeat.prototype.renderOne = function(item) {
       }
     }
   })
-  this.context.compileNode(newNode, item)
+  newNode = this.context.compileNode(newNode, item)
   this.docFrag.appendChild(newNode)
   return newNode
 }

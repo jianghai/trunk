@@ -54,6 +54,8 @@ var Helper = {
         return _value
       },
       set: function(value) {
+        // Todo: toggle
+        if (value === _value) return
         _value = value
         self.excuteValue(this, key, value, context)
         context.traverseDeps(this, key)

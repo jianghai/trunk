@@ -22,17 +22,23 @@
   <!-- {{children[0].name}} -->
 
   <div class="panel">
-    <div r-eq="status: waiting"></div>
-    <div r-eq="status: noData"></div>
-    <div r-eq="status: error"></div>
+    <div r-if="status" r-child="status"></div>
     <div>list</div>
   </div>
+  
+  <aa>
+    <select name="" id=""></select>
+    <aa name="" id=""></aa>
+  </aa>
 
-  <tree r-data="children">
-    <ul r-if="hasChildren">
+  <tree r-props="children">
+    <ul r-component="tree">
       <li r-repeat="children">
-        {{name}} <button r-click="add">+</button>
-        <tree r-data="children"/>
+        <div>
+          <span r-class="bold: children">{{name}}</span>
+          <button r-click="add">+</button>
+        </div> 
+        <tree r-if="children" r-props="children">
       </li>
     </ul>
   </tree>
@@ -40,21 +46,16 @@
   <script>
   console.time('compile')
 
-  Trunk.component('tree', {
+  Radar.component('tree', {
     add: function(scope) {
       scope.children || (scope.children = [])
       scope.children.push({
         name: 'aa'
       })
-    },
-    computed: {
-      hasChildren: function() {
-        return this.children && this.children.length
-      }
     }
   })
 
-  var app = new Trunk({
+  var app = new Radar({
     el: '#app',
     data: {
       new: '',

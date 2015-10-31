@@ -111,49 +111,30 @@ exports.compileNode = function(node, scope) {
   // Stop compile childNodes when the result of handle is false
   if (handle.call(this, node, scope) !== false) {
     if (this.components[tagName]) {
-      return this.compileComponent(node, tagName, scope)
+      return this._compileComponentByTagName(node, tagName, scope)
     }
     var childNodes = node.childNodes
-    for (var i = childNodes.length; i--;) {
-      this.compileNode(childNodes[i], scope)
+    if (childNodes.length) {
+      for (var i = childNodes.length; i--;) {
+        this.compileNode(childNodes[i], scope)
+      }
     }
   }
+  return node
 }
 
 /**
- * For custom tag, create data relationship with parent scope.
+ * Replace custom tag element with component.
  */
-exports.compileComponent = function(node, tagName, scope) {
-  var options = this.components[tagName]
+exports._compileComponentByTagName = function(node, name, scope) {
 
-  var dataKey = node.getAttribute(config.d_prefix + 'data')
-  if (dataKey) {
-    this.addDeps(dataKey, function(value) {
-      // Prevent cricle dependents
-      scope.__circleDep = true
-      component.__circleDep || (component[dataKey] = value)
-      delete scope.__circleDep
-    }, scope)
-    options.data || (options.data = {})
-    options.data[dataKey] = scope[dataKey]
-  }
-
+  var options = this.components[name] || this.constructor.components[name]
+  options.template || (options.el = node.firstElementChild)
   options.parent = scope
-  options._el || (options._el = node.firstElementChild)
-  options.el = options._el.cloneNode(true)
-  node.parentNode.replaceChild(options.el, node)
-  
+
   var component = new this.constructor(options)
 
-  if (dataKey) {
-    this.addDeps(dataKey, function(value) {
-      // Prevent cricle dependents
-      component.__circleDep = true
-      scope.__circleDep || (scope[dataKey] = value)
-      delete component.__circleDep
-    }, component)
-  }
-  
-  _.initialize(this, [], '_components', tagName)
-  this._components[tagName].push(component)
+  node.parentNode.replaceChild(component.el, node)
+
+  return component.el
 }

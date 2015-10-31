@@ -32,7 +32,7 @@ module.exports = function(element, exp, scope, bool, parseValue) {
     } else {
       
       if (!bool) {
-        this.compileNode(element, scope)
+        element = this.compileNode(element, scope)
       }
       parentNode.insertBefore(element, nodeList[nextNodeIndex])
     }

@@ -11,11 +11,11 @@ module.exports = function(grunt) {
 
     webpack: {
       main: {
-        entry: "./src/index.js",
+        entry: "./src/<%= pkg.name %>.js",
         output: {
           path: 'build',
-          filename: "Radar.js",
-          library: 'Radar',
+          filename: "<%= pkg.name %>.js",
+          library: '<%= pkg.name %>',
           libraryTarget: 'umd'
         }
       }
