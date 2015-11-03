@@ -13,13 +13,13 @@
 var _ = require('../util')
 
 /**
- * Bind click event.
+ * .
  */
 module.exports = function(element, exp, scope) {
-  this.addDeps(exp, function(value) {
 
-  }, scope)
-
-  var name = this.get(exp, scope)
-  this.compileComponent()
+  var options = this._getComponentOptions(exp)
+  options.el = element
+  options.parent = scope
+  
+  new this.constructor(options)
 }

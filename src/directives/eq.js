@@ -10,7 +10,6 @@
 
 'use strict'
 
-var _      = require('../util')
 var config = require('../config')
 var toggle = require('./_toggle')
 

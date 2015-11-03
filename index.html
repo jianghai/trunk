@@ -3,11 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
-  <script src="Trunk.js"></script>
+  <script src="build/Radar.js"></script>
 </head>
 <body id="app" class="aa bb">
 
-  <input type="text" r-model="new" placeholder="待办事项">
+  <style>
+  .bold {
+    font-weight: bold;
+    color: red;
+  }
+  </style>
+
+<!--   <input type="text" r-model="new" placeholder="待办事项">
   <button r-click="add">添加</button>
   <ul>
     <li>aa</li>
@@ -18,21 +25,13 @@
     </li>
   </ul>
   {{count}} | <strong>{{remain}}</strong>
-  <button r-click="test" r-disabled="aa">set</button>
+  <button r-click="test" r-disabled="aa">set</button> -->
   <!-- {{children[0].name}} -->
 
-  <div class="panel">
-    <div r-if="status" r-child="status"></div>
-    <div>list</div>
-  </div>
-  
-  <aa>
-    <select name="" id=""></select>
-    <aa name="" id=""></aa>
-  </aa>
-
   <tree r-props="children">
-    <ul r-component="tree">
+
+  <template>
+    <ul>
       <li r-repeat="children">
         <div>
           <span r-class="bold: children">{{name}}</span>
@@ -41,16 +40,18 @@
         <tree r-if="children" r-props="children">
       </li>
     </ul>
-  </tree>
+  </template>
 
   <script>
   console.time('compile')
 
   Radar.component('tree', {
+    template: 'template',
     add: function(scope) {
       scope.children || (scope.children = [])
       scope.children.push({
-        name: 'aa'
+        name: 'aa',
+        children: null
       })
     }
   })
@@ -61,15 +62,16 @@
       new: '',
       list: [{
         name: 'aa',
-        test: ''
+        checked: true
       }, {
-        name: 'bb'
+        name: 'bb',
+        checked: false
       }],
       children: [{
         name: 'aa',
-        children: [{
-          name: 'bb'
-        }]
+        children: null
+      }, {
+        name: 'bb'
       }]
     },
     test: function() {

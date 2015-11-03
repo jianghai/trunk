@@ -20,22 +20,15 @@ for (var i = unenumerableProperties.length; i--; ) {
 }
 
 function Radar(options) {
-
-  // Getting compile range ready
-  if (options.template) {
-    if (typeof options.template === 'string') {
-      options.template = document.querySelector(options.template).content.firstElementChild
-    }
-    options.el = options.template.cloneNode(true)
-  } else {
-    if (typeof options.el === 'string') {
-      options.el = document.querySelector(options.el)
-    } else if (!options.el) {
-      options.el = document.body
-    }
+  
+  if (typeof options.el === 'string') {
+    options.el = document.querySelector(options.el)
+  } else if (!options.el) {
+    options.el = document.body
   }
 
-  for (var prop in options) {
+  for (var keys = Object.keys(options), i = keys.length; i--; ) {
+    var prop = keys[i]
     this[prop] = options[prop]
       // Ignore properties when observe
     if (typeof this[prop] === 'function' || unenumerableMap[prop]) {
@@ -55,6 +48,9 @@ function Radar(options) {
 
   this.data || (this.data = {})
 
+  // Initialize _watchers container for watch
+  _.defineValue(this, '_watchers', {})
+
   this.parent && this._bindRelatedProps()
 
   // Todo: is data required ?
@@ -62,9 +58,6 @@ function Radar(options) {
   delete this.data
 
   this.observe(this)
-
-  // Initialize _watchers container for watch
-  _.defineValue(this, '_watchers', {})
 
   this.compileNode(this.el, this)
 }

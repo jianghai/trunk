@@ -60,15 +60,18 @@ var nodeTypeHandles = {
     }
     var docFrag = document.createDocumentFragment()
 
+    function addDeps(textNode) {
+      return function(value) {
+        textNode.nodeValue = value
+      }
+    }
     for (var i = 0, len = fragments.length; i < len; i++) {
       var fragment = fragments[i]
       var textNode = document.createTextNode(fragment.value)
       docFrag.appendChild(textNode)
       if (fragment.isBind) {
         var exp = fragment.exp
-        this.addDeps(exp, function(value) {
-          textNode.nodeValue = value
-        }, scope)
+        this.addDeps(exp, addDeps(textNode), scope)
         textNode.nodeValue = this.get(exp, scope)
       }
     }
@@ -114,10 +117,8 @@ exports.compileNode = function(node, scope) {
       return this._compileComponentByTagName(node, tagName, scope)
     }
     var childNodes = node.childNodes
-    if (childNodes.length) {
-      for (var i = childNodes.length; i--;) {
-        this.compileNode(childNodes[i], scope)
-      }
+    for (var i = childNodes.length; i--;) {
+      this.compileNode(childNodes[i], scope)
     }
   }
   return node
@@ -128,13 +129,13 @@ exports.compileNode = function(node, scope) {
  */
 exports._compileComponentByTagName = function(node, name, scope) {
 
-  var options = this.components[name] || this.constructor.components[name]
-  options.template || (options.el = node.firstElementChild)
+  var options = this._getComponentOptions(name)
+  options.el = options.template.cloneNode(true)
   options.parent = scope
 
-  var component = new this.constructor(options)
+  node.parentNode.replaceChild(options.el, node)
 
-  node.parentNode.replaceChild(component.el, node)
+  var component = new this.constructor(options)
 
   return component.el
 }

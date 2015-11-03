@@ -16,5 +16,5 @@
  * could only be used on custom tag element.
  */
 module.exports = function(element, exp, scope) {
-  this.__props = exp
+  scope.__props = exp
 }

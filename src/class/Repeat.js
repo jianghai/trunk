@@ -40,7 +40,7 @@ function Repeat(element, exp, scope, context) {
 /**
  * Hanles when native method of 'this.list' was called.
  */
-Repeat.prototype.handles = {
+Repeat.prototype.nativeHandles = {
 
   push: function() {
     var args = arguments
@@ -80,11 +80,11 @@ Repeat.prototype.handles = {
   },
 
   pop: function() {
-    this.handles.splice.call(this, this.list.length - 1, 1)
+    this.nativeHandles.splice.call(this, this.list.length - 1, 1)
   },
 
   shift: function() {
-    this.handles.splice.call(this, 0, 1)
+    this.nativeHandles.splice.call(this, 0, 1)
   },
 
   unshift: function() {
@@ -116,10 +116,13 @@ Repeat.prototype.render = function() {
       this.childNodes.push(this.renderOne(item))
     }
     this.container.appendChild(this.docFrag)
-    for (var keys = Object.keys(this.handles), i = keys.length; i--; ) {
+
+    // Bind events when use native methods
+    var keys = Object.keys(this.nativeHandles)
+    for (i = keys.length; i--; ) {
       var method = keys[i]
       _.initialize(this.list, [], 'on' + method)
-      this.list['on' + method].push(_.bind(this.handles[method], this))
+      this.list['on' + method].push(_.bind(this.nativeHandles[method], this))
     }
   }
 }

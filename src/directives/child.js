@@ -18,7 +18,7 @@ var last
 
 function getComponent(instance, scope, name) {
   if (!cache[name]) {
-    var options = instance.components[name] || instance.constructor.components[name]
+    var options = instance._getComponentOptions(name)
     options.parent = scope
     cache[name] = new instance.constructor(options)
   }

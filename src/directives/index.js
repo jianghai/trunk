@@ -14,11 +14,11 @@ var config = require('../config')
 
 var directives = Object.create(null)
 
-var names = ['class', 'change', 'click', 'disabled', 'eq', 'if', 'model', 'not', 'on', 'repeat']
+var names = ['class', 'child', 'change', 'click', 'component', 'disabled', 'eq', 'if', 'model', 'not', 'on', 'props', 'repeat']
 
 for (var i = names.length; i--;) {
-  var name = names[i]
-  directives[config.d_prefix + name] = require('./' + name)
+  var _name = names[i]
+  directives[config.d_prefix + _name] = require('./' + _name)
 }
 
 module.exports = directives

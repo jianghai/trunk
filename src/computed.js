@@ -10,6 +10,8 @@
 
 'use strict'
 
+var _ = require('./util')
+
 // Save computer uid index instead of 'Array.prototype.indexOf' for better performance
 exports.uid = 0
 

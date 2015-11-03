@@ -38,6 +38,9 @@ exports._initializeWatcher = function(exp, scope) {
  * Get the value of expression.
  */
 exports.get = function(exp, scope) {
+
+  scope._watchers[exp] || this._initializeWatcher(exp, scope)
+  
   var value
   try {
     value = scope._watchers[exp].getter(scope)

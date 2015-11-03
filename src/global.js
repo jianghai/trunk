@@ -15,11 +15,9 @@
  */
 module.exports = {
 
-  // Container of global components options
-  components: {},
-
   // Register a global component and save the options.
-  components: function(name, options) {
-    this.components[name] = options
+  component: function(name, options) {
+    options.template = document.querySelector(options.template).content.firstElementChild
+    this.prototype.components[name] = options
   }
 }

@@ -17,7 +17,9 @@ module.exports = function(grunt) {
           filename: "<%= pkg.name %>.js",
           library: '<%= pkg.name %>',
           libraryTarget: 'umd'
-        }
+        },
+        watch: true,
+        keepalive: true
       }
     },
 

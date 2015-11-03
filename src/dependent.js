@@ -10,6 +10,8 @@
 
 'use strict'
 
+var _ = require('./util')
+
 /**
  * Push dependent to the dependents container. If the expression is multi-stage, push the 
  * child dependents to the parent's sub property for a permanent lifecycle.

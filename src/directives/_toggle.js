@@ -10,6 +10,8 @@
 
 'use strict'
 
+var _ = require('../util')
+
 /**
  * Watching condition change to remove or insert current element node.
  */
@@ -30,11 +32,10 @@ module.exports = function(element, exp, scope, bool, parseValue) {
     if (!value) {
       _.remove(element)
     } else {
-      
+      parentNode.insertBefore(element, nodeList[nextNodeIndex])
       if (!bool) {
         element = this.compileNode(element, scope)
       }
-      parentNode.insertBefore(element, nodeList[nextNodeIndex])
     }
     lastBool = value
   }, scope)

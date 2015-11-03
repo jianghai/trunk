@@ -10,6 +10,29 @@
 
 'use strict'
 
+function _bind(prop, context) {
+
+  var parent = context.parent
+
+  // Trigger change when parent change.
+  context.addDeps(prop, function(value, scope) {
+    // Prevent cricle dependents
+    scope.__circleDep = true
+    this.__circleDep || (this[prop] = value)
+    delete scope.__circleDep
+  }, context.parent)
+
+  context.data[prop] = context.parent[prop]
+
+  // Trigger parent change when change.
+  context.addDeps(prop, function(value, scope) {
+    // Prevent cricle dependents
+    scope.__circleDep = true
+    parent.__circleDep || (parent[prop] = value)
+    delete scope.__circleDep
+  }, context)
+}
+
 /**
  * Create data fields relationship between parent and child Radar instance.
  */
@@ -19,28 +42,8 @@ exports._bindRelatedProps = function() {
 
   if (!props) return
 
-  var parent = this.parent
-
   for (var i = props.length; i--; ) {
-    var prop = props[i]
-
-    // Trigger change when parent change.
-    this.addDeps(prop, function(value, scope) {
-      // Prevent cricle dependents
-      scope.__circleDep = true
-      this.__circleDep || (this[prop] = value)
-      delete scope.__circleDep
-    }, this.parent)
-
-    this.data[prop] = this.parent[prop]
-
-    // Trigger parent change when change.
-    this.addDeps(prop, function(value, scope) {
-      // Prevent cricle dependents
-      scope.__circleDep = true
-      parent.__circleDep || (parent[prop] = value)
-      delete scope.__circleDep
-    }, this)
+    _bind(props[i], this)
   }
 }
 
@@ -49,23 +52,33 @@ exports._bindRelatedProps = function() {
  * between parent and child Radar instance.
  */
 exports._getRelatedProps = function() {
-  var res
+  var res, i
   var _props = this.parent.__props
   if (_props || this.props) {
     res = []
     if (_props) {
       _props = _props.split(',')
-      for (var i = _props.length; i--; ) {
+      for (i = _props.length; i--; ) {
         res[i] = _props[i].trim()
       }
       delete this.parent.__props
     }
     if (this.props) {
-      for (var i = this.props.length; i--; ) {
+      for (i = this.props.length; i--; ) {
         var prop = this.props[i]
         res.indexOf(prop) === -1 && res.push(prop)
       }
     }
   }
   return res
+}
+
+// Container of global components options
+exports.components = {},
+
+/**
+ * Get options of a component
+ */
+exports._getComponentOptions = function(name) {
+  return this.components[name] || this.constructor.prototype.components[name]
 }
