@@ -17,7 +17,11 @@ module.exports = {
 
   // Register a global component and save the options.
   component: function(name, options) {
-    options.template = document.querySelector(options.template).content.firstElementChild
     this.prototype.components[name] = options
-  }
+  },
+
+  // Save computer uid index instead of 'Array.prototype.indexOf' for better performance
+  uid: 0,
+
+  events: {}
 }

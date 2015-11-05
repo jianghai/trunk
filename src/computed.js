@@ -12,9 +12,6 @@
 
 var _ = require('./util')
 
-// Save computer uid index instead of 'Array.prototype.indexOf' for better performance
-exports.uid = 0
-
 /**
  * Change computed properties to normal data and initialize computs.
  */
@@ -30,7 +27,8 @@ exports.initComputed = function(key) {
       // For self computed dependents
       this.addComputs(this, key)
       value = this.getComputedValue({
-        uid: '_computer_' + this.uid++,
+        uid: '_computer_' + this.constructor.uid++,
+        context: this,
         key: key,
         handle: handle
       })
@@ -50,13 +48,16 @@ exports.initComputed = function(key) {
  */
 exports.getComputedValue = function(computer) {
   var value
-  var initComputer = this._computer || null
+  // For nested computed value
+  var initComputer = this.constructor._computer || null
+  _.defineValue(this.constructor, '_computer', computer)
   try {
-    _.defineValue(this, '_computer', computer)
-    value = computer.handle.call(this)
-    _.defineValue(this, '_computer', initComputer)
+    value = computer.handle.call(computer.context)
   } catch(e) {
     value = ''
+  } finally {
+    // Reset to default value when got an error
+    _.defineValue(this.constructor, '_computer', initComputer)
   }
   return value
 }
@@ -66,13 +67,14 @@ exports.getComputedValue = function(computer) {
  */
 exports.addComputs = function(host, key) {
 
-  if (!this._computer) return
+  var _computer = this.constructor._computer
+  if (!_computer) return
 
   _.initialize(host, [], '_computs', key)
   var handles = host._computs[key]
-  if (!handles.hasOwnProperty(this._computer.uid)) {
-    handles.push(this._computer)
-    _.defineValue(handles, this._computer.uid, true)
+  if (!handles.hasOwnProperty(_computer.uid)) {
+    handles.push(_computer)
+    _.defineValue(handles, _computer.uid, true)
   }
 }
 
@@ -84,6 +86,6 @@ exports.traverseComputs = function(host, key) {
   var computes = host._computs[key]
   for (var i = computes.length; i--; ) {
     var computer = computes[i]
-    this[computer.key] = this.getComputedValue(computer)
+    computer.context[computer.key] = this.getComputedValue(computer)
   }
 }

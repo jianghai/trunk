@@ -14,22 +14,26 @@ function _bind(prop, context) {
 
   var parent = context.parent
 
-  // Trigger change when parent change.
-  context.addDeps(prop, function(value, scope) {
-    // Prevent cricle dependents
-    scope.__circleDep = true
-    this.__circleDep || (this[prop] = value)
-    delete scope.__circleDep
-  }, context.parent)
+  prop = prop.split(':')
+  var _parentProp = prop[0].trim()
+  var _childProp = prop[1] ? prop[1].trim() : _parentProp
 
-  context.data[prop] = context.parent[prop]
+  // Trigger change when parent change.
+  context.addDeps(_parentProp, function(value, scope) {
+    // Prevent cricle dependents
+    parent.__circleDep = true
+    context.__circleDep || (context[_childProp] = value)
+    delete parent.__circleDep
+  }, parent)
+
+  context.data[_childProp] = context.parent[_parentProp]
 
   // Trigger parent change when change.
-  context.addDeps(prop, function(value, scope) {
+  context.addDeps(_childProp, function(value, scope) {
     // Prevent cricle dependents
-    scope.__circleDep = true
-    parent.__circleDep || (parent[prop] = value)
-    delete scope.__circleDep
+    context.__circleDep = true
+    parent.__circleDep || (parent[_parentProp] = value)
+    delete context.__circleDep
   }, context)
 }
 
@@ -57,17 +61,11 @@ exports._getRelatedProps = function() {
   if (_props || this.props) {
     res = []
     if (_props) {
-      _props = _props.split(',')
-      for (i = _props.length; i--; ) {
-        res[i] = _props[i].trim()
-      }
+      res = _props.split(',')
       delete this.parent.__props
     }
     if (this.props) {
-      for (i = this.props.length; i--; ) {
-        var prop = this.props[i]
-        res.indexOf(prop) === -1 && res.push(prop)
-      }
+      res = res.concat(this.props)
     }
   }
   return res

@@ -38,6 +38,8 @@ function Radar(options) {
     }
   }
 
+  this.created && this.created()
+
   // Computed value
   if (this.computed) {
     for (var keys = Object.keys(this.computed), i = keys.length; i--;) {
@@ -70,5 +72,7 @@ _.merge(Radar.prototype, require('./watch'))
 _.merge(Radar.prototype, require('./component'))
 _.merge(Radar.prototype, require('./computed'))
 _.merge(Radar.prototype, require('./dependent'))
+_.merge(Radar.prototype, require('./service'))
+_.merge(Radar.prototype, require('./event'))
 
 module.exports = Radar

@@ -137,6 +137,9 @@ Repeat.prototype.renderOne = function(item) {
     _watchers: {
       value: {}
     },
+    parent: {
+      value: this.context
+    },
     remove: {
       configurable: false,
       enumerable: false,

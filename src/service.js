@@ -13,6 +13,16 @@
 /**
  * 
  */
-exports.fetch = function(url) {
-  
+exports.fetch = function(url, callback) {
+  var self = this
+  var xhr = new XMLHttpRequest()
+  xhr.onreadystatechange = function() {
+    if (this.readyState === 4) {
+      if (this.status === 200) {
+        callback.call(self, JSON.parse(this.responseText))
+      }
+    }
+  }
+  xhr.open('GET', url)
+  xhr.send(null)
 }

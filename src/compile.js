@@ -116,8 +116,8 @@ exports.compileNode = function(node, scope) {
     if (this.components[tagName]) {
       return this._compileComponentByTagName(node, tagName, scope)
     }
-    var childNodes = node.childNodes
-    for (var i = childNodes.length; i--;) {
+    var childNodes = _.toArray(node.childNodes)
+    for (var i = 0, len = childNodes.length; i < len; i++) {
       this.compileNode(childNodes[i], scope)
     }
   }
@@ -130,12 +130,19 @@ exports.compileNode = function(node, scope) {
 exports._compileComponentByTagName = function(node, name, scope) {
 
   var options = this._getComponentOptions(name)
+  if (typeof options.template === 'string') {
+    options.template = document.querySelector(options.template).content.firstElementChild
+  }
   options.el = options.template.cloneNode(true)
   options.parent = scope
 
-  node.parentNode.replaceChild(options.el, node)
-
   var component = new this.constructor(options)
+
+  this._components || (_.defineValue(this, '_components', []))
+  this._components.push(component)
+
+  var parentNode = node.parentNode
+  parentNode && parentNode.replaceChild(options.el, node)
 
   return component.el
 }

@@ -32,10 +32,10 @@ module.exports = function(element, exp, scope, bool, parseValue) {
     if (!value) {
       _.remove(element)
     } else {
-      parentNode.insertBefore(element, nodeList[nextNodeIndex])
       if (!bool) {
         element = this.compileNode(element, scope)
       }
+      parentNode.insertBefore(element, nodeList[nextNodeIndex])
     }
     lastBool = value
   }, scope)
