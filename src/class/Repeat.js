@@ -20,8 +20,11 @@ function Repeat(element, exp, scope, context) {
 
   this.context = context
   this.container = element.parentNode
+  this.nodeList = this.container.childNodes
+  this.nextNodeIndex = _.index(this.nodeList, element) + 1
   this.element = element
   this.docFrag = document.createDocumentFragment()
+  this.isComponent = context._getComponentOptions(element.tagName.toLowerCase()) || element.getAttribute(config.d_prefix + 'component')
 
   // Cache child nodes to record relative position
   this.childNodes = [this.element]
@@ -38,16 +41,17 @@ function Repeat(element, exp, scope, context) {
 }
 
 /**
- * Hanles when native method of 'this.list' was called.
+ * Handles when native method of 'this.list' was called.
  */
 Repeat.prototype.nativeHandles = {
 
   push: function() {
     var args = arguments
+    var nextNode = this.childNodes[this.list.length - 1].nextSibling
     for (var i = 0, len = args.length; i < len; i++) {
       this.childNodes.push(this.renderOne(args[i]))
     }
-    this.container.appendChild(this.docFrag)
+    this.container.insertBefore(this.docFrag, nextNode)
   },
 
   splice: function(start, deleteCount) {
@@ -71,12 +75,14 @@ Repeat.prototype.nativeHandles = {
 
   sort: function() {
     var res = []
-    for (var i = 0, len = this.list.length; i < len; i++) {
+    var len = this.list.length
+    var nextNode = this.childNodes[len - 1].nextSibling
+    for (var i = 0; i < len; i++) {
       res[i] = this.childNodes[this.list[i].index]
       this.docFrag.appendChild(res[i])
     }
     res = null
-    this.container.appendChild(this.docFrag)
+    this.container.insertBefore(this.docFrag, nextNode)
   },
 
   pop: function() {
@@ -115,7 +121,7 @@ Repeat.prototype.render = function() {
       _.defineValue(item, 'index', i)
       this.childNodes.push(this.renderOne(item))
     }
-    this.container.appendChild(this.docFrag)
+    this.container.insertBefore(this.docFrag, this.nodeList[this.nextNodeIndex])
 
     // Bind events when use native methods
     var keys = Object.keys(this.nativeHandles)
@@ -149,6 +155,7 @@ Repeat.prototype.renderOne = function(item) {
       }
     }
   })
+  this.isComponent && (item.__props = Object.keys(item))
   newNode = this.context.compileNode(newNode, item)
   this.docFrag.appendChild(newNode)
   return newNode

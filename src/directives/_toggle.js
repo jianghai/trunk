@@ -19,7 +19,7 @@ module.exports = function(element, exp, scope, bool, parseValue) {
 
   var parentNode = element.parentNode
   var nodeList = parentNode.childNodes
-  var nextNodeIndex = Array.prototype.indexOf.call(nodeList, element) + 1
+  var nextNodeIndex = _.index(nodeList, element) + 1
   var lastBool = bool
 
   if (!bool) {

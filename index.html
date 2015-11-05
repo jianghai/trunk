@@ -8,12 +8,25 @@
 <body id="app">
 
   <style>
-  a.active {
+  .active {
     color: red;
   }
+  .flex {
+    display: flex;
+  }
   </style>
-
-  <tree></tree>
+  <p>{{main.labelName}}-{{category.labelName}}-{{label.labelName}}</p>
+  
+  <div class="flex">
+    <tree></tree>
+    <div>
+      <div>
+        <button r-repeat="categories" r-component="category" r-class="active: isActive" r-click="click">{{labelName}}</button>
+        <button>+new</button>
+      </div>
+      <div></div>
+    </div>
+  </div>
 
   <template id="tpl-tree">
     <ul>
@@ -50,8 +63,11 @@
         this.treeData = res.data.stores
         var main = this.treeData[0]
         app.main = {
-          id: main.id
+          id: main.id,
+          labelName: main.labelName
         }
+        app.category = main.children[0]
+        app.categories = main.children
       })
     }
   })
@@ -66,11 +82,10 @@
       }
     },
     
-    props: ['id', 'labelName', 'children'],
-    
     click: function() {
       app[this.type] = {
-        id: this.id
+        id: this.id,
+        labelName: this.labelName
       }
     },
     
@@ -87,7 +102,24 @@
     data: {
       main: null,
       category: null,
-      label: null
+      label: null,
+      categories: null
+    },
+
+    components: {
+      category: {
+        click: function() {
+          app.category = {
+            id: this.id,
+            labelName: this.labelName
+          }
+        },
+        computed: {
+          isActive: function() {
+            return this.id === app.category.id
+          }
+        }
+      }
     }
   })
 

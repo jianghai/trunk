@@ -61,7 +61,7 @@ exports._getRelatedProps = function() {
   if (_props || this.props) {
     res = []
     if (_props) {
-      res = _props.split(',')
+      res = _props
       delete this.parent.__props
     }
     if (this.props) {

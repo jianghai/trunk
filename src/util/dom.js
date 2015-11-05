@@ -13,8 +13,8 @@
 /**
  * Get node index relative to sibling.
  */
-exports.index = function(parent, child) {
-  return Array.prototype.indexOf.call(parent.childNodes, child)
+exports.index = function(nodeList, child) {
+  return Array.prototype.indexOf.call(nodeList, child)
 }
 
 /**

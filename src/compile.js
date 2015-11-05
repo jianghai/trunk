@@ -113,7 +113,7 @@ exports.compileNode = function(node, scope) {
   
   // Stop compile childNodes when the result of handle is false
   if (handle.call(this, node, scope) !== false) {
-    if (this.components[tagName]) {
+    if (this._getComponentOptions(tagName)) {
       return this._compileComponentByTagName(node, tagName, scope)
     }
     var childNodes = _.toArray(node.childNodes)
