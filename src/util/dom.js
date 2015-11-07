@@ -51,3 +51,13 @@ exports.on = function(element, type, method, scope, context) {
     typeof context[method] === 'function' ? context[method](scope, e) : scope[method]()
   })
 }
+
+/**
+ * Not until the node was in document
+ */
+exports.getExistPreviousSibling = function(previous) {
+  while (!previous.parentNode) {
+    previous = previous.previousSibling
+  }
+  return previous
+}

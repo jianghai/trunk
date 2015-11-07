@@ -62,6 +62,8 @@ function Radar(options) {
   this.observe(this)
 
   this.compileNode(this.el, this)
+
+  this._destroyElseCache(this)
 }
 
 Radar.prototype.observe = require('./observe')

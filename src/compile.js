@@ -130,19 +130,31 @@ exports.compileNode = function(node, scope) {
 exports._compileComponentByTagName = function(node, name, scope) {
 
   var options = this._getComponentOptions(name)
-  if (typeof options.template === 'string') {
-    options.template = document.querySelector(options.template).content.firstElementChild
-  }
-  options.el = options.template.cloneNode(true)
   options.parent = scope
 
   var component = new this.constructor(options)
 
+  var parentNode = node.parentNode
+
+  if (parentNode) {
+    if (component.__outsideCallback) {
+      component.__outsideCallback(parentNode, node.previousSibling)
+      delete component.__outsideCallback
+    }
+    parentNode.replaceChild(options.el, node)
+  }
+
   this._components || (_.defineValue(this, '_components', []))
   this._components.push(component)
 
-  var parentNode = node.parentNode
-  parentNode && parentNode.replaceChild(options.el, node)
-
   return component.el
+}
+
+/**
+ * Remove else expression.
+ */
+exports._destroyElseCache = function(scope) {
+  if (scope.__else) {
+    delete scope.__else
+  }
 }

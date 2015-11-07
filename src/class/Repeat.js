@@ -11,7 +11,7 @@
 'use strict'
 
 var config = require('../config')
-var _      = require('../util')
+var _ = require('../util')
 
 /**
  * A class processing repeat directive.
@@ -19,10 +19,9 @@ var _      = require('../util')
 function Repeat(element, exp, scope, context) {
 
   this.context = context
-  this.container = element.parentNode
-  this.nodeList = this.container.childNodes
-  this.nextNodeIndex = _.index(this.nodeList, element) + 1
   this.element = element
+  this.previousNode = element.previousSibling
+  this.container = element.parentNode
   this.docFrag = document.createDocumentFragment()
   this.isComponent = context._getComponentOptions(element.tagName.toLowerCase()) || element.getAttribute(config.d_prefix + 'component')
 
@@ -121,7 +120,7 @@ Repeat.prototype.render = function() {
       _.defineValue(item, 'index', i)
       this.childNodes.push(this.renderOne(item))
     }
-    this.container.insertBefore(this.docFrag, this.nodeList[this.nextNodeIndex])
+    this.container.insertBefore(this.docFrag, _.getExistPreviousSibling(this.previousNode).nextSibling)
 
     // Bind events when use native methods
     var keys = Object.keys(this.nativeHandles)
@@ -155,9 +154,18 @@ Repeat.prototype.renderOne = function(item) {
       }
     }
   })
-  this.isComponent && (item.__props = Object.keys(item))
+  // Create data relationship if list item is component
+  this.isComponent && _.defineValue(item, '__props', Object.keys(item))
+
   newNode = this.context.compileNode(newNode, item)
-  this.docFrag.appendChild(newNode)
+  if (item.__outsideCallback) {
+    item.__outsideCallback(this.container, newNode.previousSibling || this.previousNode)
+    delete item.__outsideCallback
+  } else {
+    this.docFrag.appendChild(newNode)
+  }
+  
+  this.context._destroyElseCache(item)
   return newNode
 }
 

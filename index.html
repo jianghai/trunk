@@ -29,9 +29,12 @@
   </div>
 
   <template id="tpl-tree">
-    <ul>
-      <item r-repeat="treeData"></item>
-    </ul>
+    <div>
+      <div r-if="status" r-child="status"></div>
+      <ul r-else>
+        <item r-repeat="treeData"></item>
+      </ul>
+    </div>
   </template>
 
   <template id="tpl-tree-item">
@@ -42,6 +45,10 @@
       </ul>
     </li>
   </template>
+
+  <template id="tpl-loading">
+    <span>loading...</span>
+  </template>
   
   <script>
   console.time('compile')
@@ -49,17 +56,24 @@
   var URL_TREEDATA = 'http://172.19.1.166:8090/changhong/label/getLabelsByCondition'
   var LEVEL_TYPES = ['main', 'category', 'label']
 
+  Radar.component('loading', {
+    template: '#tpl-loading'
+  })
+
   Radar.component('tree', {
 
     template: '#tpl-tree',
     
     data: {
       level: 0,
-      treeData: null
+      treeData: null,
+      status: 'loading'
     },
     
     created: function() {
+      this.status = 'loading'
       this.fetch(URL_TREEDATA, function(res) {
+        this.status = null
         this.treeData = res.data.stores
         var main = this.treeData[0]
         app.main = {
@@ -103,7 +117,7 @@
       main: null,
       category: null,
       label: null,
-      categories: null
+      categories: null,
     },
 
     components: {

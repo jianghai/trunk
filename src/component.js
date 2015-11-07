@@ -75,8 +75,16 @@ exports._getRelatedProps = function() {
 exports.components = {},
 
 /**
- * Get options of a component
+ * Get options of a component, initialize element if template exist.
  */
 exports._getComponentOptions = function(name) {
-  return this.components[name] || this.constructor.prototype.components[name]
+  var options = this.components[name] || this.constructor.prototype.components[name]
+  if (!options) return
+  if (options.template) {
+    if (typeof options.template === 'string') {
+      options.template = document.querySelector(options.template).content.firstElementChild
+    }
+    options.el = options.template.cloneNode(true)
+  }
+  return options
 }

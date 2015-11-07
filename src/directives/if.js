@@ -10,6 +10,7 @@
 
 'use strict'
 
+var _ = require('../util')
 var config = require('../config')
 var toggle = require('./_toggle')
 
@@ -19,12 +20,11 @@ var toggle = require('./_toggle')
  */
 module.exports = function(element, exp, scope) {
 
+  // Save for else directive in the same scope
+  _.defineValue(scope, '__else', exp)
+
   // Prevent recompile
   element.removeAttribute(config.d_prefix + 'if')
 
-  var bool = !!this.get(exp, scope)
-
-  toggle.call(this, element, exp, scope, bool)
-
-  return bool
+  return toggle.call(this, element, exp, scope)
 }

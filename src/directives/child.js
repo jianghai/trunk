@@ -16,25 +16,40 @@ var _ = require('../util')
 var cache = {}
 var last
 
-function getComponent(instance, scope, name) {
+function injectComponent(instance, scope, name, parent) {
+  
   if (!cache[name]) {
+    
     var options = instance._getComponentOptions(name)
+    if (!options) {
+      throw 'No component named ' + name
+    }
+    
     options.parent = scope
+    
+    parent.appendChild(options.el)
+    
     cache[name] = new instance.constructor(options)
   }
-  return cache[name]
+  parent.appendChild(cache[name].el)
 }
 
 /**
  * Append a dynamic component.
  */
 module.exports = function(element, exp, scope) {
+
   this.addDeps(exp, function(value, scope) {
-    _.remove(cache[last])
-    element.appendChild(getComponent(this, scope, value).el)
+  
+    _.remove(cache[last].el)
+  
+    if (!value || typeof value !== 'string') return
+  
+    injectComponent(this, scope, value, element)
+  
     last = value
   }, scope)
 
   last = this.get(exp, scope)
-  element.appendChild(getComponent(this, scope, last).el)
+  injectComponent(this, scope, last, element)
 }

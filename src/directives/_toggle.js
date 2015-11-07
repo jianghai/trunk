@@ -15,28 +15,37 @@ var _ = require('../util')
 /**
  * Watching condition change to remove or insert current element node.
  */
-module.exports = function(element, exp, scope, bool, parseValue) {
+module.exports = function(element, exp, scope, opposite) {
 
   var parentNode = element.parentNode
-  var nodeList = parentNode.childNodes
-  var nextNodeIndex = _.index(nodeList, element) + 1
-  var lastBool = bool
+  var previousNode = element.previousSibling
 
-  if (!bool) {
-    _.remove(element)
+  var initValue = this.get(exp, scope)
+  initValue = opposite ? !initValue : !!initValue
+  var lastValue = initValue
+
+  if (parentNode) {
+    initValue || _.remove(element)
+  } else {
+    _.defineValue(scope, '__outsideCallback', function(parent, previous) {
+      parentNode = parent
+      previousNode = previous
+    })
   }
 
   this.addDeps(exp, function(value) {
-    value = parseValue ? parseValue(value) : !!value
-    if (lastBool === value) return
+    value = opposite ? !value : !!value
+    if (lastValue === value) return
     if (!value) {
       _.remove(element)
     } else {
-      if (!bool) {
+      if (!initValue) {
         element = this.compileNode(element, scope)
       }
-      parentNode.insertBefore(element, nodeList[nextNodeIndex])
+      parentNode.insertBefore(element, _.getExistPreviousSibling(previousNode).nextSibling)
     }
-    lastBool = value
+    lastValue = value
   }, scope)
+
+  return initValue
 }

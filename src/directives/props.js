@@ -10,11 +10,13 @@
 
 'use strict'
 
+var _ = require('../util')
+
 /**
  * Record current data fields to set data for the child component (equivalent with the 'props' 
  * property of the component options). Split by comma in case of multiple fields. This directive 
  * could only be used on custom tag element.
  */
 module.exports = function(element, exp, scope) {
-  scope.__props = exp.split(',')
+  _.defineValue(scope, '__props', exp.split(','))
 }

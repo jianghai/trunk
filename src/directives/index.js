@@ -14,7 +14,7 @@ var config = require('../config')
 
 var directives = Object.create(null)
 
-var names = ['class', 'child', 'change', 'click', 'component', 'disabled', 'eq', 'if', 'model', 'not', 'on', 'props', 'repeat']
+var names = ['class', 'child', 'change', 'click', 'component', 'disabled', 'eq', 'if', 'model', 'else', 'on', 'props', 'repeat']
 
 for (var i = names.length; i--;) {
   var _name = names[i]

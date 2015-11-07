@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  * 
- * @providesModule not
+ * @providesModule else
  */
 
 'use strict'
@@ -20,11 +20,11 @@ var toggle = require('./_toggle')
 module.exports = function(element, exp, scope) {
 
   // Prevent recompile
-  element.removeAttribute(config.d_prefix + 'not')
+  element.removeAttribute(config.d_prefix + 'else')
 
-  var bool = !this.get(exp, scope)
+  exp = scope.__else
 
-  toggle.call(this, element, exp, scope, bool)
+  this._destroyElseCache(scope)
 
-  return bool
+  return toggle.call(this, element, exp, scope, true)
 }
