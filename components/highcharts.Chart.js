@@ -54,16 +54,12 @@ define([
 
       this.defultOption.chart.renderTo = this.el[0];
 
-      if (!this.chart) {
-        this.chart = new Highcharts.Chart(this.defultOption);
-      }
-
       var data = this.model.data;
 
       if (!data.stores || !data.stores.length) {
         this.el.html('<div class="empty">暂无数据</div>');
       } else {
-        this.chart = new Highcharts.Chart(this.parseOption(data.stores || []));
+        new Highcharts.Chart(this.parseOption(data.stores || []));
       }
     }
   });

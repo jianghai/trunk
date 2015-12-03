@@ -229,13 +229,15 @@
       }
 
       if (!options.silent) {
+        var isChange = false
         for (var k in data) {
           if (!this.isEqual(data[k], this.data[k])) {
+            isChange = true
             this.data[k] = data[k];
             this.trigger('change:' + k, data[k]);
           }
         }
-        this.trigger('change', data);
+        isChange && this.trigger('change', data);
         this.collection && this.collection.trigger('change');
       } else {
         $.extend(this.data, data)
@@ -442,11 +444,11 @@
 
     this.tag && (this.el = $('<' + this.tag + '>'));
     typeof this.el === 'string' && this.el.indexOf('#') === 0 && (this.el = $(this.el));
-    typeof this.template === 'string' && this.template.indexOf('#') === 0 && this.getTemplate();
+    typeof this.template === 'string' && this.template.indexOf('#') === 0 && this.initTemplate();
 
     if (typeof this.el === 'object') {
       this.delegateEvents();
-      !this.tag && typeof this.template === 'string' && this.getTemplate();
+      !this.tag && typeof this.template === 'string' && this.initTemplate();
       this.className && this.el.addClass(this.className);
     }
 
@@ -481,7 +483,7 @@
         typeof child.el === 'string' && (child._el = child.el);
         child._el && (child.el = this.$(child._el)) && child.delegateEvents();
 
-        typeof child.template === 'string' && child.getTemplate();
+        typeof child.template === 'string' && child.initTemplate();
 
         if (child.silent) continue;
 
@@ -489,10 +491,14 @@
       }
     },
 
-    getTemplate: function() {
-      var template = vjs((
-        this.template.indexOf('.') === 0 ? this.$(this.template) : $(this.template)).html());
-      if (!template) throw '"' + this.template + '" not exist';
+    getTemplate: function(selector) {
+      var template = vjs((selector.charCodeAt(0) === 35 ? $(selector) : this.$(selector)).html())
+      if (!template) throw '"' + selector + '" not exist';
+      return template
+    },
+
+    initTemplate: function() {
+      var template = this.getTemplate(this.template)
       if (this.hasOwnProperty('template')) {
         this.template = template;
       } else {

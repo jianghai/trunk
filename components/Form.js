@@ -9,6 +9,9 @@ define([
       this.error = {};
       var isValid = true;
       for (var i in data) {
+        if (typeof data[i] === 'string') {
+          data[i] = data[i].trim()
+        }
         if (this.rules[i]) {
           var msg = this.rules[i].call(this, data[i]);
           if (msg) {
@@ -96,12 +99,15 @@ define([
       return res;
     },
 
-    onSubmit: function() {
+    onSubmit: function(e) {
       if (this.model.set(this.serialize())) {
+        var submitButton = $(document.activeElement).prop('disabled', true)
         $.ajax({
           type: 'post',
           url: this.model.post,
           data: $.jsonParam(this.model.data)
+        }).complete(function() {
+          submitButton.prop('disabled', false)
         }).done(this.onDone.bind(this));
       }
       return false;
